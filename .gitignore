@@ -1,8 +1,4 @@
 /node_modules
-/public/hot
-/public/storage
-/storage/*.key
-/storage/
 /vendor
 /.idea
 /.vagrant
@@ -10,18 +6,4 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 .env
-/public/uploads/business_logos
-/public/uploads/documents
-/public/uploads/img
-/public/uploads/media
-/public/uploads/invoice_logos
-/public/uploads/UltimatePOS
-/public/uploads/temp
-/public/css/
-/public/fonts/
-/public/images/
-/public/modules/
-/public/mix-manifest.json
 .scribe
-/public/docs
-/public/js/skins/
