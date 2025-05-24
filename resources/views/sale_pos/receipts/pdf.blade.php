@@ -1,0 +1,1 @@
+This PDF document is generated using domPDF in Laravel
