@@ -284,17 +284,29 @@
                             }
                         },
                         columns: [
-                            { data: 'invoice_no', name: 'sale.invoice_no'  },
-                            { data: 'gross_profit', "searchable": false},
+                            { data: 'invoice_no', name: 'sale.invoice_no' },
+                            { data: 'total_purchase_price', name: 'total_purchase_price', searchable: false, orderable: false },
+                            { data: 'total_sales_price', name: 'total_sales_price', searchable: false, orderable: false },
+                            { data: 'gross_profit', searchable: false },
                         ],
                         footerCallback: function ( row, data, start, end, display ) {
-                            var total_profit = 0;
-                            for (var r in data){
-                                total_profit += $(data[r].gross_profit).data('orig-value') ? 
-                                parseFloat($(data[r].gross_profit).data('orig-value')) : 0;
+                            let total_profit = 0;
+                            let total_sales = 0;
+                            let total_purchase = 0;
+
+                            for (let r in data){
+                                const profit_val = $(data[r].gross_profit).data('orig-value');
+                                const purchase_val = $(data[r].total_purchase_price).data('orig-value');
+                                const sales_val = $(data[r].total_sales_price).data('orig-value');
+
+                                total_profit += profit_val ? parseFloat(profit_val) : 0;
+                                total_purchase += purchase_val ? parseFloat(purchase_val) : 0;
+                                total_sales += sales_val ? parseFloat(sales_val) : 0;
                             }
 
                             $('#profit_by_invoice_table .footer_total').html(__currency_trans_from_en(total_profit));
+                            $('#profit_by_invoice_table .footer_total_purchase').html(__currency_trans_from_en(total_purchase));
+                            $('#profit_by_invoice_table .footer_total_sales').html(__currency_trans_from_en(total_sales));
                         },
                     });
                 } else {

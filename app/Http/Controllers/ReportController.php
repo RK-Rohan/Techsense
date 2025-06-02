@@ -3029,10 +3029,32 @@ class ReportController extends Controller
                 'sale.id as transaction_id',
                 'sale.discount_type',
                 'sale.discount_amount',
-                'sale.total_before_tax'
+                'sale.total_before_tax',
+                DB::raw('
+                    SUM(CASE 
+                        WHEN TSPL.id IS NULL AND P.type = "combo" THEN (
+                            SELECT SUM((tspl2.quantity - tspl2.qty_returned) * pl2.purchase_price_inc_tax)
+                            FROM transaction_sell_lines AS tsl
+                            JOIN transaction_sell_lines_purchase_lines AS tspl2 ON tsl.id = tspl2.sell_line_id
+                            JOIN purchase_lines AS pl2 ON tspl2.purchase_line_id = pl2.id
+                            WHERE tsl.parent_sell_line_id = transaction_sell_lines.id
+                        )
+                        WHEN P.enable_stock = 0 THEN 0
+                        ELSE (TSPL.quantity - TSPL.qty_returned) * PL.purchase_price_inc_tax
+                    END) as total_purchase_price'),
+                DB::raw('
+                    SUM((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax)
+                    as total_sales_price')
             )
-                ->groupBy('sale.invoice_no');
+            ->groupBy(
+                'sale.invoice_no',
+                'sale.id',
+                'sale.discount_type',
+                'sale.discount_amount',
+                'sale.total_before_tax'
+            );
         }
+
 
         if ($by == 'date') {
             $query->addSelect('sale.transaction_date')
@@ -3117,7 +3139,21 @@ class ReportController extends Controller
                 return '<a data-href="'.action([\App\Http\Controllers\SellController::class, 'show'], [$row->transaction_id])
                             .'" href="#" data-container=".view_modal" class="btn-modal">'.$row->invoice_no.'</a>';
             });
+            
+
+            $datatable->editColumn('total_purchase_price', function ($row) {
+                return '<span class="total-purchase-price" data-orig-value="'.$row->total_purchase_price.'">'.
+                    $this->transactionUtil->num_f($row->total_purchase_price, true).'</span>';
+            });
+
+            $datatable->editColumn('total_sales_price', function ($row) {
+                return '<span class="total-sales-price" data-orig-value="'.$row->total_sales_price.'">'.
+                    $this->transactionUtil->num_f($row->total_sales_price, true).'</span>';
+            });
             $raw_columns[] = 'invoice_no';
+            $raw_columns[] = 'total_purchase_price';
+            $raw_columns[] = 'total_sales_price';
+
         }
 
         return $datatable->rawColumns($raw_columns)
