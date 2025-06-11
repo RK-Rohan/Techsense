@@ -18,6 +18,8 @@ $(document).ready(function () {
             $('.agent_div').removeClass('hide');
             $('.tracking_div').removeClass('hide');
             $('.carton_no_div').removeClass('hide');
+
+            $('.received_date_div').removeClass('hide');
         } else {
             $('.delivery_time').removeClass('hide');
             $('#custom_field_div_1').removeClass('hide');
@@ -35,6 +37,9 @@ $(document).ready(function () {
             $('.agent_div').addClass('hide');
             $('.tracking_div').addClass('hide');
             $('.carton_no_div').addClass('hide');
+
+            $('.received_date_div').addClass('hide');
+
         }
 
         //get suppliers

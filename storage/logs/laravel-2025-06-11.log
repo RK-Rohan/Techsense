@@ -1,0 +1,3 @@
+[2025-06-11 13:19:37] live.EMERGENCY: File:E:\wamp64\www\techsense\app\Utils\ProductUtil.phpLine:1039Message:Attempt to read property "price_inc_tax" on null  
+[2025-06-11 13:19:51] live.EMERGENCY: File:E:\wamp64\www\techsense\app\Utils\ProductUtil.phpLine:1039Message:Attempt to read property "price_inc_tax" on null  
+[2025-06-11 13:20:07] live.EMERGENCY: File:E:\wamp64\www\techsense\app\Utils\ProductUtil.phpLine:1039Message:Attempt to read property "price_inc_tax" on null  

@@ -494,6 +494,8 @@ $title = __('lang_v1.sales_order');
 			@endcomponent
 
 
+
+
 			@component('components.widget', ['class' => 'box-solid pre_sales_box'])
 			<div class="clearfix"></div>
 
@@ -531,8 +533,9 @@ $title = __('lang_v1.sales_order');
 				</div>
 			</div>
 
+			@endcomponent
 
-
+			@component('components.widget', ['class' => 'box-solid delivery_date_box'])
 			<div class="col-sm-4">
 				<div class="form-group">
 					{!! Form::label('delivery_date', 'Delivery Date' . ':*') !!}
@@ -544,7 +547,7 @@ $title = __('lang_v1.sales_order');
 					</div>
 				</div>
 			</div>
-			<div class="col-sm-4">
+			<div class="col-sm-4 received_date_div">
 				<div class="form-group">
 					{!! Form::label('received_date', 'Received Date' . ':*') !!}
 					<div class="input-group">
@@ -555,10 +558,8 @@ $title = __('lang_v1.sales_order');
 					</div>
 				</div>
 			</div>
-
-
-
 			@endcomponent
+
 
 			@component('components.widget', ['class' => 'box-solid'])
 			<div class="col-md-4  @if($sale_type == 'sales_order') hide @endif">
@@ -602,31 +603,7 @@ $title = __('lang_v1.sales_order');
 				<span class="display_currency" id="total_discount">0</span>
 			</div>
 			<div class="clearfix"></div>
-			<div class="col-md-12 well well-sm bg-light-gray @if(session('business.enable_rp') != 1 || $sale_type == 'sales_order') hide @endif">
-				<input type="hidden" name="rp_redeemed" id="rp_redeemed" value="0">
-				<input type="hidden" name="rp_redeemed_amount" id="rp_redeemed_amount" value="0">
-				<div class="col-md-12">
-					<h4>{{session('business.rp_name')}}</h4>
-				</div>
-				<div class="col-md-4">
-					<div class="form-group">
-						{!! Form::label('rp_redeemed_modal', __('lang_v1.redeemed') . ':' ) !!}
-						<div class="input-group">
-							<span class="input-group-addon">
-								<i class="fa fa-gift"></i>
-							</span>
-							{!! Form::number('rp_redeemed_modal', 0, ['class' => 'form-control direct_sell_rp_input', 'data-amount_per_unit_point' => session('business.redeem_amount_per_unit_rp'), 'min' => 0, 'data-max_points' => 0, 'data-min_order_total' => session('business.min_order_total_for_redeem') ]); !!}
-							<input type="hidden" id="rp_name" value="{{session('business.rp_name')}}">
-						</div>
-					</div>
-				</div>
-				<div class="col-md-4">
-					<p><strong>@lang('lang_v1.available'):</strong> <span id="available_rp">0</span></p>
-				</div>
-				<div class="col-md-4">
-					<p><strong>@lang('lang_v1.redeemed_amount'):</strong> (-)<span id="rp_redeemed_amount_text">0</span></p>
-				</div>
-			</div>
+
 			<div class="clearfix"></div>
 			<div class="col-md-4  @if($sale_type == 'sales_order') hide @endif">
 				<div class="form-group">
@@ -697,6 +674,8 @@ $title = __('lang_v1.sales_order');
 					{!! Form::select('delivery_person', $users, null, ['class' => 'form-control select2','placeholder' => __('messages.please_select')]); !!}
 				</div>
 			</div>
+
+			
 			@php
 			$shipping_custom_label_1 = !empty($custom_labels['shipping']['custom_field_1']) ? $custom_labels['shipping']['custom_field_1'] : '';
 

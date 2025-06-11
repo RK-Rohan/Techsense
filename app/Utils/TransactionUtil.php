@@ -46,6 +46,7 @@ class TransactionUtil extends Util
      */
     public function createSellTransaction($business_id, $input, $invoice_total, $user_id, $uf_data = true)
     {
+
         $sale_type = !empty($input['type']) ? $input['type'] : 'sell';
         $invoice_scheme_id = !empty($input['invoice_scheme_id']) ? $input['invoice_scheme_id'] : null;
         $invoice_no = !empty($input['invoice_no']) ? $input['invoice_no'] : $this->getInvoiceNumber($business_id, $input['status'], $input['location_id'], $invoice_scheme_id, $sale_type);
@@ -61,6 +62,12 @@ class TransactionUtil extends Util
             $pay_term_number = $contact->pay_term_number;
             $pay_term_type = $contact->pay_term_type;
         }
+
+        $delivery_date = !empty($input['delivery_date']) 
+            ? \Carbon\Carbon::createFromFormat('d-m-Y h:i A', $input['delivery_date']) 
+            : null;
+
+
         $transaction = Transaction::create([
             'business_id' => $business_id,
             'location_id' => $input['location_id'],
@@ -94,6 +101,7 @@ class TransactionUtil extends Util
             'shipping_address' => isset($input['shipping_address']) ? $input['shipping_address'] : null,
             'shipping_status' => isset($input['shipping_status']) ? $input['shipping_status'] : null,
             'delivered_to' => isset($input['delivered_to']) ? $input['delivered_to'] : null,
+            'delivery_date' => $delivery_date,
             'delivery_person' => isset($input['delivery_person']) ? $input['delivery_person'] : null,
             'shipping_charges' => isset($input['shipping_charges']) ? $uf_data ? $this->num_uf($input['shipping_charges']) : $input['shipping_charges'] : 0,
             'shipping_custom_field_1' => !empty($input['shipping_custom_field_1']) ? $input['shipping_custom_field_1'] : null,
@@ -5145,6 +5153,7 @@ class TransactionUtil extends Util
                 'transactions.rp_earned',
                 'transactions.types_of_service_id',
                 'transactions.shipping_status',
+                'transactions.delivery_date',
                 'transactions.pay_term_number',
                 'transactions.pay_term_type',
                 'transactions.additional_notes',

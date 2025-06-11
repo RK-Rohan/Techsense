@@ -548,6 +548,7 @@ class SellController extends Controller
 
                     return $status;
                 })
+                ->editColumn('delivery_date', '{{@format_datetime($delivery_date)}}')
                 ->addColumn('conatct_name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$name}}')
                 ->editColumn('total_items', '{{@format_quantity($total_items)}}')
                 ->filterColumn('conatct_name', function ($query, $keyword) {
@@ -594,7 +595,7 @@ class SellController extends Controller
                     },
                 ]);
 
-            $rawColumns = ['final_total', 'action', 'total_paid', 'total_remaining','tracking_no', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status'];
+            $rawColumns = ['final_total', 'action', 'total_paid', 'total_remaining','tracking_no', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'delivery_date','types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status'];
 
             return $datatable->rawColumns($rawColumns)
                 ->make(true);

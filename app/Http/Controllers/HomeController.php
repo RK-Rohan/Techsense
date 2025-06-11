@@ -130,12 +130,12 @@ class HomeController extends Controller
 
         if (! empty($location_sells)) {
             foreach ($location_sells as $location_sell) {
-                $sells_chart_1->dataset($location_sell['loc_label'], 'line', $location_sell['values']);
+                $sells_chart_1->dataset($location_sell['loc_label'], 'column', $location_sell['values']);
             }
         }
 
         if (count($all_locations) > 1) {
-            $sells_chart_1->dataset(__('report.all_locations'), 'line', $all_sell_values);
+            $sells_chart_1->dataset(__('report.all_locations'), 'column', $all_sell_values);
         }
 
         $labels = [];
@@ -563,8 +563,21 @@ class HomeController extends Controller
                 'layout' => 'vertical',
                 'padding' => 20,
             ],
+            'plotOptions' => [
+                'column' => [
+                    'dataLabels' => [
+                        'enabled' => true
+                    ]
+                ],
+                'series' => [
+                    'dataLabels' => [
+                        'enabled' => true
+                    ]
+                ]
+            ],
         ];
     }
+
 
     public function getCalendar()
     {
