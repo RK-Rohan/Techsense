@@ -394,6 +394,21 @@ $title = $transaction->type == 'sales_order' ? __('lang_v1.edit_sales_order') : 
 			</div>
 			@endcomponent
 
+			@component('components.widget', ['class' => 'box-solid delivery_date_box'])
+			<div class="col-sm-4">
+				<div class="form-group">
+					{!! Form::label('delivery_date', 'Delivery Date' . ':') !!}
+					<div class="input-group">
+						<span class="input-group-addon">
+							<i class="fa fa-calendar"></i>
+						</span>
+						
+						{!! Form::text('delivery_date', $transaction->delivery_date, ['class' => 'form-control', 'readonly']); !!}
+					</div>
+				</div>
+			</div>
+			@endcomponent
+
 			@component('components.widget', ['class' => 'box-solid'])
 			<div class="col-md-4 @if($transaction->type == 'sales_order') hide @endif">
 				<div class="form-group">
@@ -897,6 +912,7 @@ $title = $transaction->type == 'sales_order' ? __('lang_v1.edit_sales_order') : 
 @if(in_array('tables' ,$enabled_modules) || in_array('modifiers' ,$enabled_modules) || in_array('service_staff' ,$enabled_modules))
 <script src="{{ asset('js/restaurant.js?v=' . $asset_v) }}"></script>
 @endif
+<script src="{{ asset('js/sell_edit.js') }}"></script>
 <script type="text/javascript">
 	$(document).ready(function() {
 

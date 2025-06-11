@@ -1099,6 +1099,7 @@ class SellController extends Controller
         $customer_groups = CustomerGroup::forDropdown($business_id);
 
         $transaction->transaction_date = $this->transactionUtil->format_date($transaction->transaction_date, true);
+        $transaction->delivery_date = $this->transactionUtil->format_date($transaction->delivery_date, true);
 
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 

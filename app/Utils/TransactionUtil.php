@@ -410,6 +410,10 @@ class TransactionUtil extends Util
             $update_date['transaction_date'] = $input['transaction_date'];
         }
 
+        if (!empty($input['delivery_date'])) {
+            $update_date['delivery_date'] = $input['delivery_date'];
+        }
+
         $transaction->fill($update_date);
         $transaction->update();
 
