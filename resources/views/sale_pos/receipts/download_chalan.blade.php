@@ -78,9 +78,9 @@
                             Mobile: {!! $receipt_details->customer_mobile !!} <br>
                             Address: {!! $receipt_details->shipping_address !!}</br>
                             Delivery Type: {!! $receipt_details->shipping_status !!}
-                            @if(!empty($receipt_details->shipping_custom_field_1_label))
+                            {{-- @if(!empty($receipt_details->shipping_custom_field_1_label))
                             <br><strong>{!!$receipt_details->shipping_custom_field_1_label!!} :</strong> {!!$receipt_details->shipping_custom_field_1_value ?? ''!!}
-                            @endif
+                            @endif --}}
                         </td>
                     </tr>
 

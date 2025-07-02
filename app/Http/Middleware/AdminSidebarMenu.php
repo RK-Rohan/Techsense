@@ -27,7 +27,7 @@ class AdminSidebarMenu
             $common_settings = ! empty(session('business.common_settings')) ? session('business.common_settings') : [];
             $pos_settings = ! empty(session('business.pos_settings')) ? json_decode(session('business.pos_settings'), true) : [];
 
-            $is_admin = auth()->user()->hasRole('Admin#'.session('business.id')) ? true : false;
+            $is_admin = auth()->user()->hasRole('Admin#' . session('business.id')) ? true : false;
             //Home
             $menu->url(action([\App\Http\Controllers\HomeController::class, 'index']), __('home.home'), ['icon' => 'fa fas fa-tachometer-alt', 'active' => request()->segment(1) == 'home'])->order(5);
 
@@ -91,7 +91,7 @@ class AdminSidebarMenu
                                 ['icon' => 'fa fas fa-users', 'active' => request()->segment(1) == 'customer-group']
                             );
                         }
-                        
+
                         if (auth()->user()->can('supplier.create') || auth()->user()->can('customer.create')) {
                             $sub->url(
                                 action([\App\Http\Controllers\ContactController::class, 'getImportContacts']),
@@ -113,10 +113,12 @@ class AdminSidebarMenu
             }
 
             //Products dropdown
-            if (auth()->user()->can('product.view') || auth()->user()->can('product.create') ||
+            if (
+                auth()->user()->can('product.view') || auth()->user()->can('product.create') ||
                 auth()->user()->can('brand.view') || auth()->user()->can('unit.view') ||
                 auth()->user()->can('category.view') || auth()->user()->can('brand.create') ||
-                auth()->user()->can('unit.create') || auth()->user()->can('category.create')) {
+                auth()->user()->can('unit.create') || auth()->user()->can('category.create')
+            ) {
                 $menu->dropdown(
                     __('sale.products'),
                     function ($sub) {
@@ -127,7 +129,7 @@ class AdminSidebarMenu
                                 ['icon' => 'fa fas fa-list', 'active' => request()->segment(1) == 'products' && request()->segment(2) == '']
                             );
                         }
-                        
+
 
                         if (auth()->user()->can('product.create')) {
                             $sub->url(
@@ -185,7 +187,7 @@ class AdminSidebarMenu
                         }
                         if (auth()->user()->can('category.view') || auth()->user()->can('category.create')) {
                             $sub->url(
-                                action([\App\Http\Controllers\TaxonomyController::class, 'index']).'?type=product',
+                                action([\App\Http\Controllers\TaxonomyController::class, 'index']) . '?type=product',
                                 __('category.categories'),
                                 ['icon' => 'fa fas fa-tags', 'active' => request()->segment(1) == 'taxonomies' && request()->get('type') == 'product']
                             );
@@ -280,7 +282,7 @@ class AdminSidebarMenu
                                 ['icon' => 'fa fas fa-plus-circle', 'active' => request()->segment(1) == 'sells' && request()->segment(2) == 'create' && empty(request()->get('status'))]
                             );
                         }
-                        
+
 
                         if (in_array('add_sale', $enabled_modules) && auth()->user()->can('direct_sell.access')) {
                             $sub->url(
@@ -311,12 +313,13 @@ class AdminSidebarMenu
                             );
                         }
 
-                        
-                            $sub->url(
-                                action([\App\Http\Controllers\TermsConditionController::class, 'index']), "Terms and Conditions",
-                                ['icon' => 'fa fas fa-pen-square', 'active' => request()->segment(1) == 'terms-conditions' && request()->segment(2) == null]
-                            );
-                        
+
+                        $sub->url(
+                            action([\App\Http\Controllers\TermsConditionController::class, 'index']),
+                            "Terms and Conditions",
+                            ['icon' => 'fa fas fa-pen-square', 'active' => request()->segment(1) == 'terms-conditions' && request()->segment(2) == null]
+                        );
+
 
                         if (auth()->user()->can('access_sell_return') || auth()->user()->can('access_own_sell_return')) {
                             $sub->url(
@@ -356,20 +359,19 @@ class AdminSidebarMenu
                                 ['icon' => 'fa fas fa-file-import', 'active' => request()->segment(1) == 'import-sales']
                             );
                         }
-
                     },
                     ['icon' => 'fa fas fa-arrow-circle-up', 'id' => 'tour_step7']
                 )->order(30);
             }
 
-            $menu->dropdown("Agent",
+            $menu->dropdown(
+                "Agent",
                 function ($sub) {
                     $sub->url(
                         action([\App\Http\Controllers\AgentTransactionController::class, 'index']),
                         "Agent Transaction",
                         ['icon' => 'fa fas fa-plus-circle', 'active' => request()->segment(1) == 'agent_transaction' && request()->segment(2) == null]
                     );
-                    
                 },
                 ['icon' => 'fa fas fa-user-friends']
             )->order(45);
@@ -488,10 +490,12 @@ class AdminSidebarMenu
             }
 
             //Reports dropdown
-            if (auth()->user()->can('purchase_n_sell_report.view') || auth()->user()->can('contacts_report.view')
+            if (
+                auth()->user()->can('purchase_n_sell_report.view') || auth()->user()->can('contacts_report.view')
                 || auth()->user()->can('stock_report.view') || auth()->user()->can('tax_report.view')
                 || auth()->user()->can('trending_product_report.view') || auth()->user()->can('sales_representative.view') || auth()->user()->can('register_report.view')
-                || auth()->user()->can('expense_report.view')) {
+                || auth()->user()->can('expense_report.view')
+            ) {
                 $menu->dropdown(
                     __('report.reports'),
                     function ($sub) use ($enabled_modules, $is_admin) {
@@ -502,17 +506,23 @@ class AdminSidebarMenu
                                 ['icon' => 'fa fas fa-file-invoice-dollar', 'active' => request()->segment(2) == 'profit-loss']
                             );
                         }
+                        $sub->url(
+                            action([\App\Http\Controllers\ReportController::class, 'getBillDueReport']),
+                            'Bill Due',
+                            ['icon' => 'fa fas fa-file-invoice-dollar', 'active' => request()->segment(2) == 'bill-due']
+                        );
+
                         if (config('constants.show_report_606') == true) {
                             $sub->url(
                                 action([\App\Http\Controllers\ReportController::class, 'purchaseReport']),
-                                'Report 606 ('.__('lang_v1.purchase').')',
+                                'Report 606 (' . __('lang_v1.purchase') . ')',
                                 ['icon' => 'fa fas fa-arrow-circle-down', 'active' => request()->segment(2) == 'purchase-report']
                             );
                         }
                         if (config('constants.show_report_607') == true) {
                             $sub->url(
                                 action([\App\Http\Controllers\ReportController::class, 'saleReport']),
-                                'Report 607 ('.__('business.sale').')',
+                                'Report 607 (' . __('business.sale') . ')',
                                 ['icon' => 'fa fas fa-arrow-circle-up', 'active' => request()->segment(2) == 'sale-report']
                             );
                         }
@@ -706,12 +716,14 @@ class AdminSidebarMenu
             }
 
             //Settings Dropdown
-            if (auth()->user()->can('business_settings.access') ||
+            if (
+                auth()->user()->can('business_settings.access') ||
                 auth()->user()->can('barcode_settings.access') ||
                 auth()->user()->can('invoice_settings.access') ||
                 auth()->user()->can('tax_rate.view') ||
                 auth()->user()->can('tax_rate.create') ||
-                auth()->user()->can('access_package_subscriptions')) {
+                auth()->user()->can('access_package_subscriptions')
+            ) {
                 $menu->dropdown(
                     __('business.settings'),
                     function ($sub) use ($enabled_modules) {
