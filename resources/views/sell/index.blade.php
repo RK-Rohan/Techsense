@@ -44,16 +44,17 @@
                         <th>@lang('sale.invoice_no')</th>
                         <th>@lang('sale.customer_name')</th>
                         <th>@lang('lang_v1.contact_no')</th>
-                        <th>@lang('sale.location')</th>
+                        {{-- <th>@lang('sale.location')</th> --}}
                         <th>@lang('sale.payment_status')</th>
-                        <th>@lang('lang_v1.payment_method')</th>
+                        {{-- <th>@lang('lang_v1.payment_method')</th> --}}
                         <th>@lang('sale.total_amount')</th>
                         <th>@lang('sale.total_paid')</th>
                         <th>@lang('lang_v1.sell_due')</th>
                         <th>Tracking No</th>
-                        <th>@lang('lang_v1.sell_return_due')</th>
+                        {{-- <th>@lang('lang_v1.sell_return_due')</th> --}}
                         <th>@lang('lang_v1.shipping_status')</th>
                         <th>Delivery Date</th>
+                        <th>Due Countdown</th>
                         <th>@lang('lang_v1.total_items')</th>
                         <th>@lang('lang_v1.types_of_service')</th>
                         <th>{{ $custom_labels['types_of_service']['custom_field_1'] ?? __('lang_v1.service_custom_field_1' )}}</th>
@@ -63,8 +64,8 @@
                         <th>{{ $custom_labels['sell']['custom_field_4'] ?? ''}}</th>
                         <th>@lang('lang_v1.added_by')</th>
                         <th>@lang('sale.sell_note')</th>
-                        <th>@lang('sale.staff_note')</th>
-                        <th>@lang('sale.shipping_details')</th>
+                        {{-- <th>@lang('sale.staff_note')</th> --}}
+                        {{-- <th>@lang('sale.shipping_details')</th> --}}
                         <th>@lang('restaurant.table')</th>
                         <th>@lang('restaurant.service_staff')</th>
                     </tr>
@@ -165,16 +166,41 @@ $(document).ready( function(){
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'conatct_name', name: 'conatct_name'},
             { data: 'mobile', name: 'contacts.mobile'},
-            { data: 'business_location', name: 'bl.name'},
+            // { data: 'business_location', name: 'bl.name'},
             { data: 'payment_status', name: 'payment_status'},
-            { data: 'payment_methods', orderable: false, "searchable": false},
+            // { data: 'payment_methods', orderable: false, "searchable": false},
             { data: 'final_total', name: 'final_total'},
             { data: 'total_paid', name: 'total_paid', "searchable": false},
             { data: 'total_remaining', name: 'total_remaining'},
             { data: 'tracking_no', name: 'tracking_no'},
-            { data: 'return_due', orderable: false, "searchable": false},
+            // { data: 'return_due', orderable: false, "searchable": false},
             { data: 'shipping_status', name: 'shipping_status'},
             { data: 'delivery_date', name: 'delivery_date'},
+            { 
+                data: 'due_countdown', 
+                name: 'due_countdown',
+                render: function(data, type, row) {
+                    // If payment status is Paid, always show 0 days
+                    if (row.payment_status && row.payment_status.toLowerCase() === 'paid') {
+                        return '0 days';
+                    }
+                    if (!row.delivery_date) {
+                        return '0 days';
+                    }
+                    var deliveryDate = moment(row.delivery_date, 'DD-MM-YYYY hh:mm A');
+                    var today = moment();
+                    if (!deliveryDate.isValid()) {
+                        return '0 days';
+                    }
+                    // If delivery date is in the future, show 0 days
+                    if (deliveryDate.isAfter(today, 'day')) {
+                        return '0 days';
+                    }
+                    // If delivery date is today or in the past, show days since delivery
+                    var diff = today.startOf('day').diff(deliveryDate.startOf('day'), 'days');
+                    return diff + ' days';
+                }
+            },
             { data: 'total_items', name: 'total_items', "searchable": false},
             { data: 'types_of_service_name', name: 'tos.name', @if(empty($is_types_service_enabled)) visible: false @endif},
             { data: 'service_custom_field_1', name: 'service_custom_field_1', @if(empty($is_types_service_enabled)) visible: false @endif},
@@ -184,8 +210,8 @@ $(document).ready( function(){
             { data: 'custom_field_4', name: 'transactions.custom_field_4', @if(empty($custom_labels['sell']['custom_field_4'])) visible: false @endif},
             { data: 'added_by', name: 'u.first_name'},
             { data: 'additional_notes', name: 'additional_notes'},
-            { data: 'staff_note', name: 'staff_note'},
-            { data: 'shipping_details', name: 'shipping_details'},
+            // { data: 'staff_note', name: 'staff_note'},
+            // { data: 'shipping_details', name: 'shipping_details'},
             { data: 'table_name', name: 'tables.name', @if(empty($is_tables_enabled)) visible: false @endif },
             { data: 'waiter', name: 'ss.first_name', @if(empty($is_service_staff_enabled)) visible: false @endif },
         ],
