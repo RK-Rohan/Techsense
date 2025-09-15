@@ -334,6 +334,9 @@ $title = $transaction->type == 'sales_order' ? __('lang_v1.edit_sales_order') : 
 						<thead>
 							<tr>
 								<th class="text-center">
+									SKU
+								</th>
+								<th class="text-center">
 									@lang('sale.product')
 								</th>
 								<th class="text-center">

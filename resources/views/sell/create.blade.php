@@ -436,8 +436,12 @@ $title = __('lang_v1.sales_order');
 						<thead>
 							<tr>
 								<th class="text-center">
+									SKU
+								</th>
+								<th class="text-center">
 									@lang('sale.product')
 								</th>
+
 								<th class="text-center">
 									@lang('sale.qty')
 								</th>

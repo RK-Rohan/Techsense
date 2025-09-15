@@ -17,6 +17,10 @@ $multiplier = $value['multiplier'];
 
 
 <tr class="product_row" data-row_index="{{$row_count}}" @if(!empty($so_line)) data-so_id="{{$so_line->transaction_id}}" @endif>
+	
+	<td>
+        {{ $product->sub_sku ?? $product->sku }}
+    </td>
 	<td>
 		@if(!empty($so_line))
 		<input type="hidden" name="products[{{$row_count}}][so_line_id]" value="{{$so_line->id}}">
@@ -169,6 +173,8 @@ $multiplier = $value['multiplier'];
 			@endif
 
 	</td>
+
+
 
 	<td>
 		{{-- If edit then transaction sell lines will be present --}}
