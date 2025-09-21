@@ -179,6 +179,7 @@ $(document).ready( function(){
             { 
                 data: 'due_countdown', 
                 name: 'due_countdown',
+                searchable: false,
                 render: function(data, type, row) {
                     // If payment status is Paid, always show 0 days
                     if (row.payment_status && row.payment_status.toLowerCase() === 'paid') {
