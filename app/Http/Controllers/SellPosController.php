@@ -1719,6 +1719,17 @@ class SellPosController extends Controller
             $check_qty = false;
         }
 
+        // When adding items on Direct Sell edit screens, allow adding even if stock is zero
+        if ($is_direct_sell) {
+            $check_qty = false;
+        }
+
+        // When editing/creating a Quotation, allow adding even if stock is zero
+        $sale_status = request()->input('sale_status', request()->input('status'));
+        if (!empty($sale_status) && strtolower($sale_status) === 'quotation') {
+            $check_qty = false;
+        }
+
         if (request()->input('disable_qty_alert') === 'true') {
             $pos_settings['allow_overselling'] = true;
         }
@@ -1867,14 +1878,16 @@ class SellPosController extends Controller
 
             if ($this->transactionUtil->isModuleEnabled('modifiers') && !$is_direct_sell) {
                 $variation = Variation::find($variation_id);
-                $business_id = request()->session()->get('user.business_id');
-                $this_product = Product::where('business_id', $business_id)
-                    ->with(['modifier_sets'])
-                    ->find($variation->product_id);
-                if (count($this_product->modifier_sets) > 0) {
-                    $product_ms = $this_product->modifier_sets;
-                    $output['html_modifier'] = view('restaurant.product_modifier_set.modifier_for_product')
-                        ->with(compact('product_ms', 'row_count'))->render();
+                if ($variation) {
+                    $business_id = request()->session()->get('user.business_id');
+                    $this_product = Product::where('business_id', $business_id)
+                        ->with(['modifier_sets'])
+                        ->find($variation->product_id);
+                    if ($this_product && count($this_product->modifier_sets) > 0) {
+                        $product_ms = $this_product->modifier_sets;
+                        $output['html_modifier'] = view('restaurant.product_modifier_set.modifier_for_product')
+                            ->with(compact('product_ms', 'row_count'))->render();
+                    }
                 }
             }
         } catch (\Exception $e) {

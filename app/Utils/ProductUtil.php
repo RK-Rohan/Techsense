@@ -563,7 +563,12 @@ class ProductUtil extends Util
         foreach ($combo_variations as $key => $value) {
             $variation = Variation::with(['product', 'variation_location_details' => function ($q) use ($location_id) {
                 $q->where('location_id', $location_id);
-            }])->findOrFail($value['variation_id']);
+            }])->find($value['variation_id']);
+
+            // If variation or product is missing, skip this combo item gracefully
+            if (!$variation || !$variation->product) {
+                continue;
+            }
 
             $product = $variation->product;
 
