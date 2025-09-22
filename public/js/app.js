@@ -1962,10 +1962,13 @@ $(document).ready(function () {
             if (willDelete) {
                 var href = $(this).attr('href');
                 var is_suspended = $(this).hasClass('is_suspended');
+                var csrf = $('meta[name="csrf-token"]').attr('content');
                 $.ajax({
                     method: 'DELETE',
                     url: href,
                     dataType: 'json',
+                    headers: csrf ? { 'X-CSRF-TOKEN': csrf } : {},
+                    data: csrf ? { _token: csrf } : {},
                     success: function (result) {
                         if (result.success == true) {
                             toastr.success(result.msg);
@@ -1987,6 +1990,36 @@ $(document).ready(function () {
                             toastr.error(result.msg);
                         }
                     },
+                    error: function(xhr) {
+                        // Fallback if server blocks DELETE; retry via POST + _method
+                        if (xhr.status === 405 || xhr.status === 419) {
+                            $.ajax({
+                                method: 'POST',
+                                url: href,
+                                dataType: 'json',
+                                data: { _method: 'DELETE', _token: csrf },
+                                success: function (result) {
+                                    if (result && result.success) {
+                                        toastr.success(result.msg);
+                                        if (typeof sell_table !== 'undefined') {
+                                            sell_table.ajax.reload();
+                                        }
+                                        if (typeof pending_repair_table !== 'undefined') {
+                                            pending_repair_table.ajax.reload();
+                                        }
+                                        if (typeof get_recent_transactions !== 'undefined') {
+                                            get_recent_transactions('final', $('div#tab_final'));
+                                            get_recent_transactions('draft', $('div#tab_draft'));
+                                        }
+                                    } else {
+                                        toastr.error(result && result.msg ? result.msg : 'Delete failed');
+                                    }
+                                }
+                            });
+                        } else {
+                            toastr.error('Delete failed');
+                        }
+                    }
                 });
             }
         });
