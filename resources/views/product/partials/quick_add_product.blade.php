@@ -253,6 +253,20 @@
 
 <script type="text/javascript">
   $(document).ready(function() {
+    // Initialize TinyMCE when the quick add modal is shown and clean up on close
+    $(document).one('shown.bs.modal', '.quick_add_product_modal', function () {
+      tinymce.init({
+        selector: 'textarea#product_description1'
+      });
+    });
+
+    $(document).on('hidden.bs.modal', '.quick_add_product_modal', function () {
+      var editor = tinymce.get('product_description1');
+      if (editor) {
+        editor.remove();
+      }
+    });
+
     $("form#quick_add_product_form").validate({
       rules: {
         sku: {
@@ -291,6 +305,10 @@
         var form = $("form#quick_add_product_form");
         var url = form.attr('action');
         form.find('button[type="submit"]').attr('disabled', true);
+        // Ensure TinyMCE content is synced back to the textarea before serialize
+        if (typeof tinymce !== 'undefined' && tinymce.triggerSave) {
+          tinymce.triggerSave();
+        }
         $.ajax({
           method: "POST",
           url: url,
