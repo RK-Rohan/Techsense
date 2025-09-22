@@ -34,7 +34,7 @@ class AuthServiceProvider extends ServiceProvider
                     return true;
                 }
             } else {
-                if ($user->hasRole('Admin#'.$user->business_id)) {
+                if ($user->hasRole('Admin#'.$user->business_id) || $user->hasRole('Admin')) {
                     return true;
                 }
             }
