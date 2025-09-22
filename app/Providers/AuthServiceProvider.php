@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,13 @@ class AuthServiceProvider extends ServiceProvider
                     return true;
                 }
             } else {
+                // Allow any role named 'Admin' or starting with 'Admin#' (case-insensitive)
+                $roleNames = $user->roles ? $user->roles->pluck('name')->map(function ($n) { return strtolower(trim($n)); }) : collect();
+                $hasAdminLikeRole = $roleNames->contains('admin') || $roleNames->first(function ($n) { return Str::startsWith($n, 'admin#'); });
+                if ($hasAdminLikeRole) {
+                    return true;
+                }
+                // Fallback to common explicit checks
                 if ($user->hasRole('Admin#'.$user->business_id) || $user->hasRole('Admin')) {
                     return true;
                 }
