@@ -3189,7 +3189,9 @@ class SellPosController extends Controller
         $receipt_contents = $this->transactionUtil->getPdfContentsForGivenTransaction($business_id, $id);
         $receipt_details = $receipt_contents['receipt_details'];
 
-        $data = ['receipt_details' => $receipt_details];
+        $tc_description = $receipt_contents['tc_description'];
+
+        $data = ['receipt_details' => $receipt_details, 'tc_description' => $tc_description];
 
         $pdf = PDF::loadView('sale_pos.receipts.download_chalan', $data);
         return $pdf->stream('delivery_chalan_' . $receipt_details->invoice_no . '.pdf');

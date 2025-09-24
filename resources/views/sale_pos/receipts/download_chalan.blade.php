@@ -234,6 +234,18 @@
                 </tr>
 
             </table>
+
+            <br>
+            <p class="m-0" style="text-decoration: underline;"><b>Terms and Conditions:</b></p>
+    <table class="table table-slim">
+        @foreach($tc_description as $tc)
+        <tr>
+            <td>{{ $loop->iteration.'. ' }} </td>
+            <td>{{ $tc->description }}</td>
+        </tr>
+        @endforeach
+    </table>
+    <br>
         </div>
     </div>
 
