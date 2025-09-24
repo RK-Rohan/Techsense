@@ -126,7 +126,8 @@ class TransactionPaymentController extends Controller
                         $this->transactionUtil->addCashDenominations($tp, $request->input('denominations'));
                     }
                     
-                    $inputs['transaction_type'] = 'purchase';
+                    // Use the actual transaction type (sell, purchase, etc.)
+                    $inputs['transaction_type'] = $transaction->type;
                     
                     event(new TransactionPaymentAdded($tp, $inputs));
 
