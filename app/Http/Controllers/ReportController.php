@@ -3169,7 +3169,7 @@ class ReportController extends Controller
                         ELSE (TSPL.quantity - TSPL.qty_returned) * PL.purchase_price_inc_tax
                     END) as total_purchase_price'),
                 DB::raw('
-                    SUM((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax)
+                    (SUM((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax) + sale.tax_amount)
                     as total_sales_price')
             )
                 ->groupBy(
@@ -3179,6 +3179,17 @@ class ReportController extends Controller
                     'sale.discount_amount',
                     'sale.total_before_tax'
                 );
+            // Select sale-level tax and aggregated per-line item tax so net profit can subtract both
+            // Use a correlated subquery to sum item tax across all sell lines for the transaction.
+            // This avoids aggregation issues caused by joining other tables that can multiply rows.
+            $query->addSelect(
+                'sale.tax_amount as sale_tax_amount',
+                DB::raw('(SELECT SUM(COALESCE((tsl2.item_tax * (tsl2.quantity - tsl2.quantity_returned)), (tsl2.quantity - tsl2.quantity_returned) * (tsl2.unit_price_inc_tax * (COALESCE(tr2.amount, 0) / (100 + COALESCE(tr2.amount, 0))))))
+                    FROM transaction_sell_lines AS tsl2
+                    LEFT JOIN tax_rates AS tr2 ON tsl2.tax_id = tr2.id
+                    WHERE tsl2.transaction_id = sale.id
+                ) as total_item_tax')
+            );
         }
 
 
@@ -3211,12 +3222,16 @@ class ReportController extends Controller
 
         if (in_array($by, ['invoice'])) {
             $datatable->editColumn('gross_profit', function ($row) {
+                // Recompute gross profit using the total sales (which includes invoice tax now) minus total purchase
                 $discount = $row->discount_amount;
                 if ($row->discount_type == 'percentage') {
                     $discount = ($row->discount_amount * $row->total_before_tax) / 100;
                 }
 
-                $profit = $row->gross_profit - $discount;
+                $total_sales = isset($row->total_sales_price) ? $row->total_sales_price : 0;
+                $total_purchase = isset($row->total_purchase_price) ? $row->total_purchase_price : 0;
+
+                $profit = $total_sales - $total_purchase - $discount;
                 $html = '<span class="gross-profit" data-orig-value="' . $profit . '" >' . $this->transactionUtil->num_f($profit, true) . '</span>';
 
                 return $html;
@@ -3278,9 +3293,62 @@ class ReportController extends Controller
                 return '<span class="total-sales-price" data-orig-value="' . $row->total_sales_price . '">' .
                     $this->transactionUtil->num_f($row->total_sales_price, true) . '</span>';
             });
+            $datatable->editColumn('net_profit', function ($row) {
+
+                $total_sales = isset($row->total_sales_price) ? $row->total_sales_price : 0;
+                $total_purchase = isset($row->total_purchase_price) ? $row->total_purchase_price : 0;
+                $sale_tax = isset($row->sale_tax_amount) ? $row->sale_tax_amount : 0;
+                $line_tax = isset($row->total_item_tax) ? $row->total_item_tax : 0;
+
+                $subtotal_without_sales_tax = $total_sales - $sale_tax;
+
+                $subtotal = $subtotal_without_sales_tax - $line_tax;
+
+                
+
+                
+
+                // Debugging removed: previous dd() halted the report. Values available as data-attrs in the output HTML.
+
+                // Follow explicit steps to match manual calculation:
+                // Step 1: subtract invoice VAT from total sales
+                $after_invoice_vat = $total_sales - $sale_tax;
+
+                // Step 2: subtract product/line tax from the result of step 1
+                $after_line_tax = $after_invoice_vat;
+
+                // We do not subtract invoice-level discount here. The requested net formula is:
+                // net = (total_sales - invoice_VAT) - item_tax - total_purchase
+                // item_tax was already subtracted to produce $after_line_tax above.
+                // So final net = after_line_tax - total_purchase
+                $discount = 0; // keep attribute present for UI debugging, but not used in calculation
+
+                // Step 3: subtract total purchase price from the amount after line taxes
+                $net = $subtotal - $total_purchase;
+
+                // Keep reasonable internal precision before final formatting
+                $after_invoice_vat = round($after_invoice_vat, 8);
+                $after_line_tax = round($after_line_tax, 8);
+                $net = round($net, 8);
+
+                // Expose intermediate values as data attributes to aid debugging in UI
+                $html = '<span class="net-profit" '
+                    . 'data-orig-value="' . $net . '" '
+                    . 'data-after-invoice-vat="' . $after_invoice_vat . '" '
+                    . 'data-after-line-tax="' . $after_line_tax . '" '
+                    . 'data-sale-tax="' . $sale_tax . '" '
+                    . 'data-line-tax="' . $line_tax . '" '
+                    . 'data-discount="' . $discount . '" '
+                    . 'data-total-purchase="' . $total_purchase . '">'
+                    . $this->transactionUtil->num_f($net, true)
+                    . '</span>';
+
+                return $html;
+            });
             $raw_columns[] = 'invoice_no';
             $raw_columns[] = 'total_purchase_price';
             $raw_columns[] = 'total_sales_price';
+            $raw_columns[] = 'net_profit';
         }
 
         return $datatable->rawColumns($raw_columns)

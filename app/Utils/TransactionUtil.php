@@ -5677,8 +5677,8 @@ class TransactionUtil extends Util
         $data['total_purchase_discount'] = !empty($total_purchase_discount) ? $total_purchase_discount : 0;
         $data['total_purchase_return'] = $transaction_totals['total_purchase_return_exc_tax'];
 
-        //Sales
-        $data['total_sell'] = !empty($sell_details['total_sell_exc_tax']) ? $sell_details['total_sell_exc_tax'] : 0;
+    //Sales (use tax-inclusive total so top-level widget shows total including invoice tax)
+    $data['total_sell'] = !empty($sell_details['total_sell_inc_tax']) ? $sell_details['total_sell_inc_tax'] : 0;
         $data['total_sell_discount'] = !empty($total_sell_discount) ? $total_sell_discount : 0;
         $data['total_sell_return_discount'] = !empty($total_sell_return_discount) ? $total_sell_return_discount : 0;
         $data['total_sell_return'] = $transaction_totals['total_sell_return_exc_tax'];
@@ -5746,10 +5746,34 @@ class TransactionUtil extends Util
         //                         + $data['total_purchase_discount']
         //                         + $data['total_purchase_return']
         //                         - $data['total_sell_return'];
-        $data['net_profit'] = $module_total + $gross_profit
-            + ($data['total_sell_round_off'] + $data['total_recovered'] + $data['total_sell_shipping_charge'] + $data['total_purchase_discount'] + $data['total_sell_additional_expense'] + $data['total_sell_return_discount']
-            ) - ($data['total_reward_amount'] + $data['total_expense'] + $data['total_adjustment'] + $data['total_transfer_shipping_charges'] + $data['total_purchase_shipping_charge'] + $data['total_purchase_additional_expense'] + $data['total_sell_discount']
-            );
+        // Calculate total invoice-level VAT (sum of transactions.tax_amount for sells in range)
+        $total_sale_tax_query = Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'final');
+
+        if (!empty($start_date) && !empty($end_date)) {
+            if ($start_date == $end_date) {
+                $total_sale_tax_query->whereDate('transaction_date', $end_date);
+            } else {
+                $total_sale_tax_query->whereBetween(DB::raw('date(transaction_date)'), [$start_date, $end_date]);
+            }
+        }
+
+        if (!empty($location_id)) {
+            $total_sale_tax_query->where('location_id', $location_id);
+        }
+
+        if (!empty($user_id)) {
+            $total_sale_tax_query->where('created_by', $user_id);
+        }
+
+        $total_sale_tax = $total_sale_tax_query->sum('tax_amount');
+        $data['total_sale_tax'] = $total_sale_tax;
+
+        // Net profit: per user's request, compute as gross profit minus total invoice-level VAT.
+        // Keep module adjustments if modules add/subtract to net profit (module_total).
+        // Final formula: net = gross_profit + module_total - total_sale_tax
+        $data['net_profit'] = $gross_profit + $module_total - $total_sale_tax;
 
         //get gross profit from Project Module
         $module_parameters = [
@@ -5773,7 +5797,13 @@ class TransactionUtil extends Util
             }
         }
 
-        $data['gross_profit'] = $gross_profit;
+    $data['gross_profit'] = $gross_profit;
+
+    // Gross profit including invoice-level VAT (total sale tax)
+    // This is only used for display in the widget so users see gross profit
+    // including invoice VAT. Calculations (net profit) continue to use
+    // the original $gross_profit and subtract invoice VAT where required.
+    $data['gross_profit_including_sale_tax'] = $gross_profit + $data['total_sale_tax'];
 
         //get sub type for total sales
         $sales_by_subtype = Transaction::where('business_id', $business_id)

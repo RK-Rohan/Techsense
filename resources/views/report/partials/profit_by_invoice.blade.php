@@ -6,6 +6,7 @@
                 <th>Total Purchase Price</th>
                 <th>Total Sales Price</th>
                 <th>@lang('lang_v1.gross_profit')</th>
+                <th>@lang('report.net_profit')</th>
 
             </tr>
         </thead>
@@ -15,6 +16,7 @@
                 <td class="footer_total_purchase"></td>
                 <td class="footer_total_sales"></td>
                 <td class="footer_total"></td>
+                <td class="footer_total_net"></td>
             </tr>
         </tfoot>
 

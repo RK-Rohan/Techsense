@@ -345,7 +345,7 @@
                             </small>
                             @endif
 						</td>
-						<td class="text-right">{{$line['unit_price_before_discount']}}</td>
+						<td class="text-right">{{$line['unit_price_inc_tax']}}</td>
 						@if(!empty($receipt_details->discounted_unit_price_label))
 							<td class="text-right">
 								{{$line['unit_price_inc_tax']}} 

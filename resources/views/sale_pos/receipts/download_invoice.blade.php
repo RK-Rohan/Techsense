@@ -149,7 +149,7 @@
 
 
 
-                        <td style="text-align: right;">{{$line['unit_price_before_discount']}}</td>
+                        <td style="text-align: right;">{{$line['unit_price_inc_tax']}}</td>
 
 
                         <td style="text-align: right;">{{$line['line_total']}}</td>

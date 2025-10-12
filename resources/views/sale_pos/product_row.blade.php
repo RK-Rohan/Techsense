@@ -55,10 +55,11 @@ $multiplier = $value['multiplier'];
 		$item_tax = !empty($product->item_tax) ? $product->item_tax : 0;
 		$unit_price_inc_tax = $product->sell_price_inc_tax;
 
-		if($hide_tax == 'hide'){
-		$tax_id = null;
-		$unit_price_inc_tax = $product->default_sell_price;
-		}
+	if($hide_tax == 'hide'){
+	$tax_id = null;
+	// When inline tax is disabled we still want to show the final product price (including product level tax)
+	// Do not override $unit_price_inc_tax to default_sell_price. Keep sell_price_inc_tax so POS shows price with tax.
+	}
 
 		if(!empty($so_line) && $action !== 'edit') {
 		$tax_id = $so_line->tax_id;
@@ -306,7 +307,8 @@ $multiplier = $value['multiplier'];
 	}
 	@endphp
 	<td class="@if(!auth()->user()->can('edit_product_price_from_sale_screen')) hide @endif">
-		<input type="text" name="products[{{$row_count}}][unit_price]" class="form-control pos_unit_price input_number mousetrap" value="{{@num_format($pos_unit_price)}}" @if(!empty($pos_settings['enable_msp'])) data-rule-min-value="{{$pos_unit_price}}" data-msg-min-value="{{__('lang_v1.minimum_selling_price_error_msg', ['price' => @num_format($pos_unit_price)])}}" @endif>
+		{{-- Store base unit price in data-base-price and display tax-inclusive price to user --}}
+		<input type="text" name="products[{{$row_count}}][unit_price]" class="form-control pos_unit_price input_number mousetrap" value="{{@num_format($unit_price_inc_tax)}}" data-base-price="{{ $pos_unit_price }}" data-display-inc-tax="1" @if(!empty($pos_settings['enable_msp'])) data-rule-min-value="{{$unit_price_inc_tax}}" data-msg-min-value="{{__('lang_v1.minimum_selling_price_error_msg', ['price' => @num_format($unit_price_inc_tax)])}}" @endif>
 
 		@if(!empty($last_sell_line))
 		<br>

@@ -1137,6 +1137,23 @@ $(document).ready(function () {
         }
     });
 
+// Before POS form submit, ensure unit_price fields contain base price (not displayed inc-tax)
+function restore_base_unit_prices(form) {
+    $(form).find('input.pos_unit_price').each(function () {
+        var $el = $(this);
+        var data_base = $el.attr('data-base-price');
+        if (typeof data_base !== 'undefined' && data_base !== null) {
+            // Set the field to data-base-price (server expects base price before discount/tax)
+            $el.val(data_base);
+        }
+    });
+}
+
+// Attach to POS forms
+$(document).on('submit', 'form#add_sell_form, form#edit_sell_form, form#add_pos_sell_form, form#edit_pos_sell_form', function (e) {
+    restore_base_unit_prices(this);
+});
+
     //REPAIR MODULE:check if repair module field is present send data to filter product
     var is_enabled_stock = null;
     if ($("#is_enabled_stock").length) {
@@ -1688,29 +1705,37 @@ function pos_product_row(variation_id = null, purchase_line_id = null, weighing_
 
 //Update values for each row
 function pos_each_row(row_obj) {
-    var unit_price = __read_number(row_obj.find('input.pos_unit_price'));
+    var pos_up_elem = row_obj.find('input.pos_unit_price');
+    var up_inc_elem = row_obj.find('input.pos_unit_price_inc_tax');
 
-    var discounted_unit_price = calculate_discounted_unit_price(row_obj);
-    var tax_rate = row_obj
-        .find('select.tax_id')
-        .find(':selected')
-        .data('rate');
-
-    var unit_price_inc_tax =
-        discounted_unit_price + __calculate_amount('percentage', tax_rate, discounted_unit_price);
-    __write_number(row_obj.find('input.pos_unit_price_inc_tax'), unit_price_inc_tax);
-
-    var discount = __read_number(row_obj.find('input.row_discount_amount'));
-
-    if (discount > 0) {
-        var qty = __read_number(row_obj.find('input.pos_quantity'));
-        var line_total = qty * unit_price_inc_tax;
-        __write_number(row_obj.find('input.pos_line_total'), line_total);
+    // Determine unit_price_inc_tax: priority
+    // 1. If pos_unit_price_inc_tax present and non-empty -> use it
+    // 2. Else compute from base price (data-base-price) and tax
+    var unit_price_inc_tax = 0;
+    if (up_inc_elem.length > 0 && __read_number(up_inc_elem) > 0) {
+        unit_price_inc_tax = __read_number(up_inc_elem);
+    } else if (pos_up_elem.length > 0 && typeof pos_up_elem.attr('data-base-price') !== 'undefined') {
+        var data_base = parseFloat(pos_up_elem.attr('data-base-price'));
+        var discounted_unit_price = !isNaN(data_base) ? data_base : __read_number(pos_up_elem);
+        var tax_rate = row_obj.find('select.tax_id').find(':selected').data('rate');
+        unit_price_inc_tax = discounted_unit_price + __calculate_amount('percentage', tax_rate, discounted_unit_price);
+        if (up_inc_elem.length > 0) {
+            __write_number(up_inc_elem, unit_price_inc_tax);
+        }
     }
 
-    //var unit_price_inc_tax = __read_number(row_obj.find('input.pos_unit_price_inc_tax'));
+    var qty = __read_number(row_obj.find('input.pos_quantity'));
+    var line_total = qty * unit_price_inc_tax;
+    __write_number(row_obj.find('input.pos_line_total'), line_total);
 
-    __write_number(row_obj.find('input.item_tax'), unit_price_inc_tax - discounted_unit_price);
+    // Write item tax if element present
+    if (row_obj.find('input.item_tax').length > 0) {
+        var discounted_unit_price = 0;
+        if (pos_up_elem.length > 0 && pos_up_elem.attr('data-base-price')) {
+            discounted_unit_price = parseFloat(pos_up_elem.attr('data-base-price'));
+        }
+        __write_number(row_obj.find('input.item_tax'), unit_price_inc_tax - discounted_unit_price);
+    }
 }
 
 function pos_total_row() {

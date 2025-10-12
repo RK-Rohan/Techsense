@@ -473,7 +473,7 @@
                             @endif
 						</td>
 						<td class="text-right">
-							{{$line['unit_price_before_discount']}}
+							{{$line['unit_price_inc_tax']}}
 						</td>
 						<td class="text-right">
 							{{$line['unit_price_inc_tax']}} 

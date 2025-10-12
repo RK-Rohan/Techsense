@@ -411,7 +411,7 @@
 	                        		<p class="text-left width-60 quantity m-0 bw" style="direction: ltr;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	                        			{{$line['quantity']}} 
 	                        			@if(empty($receipt_details->hide_price))
-	                        			x {{$line['unit_price_before_discount']}}
+                        				x {{$line['unit_price_inc_tax']}}
 	                        			
 	                        			@if(!empty($line['total_line_discount']) && $line['total_line_discount'] != 0)
 	                        				- {{$line['total_line_discount']}}
