@@ -484,6 +484,12 @@ class AdminSidebarMenu
                             __('account.payment_account_report'),
                             ['icon' => 'fa fas fa-file-alt', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'payment-account-report']
                         );
+                        // Investor menu link
+                        $sub->url(
+                            action([\App\Http\Controllers\InvestorController::class, 'index']),
+                            __('Investor'),
+                            ['icon' => 'fa fas fa-user-tie', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'investor']
+                        );
                     },
                     ['icon' => 'fa fas fa-money-check-alt']
                 )->order(50);

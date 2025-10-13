@@ -3185,7 +3185,11 @@ class ReportController extends Controller
             // This avoids aggregation issues caused by joining other tables that can multiply rows.
             $query->addSelect(
                 'sale.tax_amount as sale_tax_amount',
-                DB::raw('(SELECT SUM(COALESCE((tsl2.item_tax * (tsl2.quantity - tsl2.quantity_returned)), (tsl2.quantity - tsl2.quantity_returned) * (tsl2.unit_price_inc_tax * (COALESCE(tr2.amount, 0) / (100 + COALESCE(tr2.amount, 0))))))
+                DB::raw('(SELECT COALESCE(SUM(
+                        COALESCE(tsl2.item_tax * (tsl2.quantity - tsl2.quantity_returned), 
+                            (tsl2.quantity - tsl2.quantity_returned) * (tsl2.unit_price_inc_tax * (COALESCE(tr2.amount,0)/(100+COALESCE(tr2.amount,0))))
+                        )
+                    ), 0)
                     FROM transaction_sell_lines AS tsl2
                     LEFT JOIN tax_rates AS tr2 ON tsl2.tax_id = tr2.id
                     WHERE tsl2.transaction_id = sale.id
@@ -3310,8 +3314,6 @@ class ReportController extends Controller
 
                 // Subtotal after subtracting both invoice VAT and line tax
                 $subtotal = $total_sales - $sale_tax - $line_tax;
-
-                // dd($total_sales);
 
                 // Debugging removed: previous dd() halted the report. Values available as data-attrs in the output HTML.
 
