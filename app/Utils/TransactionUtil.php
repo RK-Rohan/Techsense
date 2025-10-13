@@ -5770,10 +5770,104 @@ class TransactionUtil extends Util
         $total_sale_tax = $total_sale_tax_query->sum('tax_amount');
         $data['total_sale_tax'] = $total_sale_tax;
 
-        // Net profit: per user's request, compute as gross profit minus total invoice-level VAT.
-        // Keep module adjustments if modules add/subtract to net profit (module_total).
-        // Final formula: net = gross_profit + module_total - total_sale_tax
-        $data['net_profit'] = $gross_profit + $module_total - $total_sale_tax;
+        // Calculate total product/line tax for all sell lines in the period.
+        // Prefer stored per-unit item_tax (multiplied by effective quantity). If missing,
+        // compute from unit_price_inc_tax and tax rate using: tax = unit_price_inc_tax * (tax/(100+tax)).
+        $total_item_tax_query = DB::table('transaction_sell_lines as tsl')
+            ->leftJoin('tax_rates as tr', 'tsl.tax_id', 'tr.id')
+            ->join('transactions as t', 'tsl.transaction_id', 't.id')
+            ->where('t.business_id', $business_id)
+            ->where('t.type', 'sell')
+            ->where('t.status', 'final');
+
+        if (!empty($start_date) && !empty($end_date)) {
+            if ($start_date == $end_date) {
+                $total_item_tax_query->whereDate('t.transaction_date', $end_date);
+            } else {
+                $total_item_tax_query->whereBetween(DB::raw('date(t.transaction_date)'), [$start_date, $end_date]);
+            }
+        }
+
+        if (!empty($location_id)) {
+            $total_item_tax_query->where('t.location_id', $location_id);
+        }
+
+        if (!empty($user_id)) {
+            $total_item_tax_query->where('t.created_by', $user_id);
+        }
+
+        $total_item_tax_row = $total_item_tax_query
+            ->select(DB::raw("SUM(
+                COALESCE(tsl.item_tax * (tsl.quantity - tsl.quantity_returned),
+                    (tsl.quantity - tsl.quantity_returned) * (
+                        tsl.unit_price_inc_tax * (COALESCE(tr.amount,0)/(100+COALESCE(tr.amount,0)))
+                    )
+                )
+            ) as total_item_tax"))
+            ->first();
+
+        $total_item_tax = !empty($total_item_tax_row->total_item_tax) ? $total_item_tax_row->total_item_tax : 0;
+        $data['total_item_tax'] = $total_item_tax;
+
+        // To avoid double counting when invoice-level tax (transactions.tax_amount) already
+        // includes product/line tax, compute per-transaction overlap and subtract only
+        // the non-overlapping portion.
+        $tx_query = DB::table('transactions as sale')
+            ->where('sale.business_id', $business_id)
+            ->where('sale.type', 'sell')
+            ->where('sale.status', 'final');
+
+        if (!empty($start_date) && !empty($end_date)) {
+            if ($start_date == $end_date) {
+                $tx_query->whereDate('sale.transaction_date', $end_date);
+            } else {
+                $tx_query->whereBetween(DB::raw('date(sale.transaction_date)'), [$start_date, $end_date]);
+            }
+        }
+
+        if (!empty($location_id)) {
+            $tx_query->where('sale.location_id', $location_id);
+        }
+
+        if (!empty($user_id)) {
+            $tx_query->where('sale.created_by', $user_id);
+        }
+
+        $txs = $tx_query->select(
+            'sale.id',
+            'sale.tax_amount',
+            DB::raw("(
+                SELECT SUM(
+                    COALESCE(tsl2.item_tax * (tsl2.quantity - tsl2.quantity_returned),
+                        (tsl2.quantity - tsl2.quantity_returned) * (
+                            tsl2.unit_price_inc_tax * (COALESCE(tr2.amount,0)/(100+COALESCE(tr2.amount,0)))
+                        )
+                    )
+                )
+                FROM transaction_sell_lines tsl2
+                LEFT JOIN tax_rates tr2 ON tsl2.tax_id = tr2.id
+                WHERE tsl2.transaction_id = sale.id
+            ) as per_tx_item_tax")
+        )->get();
+
+        $overlap = 0;
+        foreach ($txs as $tx) {
+            $sale_tax = !empty($tx->tax_amount) ? $tx->tax_amount : 0;
+            $line_tax = !empty($tx->per_tx_item_tax) ? $tx->per_tx_item_tax : 0;
+            // overlap is the common portion between invoice tax and line tax.
+            $overlap += min($sale_tax, $line_tax);
+        }
+
+        // total tax to subtract = invoice-level tax + line tax - overlap
+        $total_tax_to_subtract = $total_sale_tax + $total_item_tax - $overlap;
+
+        // Net profit: per user's request, compute as gross profit minus invoice-level VAT
+        // and product/line tax, but avoid double-counting overlap between them.
+        $data['net_profit'] = $gross_profit + $data['total_sale_tax'] - $total_tax_to_subtract - $total_item_tax - $data['total_purchase_shipping_charge'];
+
+        // dd($gross_profit);
+
+
 
         //get gross profit from Project Module
         $module_parameters = [
@@ -5798,6 +5892,8 @@ class TransactionUtil extends Util
         }
 
     $data['gross_profit'] = $gross_profit;
+
+    
 
     // Gross profit including invoice-level VAT (total sale tax)
     // This is only used for display in the widget so users see gross profit
