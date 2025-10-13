@@ -3168,9 +3168,10 @@ class ReportController extends Controller
                         WHEN P.enable_stock = 0 THEN 0
                         ELSE (TSPL.quantity - TSPL.qty_returned) * PL.purchase_price_inc_tax
                     END) as total_purchase_price'),
-                DB::raw('
-                    (SUM((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax) + sale.tax_amount)
-                    as total_sales_price')
+                DB::raw('(
+                    (SELECT SUM((tsl.quantity - tsl.quantity_returned) * tsl.unit_price_inc_tax) FROM transaction_sell_lines AS tsl WHERE tsl.transaction_id = sale.id)
+                    + sale.tax_amount
+                ) as total_sales_price')
             )
                 ->groupBy(
                     'sale.invoice_no',
@@ -3300,13 +3301,17 @@ class ReportController extends Controller
                 $sale_tax = isset($row->sale_tax_amount) ? $row->sale_tax_amount : 0;
                 $line_tax = isset($row->total_item_tax) ? $row->total_item_tax : 0;
 
+                // Follow user's requested formula: subtract invoice VAT and product/line tax
+                // explicitly (do not attempt to remove overlap here).
+                $sale_tax = isset($row->sale_tax_amount) ? $row->sale_tax_amount : 0;
+                $line_tax = isset($row->total_item_tax) ? $row->total_item_tax : 0;
+
                 $subtotal_without_sales_tax = $total_sales - $sale_tax;
 
-                $subtotal = $subtotal_without_sales_tax - $line_tax;
+                // Subtotal after subtracting both invoice VAT and line tax
+                $subtotal = $total_sales - $sale_tax - $line_tax;
 
-                
-
-                
+                // dd($total_sales);
 
                 // Debugging removed: previous dd() halted the report. Values available as data-attrs in the output HTML.
 

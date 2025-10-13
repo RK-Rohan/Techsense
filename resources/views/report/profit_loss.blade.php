@@ -58,31 +58,12 @@
                     <li class="active">
                         <a href="#profit_by_products" data-toggle="tab" aria-expanded="true"><i class="fa fa-cubes" aria-hidden="true"></i> @lang('lang_v1.profit_by_products')</a>
                     </li>
-
-                    <li>
-                        <a href="#profit_by_categories" data-toggle="tab" aria-expanded="true"><i class="fa fa-tags" aria-hidden="true"></i> @lang('lang_v1.profit_by_categories')</a>
-                    </li>
-
-                    <li>
-                        <a href="#profit_by_brands" data-toggle="tab" aria-expanded="true"><i class="fa fa-diamond" aria-hidden="true"></i> @lang('lang_v1.profit_by_brands')</a>
-                    </li>
-
-                    <li>
-                        <a href="#profit_by_locations" data-toggle="tab" aria-expanded="true"><i class="fa fa-map-marker" aria-hidden="true"></i> @lang('lang_v1.profit_by_locations')</a>
-                    </li>
-
                     <li>
                         <a href="#profit_by_invoice" data-toggle="tab" aria-expanded="true"><i class="fa fa-file-alt" aria-hidden="true"></i> @lang('lang_v1.profit_by_invoice')</a>
                     </li>
 
                     <li>
-                        <a href="#profit_by_date" data-toggle="tab" aria-expanded="true"><i class="fa fa-calendar" aria-hidden="true"></i> @lang('lang_v1.profit_by_date')</a>
-                    </li>
-                    <li>
                         <a href="#profit_by_customer" data-toggle="tab" aria-expanded="true"><i class="fa fa-user" aria-hidden="true"></i> @lang('lang_v1.profit_by_customer')</a>
-                    </li>
-                    <li>
-                        <a href="#profit_by_day" data-toggle="tab" aria-expanded="true"><i class="fa fa-calendar" aria-hidden="true"></i> @lang('lang_v1.profit_by_day')</a>
                     </li>
                 </ul>
 
@@ -91,33 +72,14 @@
                         @include('report.partials.profit_by_products')
                     </div>
 
-                    <div class="tab-pane" id="profit_by_categories">
-                        @include('report.partials.profit_by_categories')
-                    </div>
-
-                    <div class="tab-pane" id="profit_by_brands">
-                        @include('report.partials.profit_by_brands')
-                    </div>
-
-                    <div class="tab-pane" id="profit_by_locations">
-                        @include('report.partials.profit_by_locations')
-                    </div>
-
                     <div class="tab-pane" id="profit_by_invoice">
                         @include('report.partials.profit_by_invoice')
                     </div>
-
-                    <div class="tab-pane" id="profit_by_date">
-                        @include('report.partials.profit_by_date')
-                    </div>
-
                     <div class="tab-pane" id="profit_by_customer">
                         @include('report.partials.profit_by_customer')
                     </div>
 
-                    <div class="tab-pane" id="profit_by_day">
-                        
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -164,109 +126,7 @@
 
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             var target = $(e.target).attr('href');
-            if ( target == '#profit_by_categories') {
-                if(typeof profit_by_categories_datatable == 'undefined') {
-                    profit_by_categories_datatable = $('#profit_by_categories_table').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        "ajax": {
-                            "url": "/reports/get-profit/category",
-                            "data": function ( d ) {
-                                d.start_date = $('#profit_loss_date_filter')
-                                    .data('daterangepicker')
-                                    .startDate.format('YYYY-MM-DD');
-                                d.end_date = $('#profit_loss_date_filter')
-                                    .data('daterangepicker')
-                                    .endDate.format('YYYY-MM-DD');
-                                d.location_id = $('#profit_loss_location_filter').val();
-                            }
-                        },
-                        columns: [
-                            { data: 'category', name: 'C.name'  },
-                            { data: 'gross_profit', "searchable": false},
-                        ],
-                        footerCallback: function ( row, data, start, end, display ) {
-                            var total_profit = 0;
-                            for (var r in data){
-                                total_profit += $(data[r].gross_profit).data('orig-value') ? 
-                                parseFloat($(data[r].gross_profit).data('orig-value')) : 0;
-                            }
-
-                            $('#profit_by_categories_table .footer_total').html(__currency_trans_from_en(total_profit));
-                        },
-                    });
-                } else {
-                    profit_by_categories_datatable.ajax.reload();
-                }
-            } else if (target == '#profit_by_brands') {
-                if(typeof profit_by_brands_datatable == 'undefined') {
-                    profit_by_brands_datatable = $('#profit_by_brands_table').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        "ajax": {
-                            "url": "/reports/get-profit/brand",
-                            "data": function ( d ) {
-                                d.start_date = $('#profit_loss_date_filter')
-                                    .data('daterangepicker')
-                                    .startDate.format('YYYY-MM-DD');
-                                d.end_date = $('#profit_loss_date_filter')
-                                    .data('daterangepicker')
-                                    .endDate.format('YYYY-MM-DD');
-                                d.location_id = $('#profit_loss_location_filter').val();
-                            }
-                        },
-                        columns: [
-                            { data: 'brand', name: 'B.name'  },
-                            { data: 'gross_profit', "searchable": false},
-                        ],
-                        footerCallback: function ( row, data, start, end, display ) {
-                            var total_profit = 0;
-                            for (var r in data){
-                                total_profit += $(data[r].gross_profit).data('orig-value') ? 
-                                parseFloat($(data[r].gross_profit).data('orig-value')) : 0;
-                            }
-
-                            $('#profit_by_brands_table .footer_total').html(__currency_trans_from_en(total_profit));
-                        },
-                    });
-                } else {
-                    profit_by_brands_datatable.ajax.reload();
-                }
-            } else if (target == '#profit_by_locations') {
-                if(typeof profit_by_locations_datatable == 'undefined') {
-                    profit_by_locations_datatable = $('#profit_by_locations_table').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        "ajax": {
-                            "url": "/reports/get-profit/location",
-                            "data": function ( d ) {
-                                d.start_date = $('#profit_loss_date_filter')
-                                    .data('daterangepicker')
-                                    .startDate.format('YYYY-MM-DD');
-                                d.end_date = $('#profit_loss_date_filter')
-                                    .data('daterangepicker')
-                                    .endDate.format('YYYY-MM-DD');
-                                d.location_id = $('#profit_loss_location_filter').val();
-                            }
-                        },
-                        columns: [
-                            { data: 'location', name: 'L.name'  },
-                            { data: 'gross_profit', "searchable": false},
-                        ],
-                        footerCallback: function ( row, data, start, end, display ) {
-                            var total_profit = 0;
-                            for (var r in data){
-                                total_profit += $(data[r].gross_profit).data('orig-value') ? 
-                                parseFloat($(data[r].gross_profit).data('orig-value')) : 0;
-                            }
-
-                            $('#profit_by_locations_table .footer_total').html(__currency_trans_from_en(total_profit));
-                        },
-                    });
-                } else {
-                    profit_by_locations_datatable.ajax.reload();
-                }
-            } else if (target == '#profit_by_invoice') {
+            if (target == '#profit_by_invoice') {
                 if(typeof profit_by_invoice_datatable == 'undefined') {
                     profit_by_invoice_datatable = $('#profit_by_invoice_table').DataTable({
                         processing: true,
