@@ -26,7 +26,21 @@ class InvestorController extends Controller
     // AJAX data endpoint for DataTables - fetch from DB
     public function data(Request $request)
     {
-        $investors = Investor::with(['receivedAccount', 'returnAccount'])->orderBy('created_at', 'desc')->get();
+        $q = Investor::with(['receivedAccount', 'returnAccount'])->orderBy('created_at', 'desc');
+
+        // Filters
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $q->whereDate('received_date', '>=', $request->input('start_date'))
+                ->whereDate('received_date', '<=', $request->input('end_date'));
+        }
+        if ($request->filled('received_account_id')) {
+            $q->where('received_account_id', $request->input('received_account_id'));
+        }
+        if ($request->filled('invoice_no')) {
+            $q->where('invoice_no', $request->input('invoice_no'));
+        }
+
+        $investors = $q->get();
 
         $rows = $investors->map(function($inv){
             $received_date = $inv->received_date ? \Carbon\Carbon::parse($inv->received_date) : null;

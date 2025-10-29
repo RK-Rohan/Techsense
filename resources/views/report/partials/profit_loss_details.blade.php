@@ -199,7 +199,7 @@
             {{ __('report.net_profit') }}: 
             <span class="display_currency" data-currency_symbol="true">{{$data['net_profit']}}</span>
         </h3>
-            <small class="help-block">Net Profit (per invoice) = Total Sales - Invoice VAT - Product Tax - Total Purchase Price
+            <small class="help-block">Net Profit (per invoice) = Total Sales - Invoice VAT - Product Tax - Total Purchase Price - Expenses
             @if(!empty($data['right_side_module_data']))
                 <br>
                 {{-- Include any module-specified additions to net profit --}}

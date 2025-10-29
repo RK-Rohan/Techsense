@@ -188,6 +188,17 @@
         <br>
         <br>
         <div class="border-bottom col-md-12">
+        <p class="m-0" style="text-decoration: underline;"><b>Terms and Conditions:</b></p>
+    <table class="table table-slim">
+        @foreach($tc_description as $tc)
+        <tr>
+            <td>{{ $loop->iteration.'. ' }} </td>
+            <td>{{ $tc->description }}</td>
+        </tr>
+        @endforeach
+    </table>
+    <br>
+            
             <table class="table" width="100%">
                 <tr style="font-size: 14px !important;">
                     <td width="60%">
@@ -235,16 +246,7 @@
 
             </table>
 
-            <br>
-            <p class="m-0" style="text-decoration: underline;"><b>Terms and Conditions:</b></p>
-    <table class="table table-slim">
-        @foreach($tc_description as $tc)
-        <tr>
-            <td>{{ $loop->iteration.'. ' }} </td>
-            <td>{{ $tc->description }}</td>
-        </tr>
-        @endforeach
-    </table>
+
     <br>
         </div>
     </div>

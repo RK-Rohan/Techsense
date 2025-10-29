@@ -3187,7 +3187,7 @@ class ReportController extends Controller
                 'sale.tax_amount as sale_tax_amount',
                 DB::raw('(SELECT COALESCE(SUM(
                         COALESCE(tsl2.item_tax * (tsl2.quantity - tsl2.quantity_returned), 
-                            (tsl2.quantity - tsl2.quantity_returned) * (tsl2.unit_price_inc_tax * (COALESCE(tr2.amount,0)/(100+COALESCE(tr2.amount,0))))
+                            (tsl2.quantity - tsl2.quantity_returned) * (tsl2.unit_price_inc_tax * (COALESCE(tr2.amount,0)/100))
                         )
                     ), 0)
                     FROM transaction_sell_lines AS tsl2
@@ -3195,6 +3195,25 @@ class ReportController extends Controller
                     WHERE tsl2.transaction_id = sale.id
                 ) as total_item_tax')
             );
+
+            // Allocate purchase shipping charges proportionally by quantity from mapped purchase lines
+            $query->addSelect(DB::raw('(
+                SELECT COALESCE(SUM(
+                    (tspl3.quantity - tspl3.qty_returned) * (
+                        COALESCE(purchase3.shipping_charges, 0) /
+                        NULLIF((
+                            SELECT SUM(plx.quantity)
+                            FROM purchase_lines plx
+                            WHERE plx.transaction_id = purchase3.id
+                        ), 0)
+                    )
+                ), 0)
+                FROM transaction_sell_lines tsll3
+                JOIN transaction_sell_lines_purchase_lines tspl3 ON tsll3.id = tspl3.sell_line_id
+                JOIN purchase_lines pl3 ON tspl3.purchase_line_id = pl3.id
+                JOIN transactions purchase3 ON pl3.transaction_id = purchase3.id
+                WHERE tsll3.transaction_id = sale.id
+            ) as total_purchase_shipping_allocated'));
         }
 
 
@@ -3304,48 +3323,23 @@ class ReportController extends Controller
                 $total_purchase = isset($row->total_purchase_price) ? $row->total_purchase_price : 0;
                 $sale_tax = isset($row->sale_tax_amount) ? $row->sale_tax_amount : 0;
                 $line_tax = isset($row->total_item_tax) ? $row->total_item_tax : 0;
+                $purchase_shipping = isset($row->total_purchase_shipping_allocated) ? $row->total_purchase_shipping_allocated : 0;
 
-                // Follow user's requested formula: subtract invoice VAT and product/line tax
-                // explicitly (do not attempt to remove overlap here).
-                $sale_tax = isset($row->sale_tax_amount) ? $row->sale_tax_amount : 0;
-                $line_tax = isset($row->total_item_tax) ? $row->total_item_tax : 0;
+                // Apply user-requested formula explicitly:
+                // net = (total_sales - order VAT) - product inline tax - total purchase - discount
+                $discount = $row->discount_amount;
+                if ($row->discount_type == 'percentage') {
+                    $discount = ($row->discount_amount * $row->total_before_tax) / 100;
+                }
 
-                $subtotal_without_sales_tax = $total_sales - $sale_tax;
-
-                // Subtotal after subtracting both invoice VAT and line tax
-                $subtotal = $total_sales - $sale_tax - $line_tax;
-
-                // Debugging removed: previous dd() halted the report. Values available as data-attrs in the output HTML.
-
-                // Follow explicit steps to match manual calculation:
-                // Step 1: subtract invoice VAT from total sales
-                $after_invoice_vat = $total_sales - $sale_tax;
-
-                // Step 2: subtract product/line tax from the result of step 1
-                $after_line_tax = $after_invoice_vat;
-
-                // We do not subtract invoice-level discount here. The requested net formula is:
-                // net = (total_sales - invoice_VAT) - item_tax - total_purchase
-                // item_tax was already subtracted to produce $after_line_tax above.
-                // So final net = after_line_tax - total_purchase
-                $discount = 0; // keep attribute present for UI debugging, but not used in calculation
-
-                // Step 3: subtract total purchase price from the amount after line taxes
-                $net = $subtotal - $total_purchase;
-
-                // Keep reasonable internal precision before final formatting
-                $after_invoice_vat = round($after_invoice_vat, 8);
-                $after_line_tax = round($after_line_tax, 8);
+                $net = $total_sales - $sale_tax - $line_tax - $total_purchase - $purchase_shipping - $discount;
                 $net = round($net, 8);
 
-                // Expose intermediate values as data attributes to aid debugging in UI
                 $html = '<span class="net-profit" '
                     . 'data-orig-value="' . $net . '" '
-                    . 'data-after-invoice-vat="' . $after_invoice_vat . '" '
-                    . 'data-after-line-tax="' . $after_line_tax . '" '
                     . 'data-sale-tax="' . $sale_tax . '" '
                     . 'data-line-tax="' . $line_tax . '" '
-                    . 'data-discount="' . $discount . '" '
+                    . 'data-purchase-shipping="' . $purchase_shipping . '" '
                     . 'data-total-purchase="' . $total_purchase . '">'
                     . $this->transactionUtil->num_f($net, true)
                     . '</span>';

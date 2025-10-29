@@ -181,23 +181,39 @@ $(document).ready( function(){
                 name: 'due_countdown',
                 searchable: false,
                 render: function(data, type, row) {
-                    // If payment status is Paid, always show 0 days
-                    if (row.payment_status && row.payment_status.toLowerCase() === 'paid') {
-                        return '0 days';
-                    }
+                    // Parse delivery date
                     if (!row.delivery_date) {
                         return '0 days';
                     }
                     var deliveryDate = moment(row.delivery_date, 'DD-MM-YYYY hh:mm A');
-                    var today = moment();
                     if (!deliveryDate.isValid()) {
                         return '0 days';
                     }
-                    // If delivery date is in the future, show 0 days
+
+                    // If fully paid, freeze countdown at days between delivery date and payment received date
+                    var statusRaw = row.payment_status_value || row.payment_status;
+                    if (statusRaw && ('' + statusRaw).toLowerCase() === 'paid') {
+                        if (!row.payment_received_date) {
+                            return '0 days';
+                        }
+                        // Parse payment received date (same format as delivery_date: DD-MM-YYYY hh:mm A)
+                        var paidOn = moment(row.payment_received_date, 'DD-MM-YYYY hh:mm A');
+                        if (!paidOn.isValid()) {
+                            return '0 days';
+                        }
+                        // Calculate days difference: payment date - delivery date
+                        var deliveryMidnight = deliveryDate.clone().startOf('day');
+                        var paidMidnight = paidOn.clone().startOf('day');
+                        var diffPaid = paidMidnight.diff(deliveryMidnight, 'days');
+                        if (diffPaid < 0) diffPaid = 0;
+                        return diffPaid + ' days';
+                    }
+
+                    // If unpaid/partial, show days since delivery up to today; no future countdown
+                    var today = moment();
                     if (deliveryDate.isAfter(today, 'day')) {
                         return '0 days';
                     }
-                    // If delivery date is today or in the past, show days since delivery
                     var diff = today.startOf('day').diff(deliveryDate.startOf('day'), 'days');
                     return diff + ' days';
                 }

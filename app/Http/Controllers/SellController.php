@@ -300,6 +300,13 @@ class SellController extends Controller
                 $sells->where('transactions.delivery_person', request()->input('delivery_person'));
             }
 
+            $sells->addSelect(DB::raw('(
+                SELECT DATE_FORMAT(MAX(paid_on), "%d-%m-%Y %h:%i %p")
+                FROM transaction_payments tp
+                WHERE tp.transaction_id = transactions.id
+                    AND COALESCE(tp.is_return, 0) = 0
+            ) as payment_received_date'));
+
             $sells->groupBy('transactions.id');
 
             if (!empty(request()->suspended)) {
@@ -339,6 +346,9 @@ class SellController extends Controller
             }
             $sales_order_statuses = Transaction::sales_order_statuses();
             $datatable = Datatables::of($sells)
+                ->addColumn('payment_status_value', function ($row) {
+                    return $row->payment_status;
+                })
                 ->addColumn(
                     'action',
                     function ($row) use ($only_shipments, $is_admin, $sale_type) {

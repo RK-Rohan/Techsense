@@ -1612,8 +1612,20 @@ class TransactionUtil extends Util
         $tax = $transaction->tax;
         $output['tax_label'] = $invoice_layout->tax_label;
         $output['line_tax_label'] = $invoice_layout->tax_label;
-        if (!empty($tax) && !empty($tax->name)) {
-            $output['tax_label'] .= ' (' . $tax->name . ')';
+        if (!empty($tax)) {
+            $label_suffix = '';
+            $tax_name = !empty($tax->name) ? $tax->name : '';
+            if ($tax_name !== '') {
+                $label_suffix .= ' (' . $tax_name . ')';
+            }
+            if (isset($tax->amount)) {
+                $percent = rtrim(rtrim(number_format((float) $tax->amount, 2, '.', ''), '0'), '.');
+                // Append percentage only if it's not already present in the tax name
+                if (strpos($tax_name, '%') === false) {
+                    $label_suffix .= ' (' . $percent . '%)';
+                }
+            }
+            $output['tax_label'] .= $label_suffix;
         }
         $output['tax_label'] .= ':';
         $output['tax'] = ($transaction->tax_amount != 0) ? $this->num_f($transaction->tax_amount, $show_currency, $business_details) : 0;
@@ -5861,9 +5873,9 @@ class TransactionUtil extends Util
         // total tax to subtract = invoice-level tax + line tax - overlap
         $total_tax_to_subtract = $total_sale_tax + $total_item_tax - $overlap;
 
-        // Net profit: per user's request, compute as gross profit minus invoice-level VAT
-        // and product/line tax, but avoid double-counting overlap between them.
-        $data['net_profit'] = $gross_profit + $data['total_sale_tax'] - $total_tax_to_subtract - $total_item_tax - $data['total_purchase_shipping_charge'];
+        // Net profit: compute as gross profit minus invoice-level VAT and product/line tax
+        // (avoiding double-count), shipping purchase charge, and subtract expenses as requested.
+        $data['net_profit'] = $gross_profit + $data['total_sale_tax'] - $total_tax_to_subtract - $total_item_tax - $data['total_purchase_shipping_charge'] - $data['total_expense'];
 
         // dd($gross_profit);
 

@@ -179,7 +179,7 @@
                             <!-- Tax -->
                             @if( !empty($receipt_details->tax) )
                             <tr>
-                                <th style="text-align: left;">Total VAT:</th>
+                                <th style="text-align: left;">{!! $receipt_details->tax_label !!}</th>
                                 <td style="text-align: right;">
                                     (+) {{$receipt_details->tax}}
                                 </td>

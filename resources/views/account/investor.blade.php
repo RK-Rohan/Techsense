@@ -11,10 +11,48 @@
         <div class="col-md-12">
             @component('components.widget')
                 <div class="row">
-                    <div class="col-md-6"></div>
-                    <div class="col-md-6">
+                    <div class="col-md-9">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Date range</label>
+                                    <input type="text" id="investor_date_range" class="form-control" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Received Account</label>
+                                    <select id="investor_account_filter" class="form-control select2">
+                                        <option value="">All</option>
+                                        @if(!empty($accounts))
+                                            @foreach($accounts as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Invoice No</label>
+                                    <select id="investor_invoice_filter" class="form-control select2">
+                                        <option value="">All</option>
+                                        @if(!empty($invoices))
+                                            @foreach($invoices as $inv_no => $inv_label)
+                                                <option value="{{ $inv_no }}">{{ $inv_label }}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
                         <button type="button" class="btn btn-primary pull-right" id="add_investor_btn" data-toggle="modal" data-target="#add_investor_modal">
                             <i class="fa fa-plus"></i> Add Investor
+                        </button>
+                        <button type="button" class="btn btn-default pull-right m-1" id="investor_reset_filters" style="margin-right:10px;">
+                            <i class="fa fa-undo"></i> Reset
                         </button>
                     </div>
                 </div>
@@ -32,6 +70,7 @@
                                 <th>Return Amount</th>
                                 <th>Return Date</th>
                                 <th>Return Account</th>
+                                <th>Payment Status</th>
                                 <th>Remarks</th>
                                 <th>Loan Duration</th>
                                 <th>Action</th>
@@ -52,7 +91,19 @@
             var table = $('#investor_table').DataTable({
             processing: true,
             serverSide: false,
-            ajax: '/account/investors-data',
+            ajax: {
+                url: '/account/investors-data',
+                data: function(d){
+                    // date range
+                    if($('#investor_date_range').val()){
+                        var drp = $('#investor_date_range').data('daterangepicker');
+                        d.start_date = drp.startDate.format('YYYY-MM-DD');
+                        d.end_date = drp.endDate.format('YYYY-MM-DD');
+                    }
+                    d.received_account_id = $('#investor_account_filter').val();
+                    d.invoice_no = $('#investor_invoice_filter').val();
+                }
+            },
             columns: [
                 { data: null, render: function (data, type, row, meta) { return meta.row + 1; } },
                 { data: 'name' },
@@ -64,6 +115,14 @@
                 { data: 'return_amount', render: function(data){ return data ? $.fn.dataTable.render.number(',', '.', 2).display(data) : ''; } },
                 { data: 'return_date' },
                 { data: 'return_account_name' },
+                { data: 'payment_status', render: function(data, type, row){
+                        var amt = row.return_amount ? parseFloat(row.return_amount) : 0;
+                        if (amt > 0) {
+                            return '<span class="label bg-green">Paid</span>';
+                        }
+                        return '<span class="label bg-red">Due</span>';
+                    }
+                },
                 { data: 'remarks' },
                 { data: 'loan_duration_days', render: function(data, type, row){
                         if(!data && data !== 0) return '';
@@ -78,6 +137,29 @@
                     }
                 }
             ]
+        });
+
+        // daterangepicker
+        $('#investor_date_range').daterangepicker(
+            dateRangeSettings,
+            function (start, end) {
+                $('#investor_date_range').val(start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format));
+                table.ajax.reload();
+            }
+        );
+        $('#investor_date_range').on('cancel.daterangepicker', function(){
+            $('#investor_date_range').val('');
+            table.ajax.reload();
+        });
+        // filter change
+        $(document).on('change', '#investor_account_filter, #investor_invoice_filter', function(){
+            table.ajax.reload();
+        });
+        $('#investor_reset_filters').on('click', function(){
+            $('#investor_date_range').val('');
+            $('#investor_account_filter').val('').trigger('change');
+            $('#investor_invoice_filter').val('').trigger('change');
+            table.ajax.reload();
         });
     });
 </script>
