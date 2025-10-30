@@ -8,6 +8,7 @@ use App\Account;
 use App\AccountTransaction;
 use App\Utils\Util;
 use DB;
+use PDF;
 
 class InvestorController extends Controller
 {
@@ -205,5 +206,17 @@ class InvestorController extends Controller
         $investor->delete();
 
         return response()->json(['success' => true, 'msg' => 'Investor deleted']);
+    }
+
+    // Generate PDF certificate for an investor
+    public function pdf($id)
+    {
+        $investor = Investor::with(['receivedAccount', 'returnAccount'])->findOrFail($id);
+
+        $pdf = PDF::loadView('account.investor_pdf', [
+            'investor' => $investor,
+        ])->setPaper('a4');
+
+        return $pdf->stream('investor_certificate_'.$investor->id.'.pdf');
     }
 }

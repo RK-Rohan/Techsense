@@ -137,7 +137,6 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/payments/add_agent_payment/{agent_transaction_id}', [TransactionPaymentController::class, 'addAgentPayment']);
 
 
-
     Route::resource('payment-account', 'PaymentAccountController');
     // Investor routes
     Route::get('/account/investor', [\App\Http\Controllers\InvestorController::class, 'index']);
@@ -146,6 +145,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/account/investor/{id}/return', [\App\Http\Controllers\InvestorController::class, 'addReturn']);
     Route::put('/account/investor/{id}', [\App\Http\Controllers\InvestorController::class, 'update']);
     Route::delete('/account/investor/{id}', [\App\Http\Controllers\InvestorController::class, 'destroy']);
+    Route::get('/account/investor/{id}/pdf', [\App\Http\Controllers\InvestorController::class, 'pdf']);
 
     Route::resource('tax-rates', TaxRateController::class);
 

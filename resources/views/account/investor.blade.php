@@ -128,10 +128,19 @@
                     }
                 },
                 { data: null, orderable: false, searchable: false, render: function(data, type, row){
-                        var returnBtn = row.return_amount ? '<button class="btn btn-sm btn-info add-return-btn" data-id="'+row.id+'">Edit Return</button>' : '<button class="btn btn-sm btn-primary add-return-btn" data-id="'+row.id+'">Add Return</button>';
-                        var editBtn = '<button class="btn btn-sm btn-warning edit-investor-btn" data-id="'+row.id+'">Edit</button>';
-                        var delBtn = '<button class="btn btn-sm btn-danger delete-investor-btn" data-id="'+row.id+'">Delete</button>';
-                        return returnBtn + ' ' + editBtn + ' ' + delBtn;
+                        var returnText = row.return_amount ? 'Edit Return' : 'Add Return';
+                        var html = ''+
+                        '<div class="btn-group">'+
+                          '<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Action <span class="caret"></span></button>'+
+                          '<ul class="dropdown-menu dropdown-menu-right" role="menu">'+
+                            '<li><a href="#" class="edit-investor-btn" data-id="'+row.id+'">Edit</a></li>'+
+                            '<li><a href="#" class="add-return-btn" data-id="'+row.id+'">'+returnText+'</a></li>'+
+                            '<li><a href="#" class="delete-investor-btn" data-id="'+row.id+'">Delete</a></li>'+
+                            '<li class="divider"></li>'+
+                            '<li><a href="/account/investor/'+row.id+'/pdf" target="_blank">PDF Slip</a></li>'+
+                          '</ul>'+
+                        '</div>';
+                        return html;
                     }
                 }
             ]
