@@ -15,6 +15,7 @@ class Investor extends Model
         'invest_amount',
         'received_date',
         'invoice_no',
+        'txn_ref',
         'received_account_id',
         'return_amount',
         'return_date',

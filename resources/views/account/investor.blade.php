@@ -61,6 +61,7 @@
                                 <th>SL No</th>
                                 <th>Name</th>
                                 <th>NID/Passport</th>
+                                <th>Transaction Ref No</th>
                                 <th>Invoice No</th>
                                 <th>Phone Number</th>
                                 <th>Invest Amount</th>
@@ -107,6 +108,7 @@
                 { data: null, render: function (data, type, row, meta) { return meta.row + 1; } },
                 { data: 'name' },
                 { data: 'nid' },
+                { data: 'txn_ref' },
                 { data: 'invoice_no' },
                 { data: 'phone' },
                 { data: 'invest_amount', render: $.fn.dataTable.render.number(',', '.', 2) },
@@ -208,6 +210,10 @@
             <input type="text" name="phone" id="edit_phone" class="form-control">
         </div>
         <div class="form-group">
+            <label>Transaction Ref No</label>
+            <input type="text" name="txn_ref" id="edit_txn_ref" class="form-control">
+        </div>
+        <div class="form-group">
             <label>Invest Amount*</label>
             <input type="number" step="0.01" name="invest_amount" id="edit_invest_amount" class="form-control" required>
         </div>
@@ -248,6 +254,7 @@
         $('#edit_investor_id').val(id);
         $('#edit_name').val(row.name);
         $('#edit_phone').val(row.phone);
+        $('#edit_txn_ref').val(row.txn_ref);
         $('#edit_nid').val(row.nid);
         $('#edit_invest_amount').val(row.invest_amount);
         $('#edit_invoice_no').val(row.invoice_no).trigger('change');
@@ -264,6 +271,7 @@
         var data = {
             name: $('#edit_name').val(),
             phone: $('#edit_phone').val(),
+            txn_ref: $('#edit_txn_ref').val(),
             nid: $('#edit_nid').val(),
             invoice_no: $('#edit_invoice_no').val(),
             invest_amount: $('#edit_invest_amount').val(),
@@ -348,6 +356,10 @@
         <div class="form-group">
             <label>Phone</label>
             <input type="text" name="phone" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Transaction Ref No</label>
+            <input type="text" name="txn_ref" class="form-control">
         </div>
         <div class="form-group">
             <label>Invest Amount*</label>

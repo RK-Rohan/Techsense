@@ -78,19 +78,19 @@
                 <td class="value">{{ number_format((float)($investor->invest_amount ?? 0), 2) }}</td>
             </tr>
             <tr>
-                <td class="label">Transaction Reference number:</td>
+                <td class="label">Transaction Reference Number:</td>
                 <td class="value">{{ $investor->txn_ref ?? '' }}</td>
             </tr>
             <tr>
-                <td class="label">Agreed Rate of return:</td>
+                <td class="label">Agreed Rate of Return:</td>
                 <td class="value">5-6% of the total amount invested or 40% of net profit</td>
             </tr>
             <tr>
-                <td class="label">Risk of investment:</td>
+                <td class="label">Risk of Investment:</td>
                 <td class="value">Operational Losses or extended delays will not reduce investor principal amount. However profit payout may be capped (e.g. 5%) for delays beyond 30 days.</td>
             </tr>
             <tr>
-                <td class="label">Agreed Time period of return:</td>
+                <td class="label">Agreed Time Period of Return:</td>
                 <td class="value">3Month±15days.</td>
             </tr>
             <tr>
