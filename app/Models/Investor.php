@@ -11,6 +11,7 @@ class Investor extends Model
     protected $fillable = [
         'name',
         'phone',
+        'nid',
         'invest_amount',
         'received_date',
         'invoice_no',

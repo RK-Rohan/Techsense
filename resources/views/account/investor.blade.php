@@ -60,6 +60,7 @@
                             <tr>
                                 <th>SL No</th>
                                 <th>Name</th>
+                                <th>NID/Passport</th>
                                 <th>Invoice No</th>
                                 <th>Phone Number</th>
                                 <th>Invest Amount</th>
@@ -105,6 +106,7 @@
             columns: [
                 { data: null, render: function (data, type, row, meta) { return meta.row + 1; } },
                 { data: 'name' },
+                { data: 'nid' },
                 { data: 'invoice_no' },
                 { data: 'phone' },
                 { data: 'invest_amount', render: $.fn.dataTable.render.number(',', '.', 2) },
@@ -187,6 +189,10 @@
             <input type="text" name="name" id="edit_name" class="form-control" required>
         </div>
         <div class="form-group">
+            <label>NID/Passport</label>
+            <input type="text" name="nid" id="edit_nid" class="form-control">
+        </div>
+        <div class="form-group">
             <label>Invoice No</label>
             <select name="invoice_no" class="form-control select2" id="edit_invoice_no">
                 <option value="">None</option>
@@ -242,6 +248,7 @@
         $('#edit_investor_id').val(id);
         $('#edit_name').val(row.name);
         $('#edit_phone').val(row.phone);
+        $('#edit_nid').val(row.nid);
         $('#edit_invest_amount').val(row.invest_amount);
         $('#edit_invoice_no').val(row.invoice_no).trigger('change');
         $('#edit_received_account_id').val(row.received_account_id).trigger('change');
@@ -257,6 +264,7 @@
         var data = {
             name: $('#edit_name').val(),
             phone: $('#edit_phone').val(),
+            nid: $('#edit_nid').val(),
             invoice_no: $('#edit_invoice_no').val(),
             invest_amount: $('#edit_invest_amount').val(),
             received_account_id: $('#edit_received_account_id').val(),
@@ -321,6 +329,10 @@
         <div class="form-group">
             <label>Name*</label>
             <input type="text" name="name" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>NID/Passport</label>
+            <input type="text" name="nid" class="form-control">
         </div>
         <div class="form-group">
             <label>Invoice No</label>

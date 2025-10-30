@@ -58,12 +58,12 @@
                 <td class="value">{{ $investor->name }}</td>
             </tr>
             <tr>
-                <td class="label">Investor NID/Passport/BR Number:</td>
-                <td class="value">{{ $investor->phone ?? '' }}</td>
+                <td class="label">NID/Passport:</td>
+                <td class="value">{{ $investor->nid ?? '' }}</td>
             </tr>
             <tr>
-                <td class="label">Investor Code:</td>
-                <td class="value">{{ $investor->code ?? '' }}</td>
+                <td class="label">Phone Number:</td>
+                <td class="value">{{ $investor->phone ?? '' }}</td>
             </tr>
             <tr>
                 <td class="label">Order No:</td>
@@ -83,15 +83,15 @@
             </tr>
             <tr>
                 <td class="label">Agreed Rate of return:</td>
-                <td class="value">{{ $investor->agreed_rate ?? '' }}</td>
+                <td class="value">5-6% of the total amount invested or 40% of net profit</td>
             </tr>
             <tr>
                 <td class="label">Risk of investment:</td>
-                <td class="value">{{ $investor->risk_text ?? '' }}</td>
+                <td class="value">Operational Losses or extended delays will not reduce investor principal amount. However profit payout may be capped (e.g. 5%) for delays beyond 30 days.</td>
             </tr>
             <tr>
                 <td class="label">Agreed Time period of return:</td>
-                <td class="value">{{ $investor->loan_duration ?? '' }}</td>
+                <td class="value">3Month±15days.</td>
             </tr>
             <tr>
                 <td class="label">Investment Opening Date:</td>

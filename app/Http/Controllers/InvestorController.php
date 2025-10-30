@@ -66,6 +66,7 @@ class InvestorController extends Controller
                 'id' => $inv->id,
                 'name' => $inv->name,
                 'phone' => $inv->phone,
+                'nid' => $inv->nid,
                 'invest_amount' => $inv->invest_amount,
                 'received_date' => $inv->received_date,
                 'invoice_no' => $inv->invoice_no,
@@ -91,6 +92,7 @@ class InvestorController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:191',
             'phone' => 'nullable|string|max:50',
+            'nid' => 'nullable|string|max:100',
             'invest_amount' => 'required|numeric',
             'received_date' => 'nullable|date',
             'invoice_no' => 'nullable|string',
@@ -189,6 +191,7 @@ class InvestorController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:191',
             'phone' => 'nullable|string|max:50',
+            'nid' => 'nullable|string|max:100',
             'invest_amount' => 'required|numeric',
             'received_date' => 'nullable|date',
             'remarks' => 'nullable|string',
