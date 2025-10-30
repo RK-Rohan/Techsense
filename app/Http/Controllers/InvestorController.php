@@ -17,8 +17,11 @@ class InvestorController extends Controller
         // Accounts for select
         $accounts = \App\Account::where('business_id', $business_id)->NotClosed()->pluck('name', 'id');
 
-        // Recent invoices for dropdown (sales transactions)
-        $invoices = \App\Transaction::where('business_id', $business_id)->where('type', 'sell')->orderBy('transaction_date', 'desc')->limit(200)->pluck('invoice_no', 'invoice_no');
+        // Invoices for dropdown (sales transactions) - list all
+        $invoices = \App\Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->orderBy('transaction_date', 'desc')
+            ->pluck('invoice_no', 'invoice_no');
 
         return view('account.investor')->with(compact('accounts', 'invoices'));
     }
@@ -36,8 +39,16 @@ class InvestorController extends Controller
         if ($request->filled('received_account_id')) {
             $q->where('received_account_id', $request->input('received_account_id'));
         }
-        if ($request->filled('invoice_no')) {
-            $q->where('invoice_no', $request->input('invoice_no'));
+        // Payment status filter: paid (return_amount > 0), due (return_amount null or 0)
+        if ($request->filled('payment_status')) {
+            $status = $request->input('payment_status');
+            if ($status === 'paid') {
+                $q->whereNotNull('return_amount')->where('return_amount', '>', 0);
+            } elseif ($status === 'due') {
+                $q->where(function($qq){
+                    $qq->whereNull('return_amount')->orWhere('return_amount', 0);
+                });
+            }
         }
 
         $investors = $q->get();

@@ -34,14 +34,11 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>Invoice No</label>
-                                    <select id="investor_invoice_filter" class="form-control select2">
+                                    <label>Payment Status</label>
+                                    <select id="investor_payment_status" class="form-control select2">
                                         <option value="">All</option>
-                                        @if(!empty($invoices))
-                                            @foreach($invoices as $inv_no => $inv_label)
-                                                <option value="{{ $inv_no }}">{{ $inv_label }}</option>
-                                            @endforeach
-                                        @endif
+                                        <option value="paid">Paid</option>
+                                        <option value="due">Due</option>
                                     </select>
                                 </div>
                             </div>
@@ -56,6 +53,7 @@
                         </button>
                     </div>
                 </div>
+                
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped" id="investor_table" style="width:100%;">
                         <thead>
@@ -101,7 +99,7 @@
                         d.end_date = drp.endDate.format('YYYY-MM-DD');
                     }
                     d.received_account_id = $('#investor_account_filter').val();
-                    d.invoice_no = $('#investor_invoice_filter').val();
+                    d.payment_status = $('#investor_payment_status').val();
                 }
             },
             columns: [
@@ -152,13 +150,13 @@
             table.ajax.reload();
         });
         // filter change
-        $(document).on('change', '#investor_account_filter, #investor_invoice_filter', function(){
+        $(document).on('change', '#investor_account_filter, #investor_payment_status', function(){
             table.ajax.reload();
         });
         $('#investor_reset_filters').on('click', function(){
             $('#investor_date_range').val('');
             $('#investor_account_filter').val('').trigger('change');
-            $('#investor_invoice_filter').val('').trigger('change');
+            $('#investor_payment_status').val('').trigger('change');
             table.ajax.reload();
         });
     });
@@ -488,7 +486,26 @@
 
     // initialize select2
     $(document).ready(function(){
-        $('.select2').select2({width: '100%'});
+        // Outside modals
+        $('#investor_account_filter, #investor_payment_status').select2({ width: '100%' });
+
+        // Inside Add Investor modal
+        $('#add_invoice_no, #add_received_account_id').select2({
+            width: '100%',
+            dropdownParent: $('#add_investor_modal')
+        });
+
+        // Inside Edit Investor modal
+        $('#edit_invoice_no, #edit_received_account_id').select2({
+            width: '100%',
+            dropdownParent: $('#edit_investor_modal')
+        });
+
+        // Inside Add Return modal
+        $('#return_account_id').select2({
+            width: '100%',
+            dropdownParent: $('#add_return_modal')
+        });
     });
 </script>
 @endsection
