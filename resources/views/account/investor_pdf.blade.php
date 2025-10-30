@@ -98,8 +98,8 @@
                 <td class="value">{{ $investor->received_date ? \Carbon\Carbon::parse($investor->received_date)->format('d-M-Y') : '' }}</td>
             </tr>
             <tr>
-                <td class="label">Investment Closing Date:</td>
-                <td class="value">{{ $investor->return_date ? \Carbon\Carbon::parse($investor->return_date)->format('d-M-Y') : '' }}</td>
+                <td class="label">Expected Closing Date:</td>
+                <td class="value">{{ $investor->received_date ? \Carbon\Carbon::parse($investor->received_date)->addDays(90)->format('d-M-Y') : '' }}</td>
             </tr>
         </table>
 
