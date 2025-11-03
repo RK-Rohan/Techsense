@@ -58,14 +58,15 @@
                     <table class="table table-bordered table-striped" id="investor_table" style="width:100%;">
                         <thead>
                             <tr>
+                                <th>Action</th>
                                 <th>SL No</th>
+                                <th>Received Date</th>
                                 <th>Name</th>
                                 <th>NID/Passport</th>
                                 <th>Transaction Ref No</th>
                                 <th>Invoice No</th>
                                 <th>Phone Number</th>
                                 <th>Invest Amount</th>
-                                <th>Received Date</th>
                                 <th>Received Account</th>
                                 <th>Return Amount</th>
                                 <th>Return Date</th>
@@ -73,7 +74,6 @@
                                 <th>Payment Status</th>
                                 <th>Remarks</th>
                                 <th>Loan Duration</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                     </table>
@@ -83,6 +83,17 @@
     </div>
 </section>
 
+@endsection
+
+@section('css')
+    @parent
+    <link rel="stylesheet" href="{{ asset('plugins/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css?v=' . $asset_v) }}">
+    <style>
+        .dropdown-menu {
+            position: absolute;
+            left: 0;
+        }
+    </style>
 @endsection
 
 @section('javascript')
@@ -105,14 +116,30 @@
                 }
             },
             columns: [
+                { data: null, orderable: false, searchable: false, render: function(data, type, row){
+                        var returnText = row.return_amount ? 'Edit Return' : 'Add Return';
+                        var html = ''+
+                        '<div class="btn-group">'+
+                          '<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Action <span class="caret"></span></button>'+
+                          '<ul class="dropdown-menu dropdown-menu-right" role="menu">'+
+                            '<li><a href="#" class="edit-investor-btn" data-id="'+row.id+'">Edit</a></li>'+
+                            '<li><a href="#" class="add-return-btn" data-id="'+row.id+'">'+returnText+'</a></li>'+
+                            '<li><a href="#" class="delete-investor-btn" data-id="'+row.id+'">Delete</a></li>'+
+                            '<li class="divider"></li>'+
+                            '<li><a href="/account/investor/'+row.id+'/pdf" target="_blank">PDF Slip</a></li>'+
+                          '</ul>'+
+                        '</div>';
+                        return html;
+                    }
+                },
                 { data: null, render: function (data, type, row, meta) { return meta.row + 1; } },
+                { data: 'received_date' },
                 { data: 'name' },
                 { data: 'nid' },
                 { data: 'txn_ref' },
                 { data: 'invoice_no' },
                 { data: 'phone' },
                 { data: 'invest_amount', render: $.fn.dataTable.render.number(',', '.', 2) },
-                { data: 'received_date' },
                 { data: 'received_account_name' },
                 { data: 'return_amount', render: function(data){ return data ? $.fn.dataTable.render.number(',', '.', 2).display(data) : ''; } },
                 { data: 'return_date' },
@@ -129,22 +156,6 @@
                 { data: 'loan_duration_days', render: function(data, type, row){
                         if(!data && data !== 0) return '';
                         return data + ' day(s)';
-                    }
-                },
-                { data: null, orderable: false, searchable: false, render: function(data, type, row){
-                        var returnText = row.return_amount ? 'Edit Return' : 'Add Return';
-                        var html = ''+
-                        '<div class="btn-group">'+
-                          '<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Action <span class="caret"></span></button>'+
-                          '<ul class="dropdown-menu dropdown-menu-right" role="menu">'+
-                            '<li><a href="#" class="edit-investor-btn" data-id="'+row.id+'">Edit</a></li>'+
-                            '<li><a href="#" class="add-return-btn" data-id="'+row.id+'">'+returnText+'</a></li>'+
-                            '<li><a href="#" class="delete-investor-btn" data-id="'+row.id+'">Delete</a></li>'+
-                            '<li class="divider"></li>'+
-                            '<li><a href="/account/investor/'+row.id+'/pdf" target="_blank">PDF Slip</a></li>'+
-                          '</ul>'+
-                        '</div>';
-                        return html;
                     }
                 }
             ]

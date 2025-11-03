@@ -50,7 +50,7 @@
                         <th>@lang('sale.total_amount')</th>
                         <th>@lang('sale.total_paid')</th>
                         <th>@lang('lang_v1.sell_due')</th>
-                        <th>Tracking No</th>
+                        <th>Tracking Number</th>
                         {{-- <th>@lang('lang_v1.sell_return_due')</th> --}}
                         <th>@lang('lang_v1.shipping_status')</th>
                         <th>Delivery Date</th>
@@ -172,7 +172,7 @@ $(document).ready( function(){
             { data: 'final_total', name: 'final_total'},
             { data: 'total_paid', name: 'total_paid', "searchable": false},
             { data: 'total_remaining', name: 'total_remaining'},
-            { data: 'tracking_no', name: 'tracking_no'},
+            { data: 'shipping_custom_field_1', name: 'transactions.shipping_custom_field_1', "searchable": true},
             // { data: 'return_due', orderable: false, "searchable": false},
             { data: 'shipping_status', name: 'shipping_status'},
             { data: 'delivery_date', name: 'delivery_date'},
@@ -221,10 +221,10 @@ $(document).ready( function(){
             { data: 'total_items', name: 'total_items', "searchable": false},
             { data: 'types_of_service_name', name: 'tos.name', @if(empty($is_types_service_enabled)) visible: false @endif},
             { data: 'service_custom_field_1', name: 'service_custom_field_1', @if(empty($is_types_service_enabled)) visible: false @endif},
-            { data: 'custom_field_1', name: 'transactions.custom_field_1', @if(empty($custom_labels['sell']['custom_field_1'])) visible: false @endif},
-            { data: 'custom_field_2', name: 'transactions.custom_field_2', @if(empty($custom_labels['sell']['custom_field_2'])) visible: false @endif},
-            { data: 'custom_field_3', name: 'transactions.custom_field_3', @if(empty($custom_labels['sell']['custom_field_3'])) visible: false @endif},
-            { data: 'custom_field_4', name: 'transactions.custom_field_4', @if(empty($custom_labels['sell']['custom_field_4'])) visible: false @endif},
+            { data: 'custom_field_1', name: 'transactions.custom_field_1', visible: {{ empty($custom_labels['sell']['custom_field_1']) ? 'false' : 'true' }} },
+            { data: 'custom_field_2', name: 'transactions.custom_field_2', visible: {{ empty($custom_labels['sell']['custom_field_2']) ? 'false' : 'true' }} },
+            { data: 'custom_field_3', name: 'transactions.custom_field_3', visible: {{ empty($custom_labels['sell']['custom_field_3']) ? 'false' : 'true' }} },
+            { data: 'custom_field_4', name: 'transactions.custom_field_4', visible: {{ empty($custom_labels['sell']['custom_field_4']) ? 'false' : 'true' }} },
             { data: 'added_by', name: 'u.first_name'},
             { data: 'additional_notes', name: 'additional_notes'},
             // { data: 'staff_note', name: 'staff_note'},
