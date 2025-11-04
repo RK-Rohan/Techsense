@@ -218,6 +218,14 @@ $title = $transaction->type == 'sales_order' ? __('lang_v1.edit_sales_order') : 
 			$custom_field_4_label = !empty($custom_labels['sell']['custom_field_4']) ? $custom_labels['sell']['custom_field_4'] : '';
 
 			$is_custom_field_4_required = !empty($custom_labels['sell']['is_custom_field_4_required']) && $custom_labels['sell']['is_custom_field_4_required'] == 1 ? true : false;
+
+			$custom_field_5_label = !empty($custom_labels['sell']['custom_field_5']) ? $custom_labels['sell']['custom_field_5'] : '';
+
+			$is_custom_field_5_required = !empty($custom_labels['sell']['is_custom_field_5_required']) && $custom_labels['sell']['is_custom_field_5_required'] == 1 ? true : false;
+
+			$custom_field_6_label = !empty($custom_labels['sell']['custom_field_6']) ? $custom_labels['sell']['custom_field_6'] : '';
+
+			$is_custom_field_6_required = !empty($custom_labels['sell']['is_custom_field_6_required']) && $custom_labels['sell']['is_custom_field_6_required'] == 1 ? true : false;
 			@endphp
 			@if(!empty($custom_field_1_label))
 			@php
@@ -276,6 +284,36 @@ $title = $transaction->type == 'sales_order' ? __('lang_v1.edit_sales_order') : 
 				<div class="form-group">
 					{!! Form::label('custom_field_4', $label_4 ) !!}
 					{!! Form::text('custom_field_4', $transaction->custom_field_4, ['class' => 'form-control','placeholder' => $custom_field_4_label, 'required' => $is_custom_field_4_required]); !!}
+				</div>
+			</div>
+			@endif
+			@if(!empty($custom_field_5_label))
+			@php
+			$label_5 = $custom_field_5_label . ':';
+			if($is_custom_field_5_required) {
+			$label_5 .= '*';
+			}
+			@endphp
+
+			<div class="col-md-4">
+				<div class="form-group">
+					{!! Form::label('custom_field_5', $label_5 ) !!}
+					{!! Form::text('custom_field_5', $transaction->custom_field_5, ['class' => 'form-control','placeholder' => $custom_field_5_label, 'required' => $is_custom_field_5_required]); !!}
+				</div>
+			</div>
+			@endif
+			@if(!empty($custom_field_6_label))
+			@php
+			$label_6 = $custom_field_6_label . ':';
+			if($is_custom_field_6_required) {
+			$label_6 .= '*';
+			}
+			@endphp
+
+			<div class="col-md-4">
+				<div class="form-group">
+					{!! Form::label('custom_field_6', $label_6 ) !!}
+					{!! Form::text('custom_field_6', $transaction->custom_field_6, ['class' => 'form-control','placeholder' => $custom_field_6_label, 'required' => $is_custom_field_6_required]); !!}
 				</div>
 			</div>
 			@endif
@@ -456,7 +494,7 @@ $title = $transaction->type == 'sales_order' ? __('lang_v1.edit_sales_order') : 
 							<span class="input-group-addon">
 								<i class="fa fa-gift"></i>
 							</span>
-							{!! Form::number('rp_redeemed_modal', $transaction->rp_redeemed, ['class' => 'form-control direct_sell_rp_input', 'data-amount_per_unit_point' => session('business.redeem_amount_per_unit_rp'), 'min' => 0, 'data-max_points' => !empty($redeem_details['points']) ? $redeem_details['points'] : 0, 'data-min_order_total' => session('business.min_order_total_for_redeem') ]); !!}
+							{!! Form::number('rp_redeemed_modal', $transaction->rp_redeemed, ['class' => 'form-control direct_sell_rp_input', 'data-amount_per_unit_point' => session('business.redeem_amount_per_unit_rp'), 'min' => 0, 'data-max-points' => !empty($redeem_details['points']) ? $redeem_details['points'] : 0, 'data-min_order_total' => session('business.min_order_total_for_redeem') ]); !!}
 							<input type="hidden" id="rp_name" value="{{session('business.rp_name')}}">
 						</div>
 					</div>

@@ -418,6 +418,32 @@
             </div>
         </div>
     </div>
+    <div class="col-sm-6">
+        <div class="form-group">
+            {!! Form::label('sell_custom_field_5_label', __('lang_v1.custom_field', ['number' => 5])); !!}
+            <div class="input-group">
+                {!! Form::text('custom_labels[sell][custom_field_5]', !empty($custom_labels['sell']['custom_field_5']) ? $custom_labels['sell']['custom_field_5'] : null,
+                ['class' => 'form-control', 'id' => 'sell_custom_field_5_label']); !!}
+                <div class="input-group-addon">
+                    <label>
+                        <input type="checkbox" name="custom_labels[sell][is_custom_field_5_required]" value="1" @if(!empty($custom_labels['sell']['is_custom_field_5_required']) && $custom_labels['sell']['is_custom_field_5_required']==1) checked @endif> @lang('lang_v1.is_required')</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="form-group">
+            {!! Form::label('sell_custom_field_6_label', __('lang_v1.custom_field', ['number' => 6])); !!}
+            <div class="input-group">
+                {!! Form::text('custom_labels[sell][custom_field_6]', !empty($custom_labels['sell']['custom_field_6']) ? $custom_labels['sell']['custom_field_6'] : null,
+                ['class' => 'form-control', 'id' => 'sell_custom_field_6_label']); !!}
+                <div class="input-group-addon">
+                    <label>
+                        <input type="checkbox" name="custom_labels[sell][is_custom_field_6_required]" value="1" @if(!empty($custom_labels['sell']['is_custom_field_6_required']) && $custom_labels['sell']['is_custom_field_6_required']==1) checked @endif> @lang('lang_v1.is_required')</label>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="clearfix"></div>
     <div class="col-sm-12">
         <h4>@lang('lang_v1.labels_for_sale_shipping_custom_fields'):</h4>

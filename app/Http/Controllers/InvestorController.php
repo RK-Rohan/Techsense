@@ -12,6 +12,62 @@ use PDF;
 
 class InvestorController extends Controller
 {
+    // Investor master list (name, nid, phone)
+    public function masterIndex()
+    {
+        return view('account.investor_master');
+    }
+
+    public function masterData(Request $request)
+    {
+        $investors = Investor::orderBy('name')->get(['id','name','nid','phone']);
+
+        $rows = $investors->map(function($inv){
+            $total_investment = \App\Models\Investment::where('investor_id', $inv->id)->sum('amount');
+            $total_pay = \App\Models\Investment::where('investor_id', $inv->id)->sum('return_amount');
+            $diff = ($total_investment ?: 0) - ($total_pay ?: 0);
+            $total_due = $diff > 0 ? $diff : 0; // never negative
+            $profit = $diff < 0 ? abs($diff) : 0; // overflow treated as profit
+
+            return [
+                'id' => $inv->id,
+                'name' => $inv->name,
+                'nid' => $inv->nid,
+                'phone' => $inv->phone,
+                'total_investment' => (float)$total_investment,
+                'total_pay' => (float)$total_pay,
+                'total_due' => (float)$total_due,
+                'profit' => (float)$profit,
+            ];
+        });
+
+        return response()->json(['data' => $rows]);
+    }
+
+    public function masterStore(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:191',
+            'nid' => 'nullable|string|max:100',
+            'phone' => 'nullable|string|max:50',
+        ]);
+
+        $inv = Investor::create($data);
+        return response()->json(['success' => true, 'msg' => 'Investor added', 'data' => $inv]);
+    }
+
+    public function masterUpdate(Request $request, $id)
+    {
+        $inv = Investor::findOrFail($id);
+        $data = $request->validate([
+            'name' => 'required|string|max:191',
+            'nid' => 'nullable|string|max:100',
+            'phone' => 'nullable|string|max:50',
+        ]);
+        $inv->update($data);
+        return response()->json(['success' => true, 'msg' => 'Investor updated', 'data' => $inv]);
+    }
+
     public function index()
     {
         $business_id = request()->session()->get('user.business_id');
@@ -197,6 +253,8 @@ class InvestorController extends Controller
             'txn_ref' => 'nullable|string|max:191',
             'invest_amount' => 'required|numeric',
             'received_date' => 'nullable|date',
+            'invoice_no' => 'nullable|string',
+            'received_account_id' => 'nullable|integer',
             'remarks' => 'nullable|string',
         ]);
 

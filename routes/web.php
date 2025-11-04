@@ -139,13 +139,22 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     Route::resource('payment-account', 'PaymentAccountController');
     // Investor routes
-    Route::get('/account/investor', [\App\Http\Controllers\InvestorController::class, 'index']);
-    Route::get('/account/investors-data', [\App\Http\Controllers\InvestorController::class, 'data']);
-    Route::post('/account/investor', [\App\Http\Controllers\InvestorController::class, 'store']);
-    Route::post('/account/investor/{id}/return', [\App\Http\Controllers\InvestorController::class, 'addReturn']);
-    Route::put('/account/investor/{id}', [\App\Http\Controllers\InvestorController::class, 'update']);
+    // Investor master page (name, nid, phone)
+    Route::get('/account/investor', [\App\Http\Controllers\InvestorController::class, 'masterIndex']);
+    Route::get('/account/investor-master-data', [\App\Http\Controllers\InvestorController::class, 'masterData']);
+    Route::post('/account/investor-master', [\App\Http\Controllers\InvestorController::class, 'masterStore']);
+    Route::put('/account/investor-master/{id}', [\App\Http\Controllers\InvestorController::class, 'masterUpdate']);
+    // Legacy investor endpoints removed; keep delete for master page
     Route::delete('/account/investor/{id}', [\App\Http\Controllers\InvestorController::class, 'destroy']);
-    Route::get('/account/investor/{id}/pdf', [\App\Http\Controllers\InvestorController::class, 'pdf']);
+
+    // Investment routes
+    Route::get('/account/investments', [\App\Http\Controllers\InvestmentController::class, 'index']);
+    Route::get('/account/investments-data', [\App\Http\Controllers\InvestmentController::class, 'data']);
+    Route::post('/account/investments', [\App\Http\Controllers\InvestmentController::class, 'store']);
+    Route::post('/account/investments/{id}/return', [\App\Http\Controllers\InvestmentController::class, 'addReturn']);
+    Route::put('/account/investments/{id}', [\App\Http\Controllers\InvestmentController::class, 'update']);
+    Route::delete('/account/investments/{id}', [\App\Http\Controllers\InvestmentController::class, 'destroy']);
+    Route::get('/account/investments/{id}/pdf', [\App\Http\Controllers\InvestmentController::class, 'pdf']);
 
     Route::resource('tax-rates', TaxRateController::class);
 

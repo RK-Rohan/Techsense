@@ -10,18 +10,8 @@ class Investor extends Model
 
     protected $fillable = [
         'name',
-        'phone',
         'nid',
-        'invest_amount',
-        'received_date',
-        'invoice_no',
-        'txn_ref',
-        'received_account_id',
-        'return_amount',
-        'return_date',
-        'remarks',
-        'loan_duration',
-        'return_account_id'
+        'phone',
     ];
 
     public $timestamps = true;
@@ -34,5 +24,10 @@ class Investor extends Model
     public function returnAccount()
     {
         return $this->belongsTo(\App\Account::class, 'return_account_id');
+    }
+
+    public function investments()
+    {
+        return $this->hasMany(\App\Models\Investment::class);
     }
 }

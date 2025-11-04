@@ -486,9 +486,15 @@ class AdminSidebarMenu
                         );
                         // Investor menu link
                         $sub->url(
-                            action([\App\Http\Controllers\InvestorController::class, 'index']),
+                            action([\App\Http\Controllers\InvestorController::class, 'masterIndex']),
                             __('Investor'),
                             ['icon' => 'fa fas fa-user-tie', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'investor']
+                        );
+                        // Investment menu link
+                        $sub->url(
+                            action([\App\Http\Controllers\InvestmentController::class, 'index']),
+                            __('Investment'),
+                            ['icon' => 'fa fas fa-donate', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'investments']
                         );
                     },
                     ['icon' => 'fa fas fa-money-check-alt']
