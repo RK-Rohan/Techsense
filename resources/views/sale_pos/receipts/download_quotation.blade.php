@@ -21,7 +21,9 @@
                 <tbody>
                     <tr style="font-size: 14px !important;">
                         <td width="20%" valign="top">
-                            <img style="max-height: 120px; width: 120px;" src="{{'data:image/png;base64,'.base64_encode(file_get_contents(base_path('public/uploads/invoice_logos/TBL-Logo-PNG.png')))}}" class="img img-responsive center-block">
+                            <img style="max-height: 120px; width: 120px;"
+                                src="{{'data:image/png;base64,' . base64_encode(file_get_contents(base_path('public/uploads/invoice_logos/TBL-Logo-PNG.png')))}}"
+                                class="img img-responsive center-block">
                         </td>
                         <td width="60%">
                             <h2 class="text-center m-0">
@@ -65,7 +67,8 @@
                 </tr>
                 <tr>
                     <td width="60%">{!! $receipt_details->business_name !!}</td>
-                    <td width="40%"> <b>{{ $receipt_details->sell_custom_field_2_label }}:</b> {!!$receipt_details->sell_custom_field_2_value ?? ''!!}</td>
+                    <td width="40%"> <b>{{ $receipt_details->sell_custom_field_2_label }}:</b>
+                        {!!$receipt_details->sell_custom_field_2_value ?? ''!!}</td>
                 </tr>
                 <tr>
                     <td width="60%">{{ $receipt_details->address_line_1 }}</td>
@@ -78,7 +81,8 @@
         <table style="width: 100% !important">
             <tbody>
                 <tr>
-                    <td width="60%"><b>{{ $receipt_details->sales_person_label }}:</b> {{ $receipt_details->sales_person }}</td>
+                    <td width="60%"><b>{{ $receipt_details->sales_person_label }}:</b>
+                        {{ $receipt_details->sales_person }}</td>
                     <td width="40%"></td>
                 </tr>
 
@@ -99,7 +103,7 @@
                 <thead>
                     <tr class="item_table_header">
                         <th>SL.</th>
-                        <th width="15%">Code/SKU</th>
+                        <th width="15%">Part/Model Number</th>
                         <th width="42%">{{$receipt_details->table_product_label}}</th>
                         <th width="13%">Delivery Time</th>
                         <th style="text-align: center;" width="7%">Unit</th>
@@ -110,33 +114,33 @@
                 </thead>
                 <tbody>
                     @forelse($receipt_details->lines as $line)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{$line['sub_sku']}}</td>
-                        <td>
-                            {{$line['name']}} <br>
-                            @if(!empty($line['brand'])) {{'Brand: '.$line['brand']}} <br>@endif
-                            @if(!empty($line['origin'])) {{'Origin: '.$line['origin']}} <br>@endif
-                            <!-- {{$line['product_variation']}} {{$line['variation']}} -->
-                            <!-- @if(!empty($line['sub_sku'])), {{$line['sub_sku']}} @endif @if(!empty($line['brand'])), {{$line['brand']}} @endif @if(!empty($line['cat_code'])), {{$line['cat_code']}}@endif -->
-                            <!-- @if(!empty($line['product_custom_fields'])), {{$line['product_custom_fields']}} @endif -->
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{$line['sub_sku']}}</td>
+                            <td>
+                                {{$line['name']}} <br>
+                                @if(!empty($line['brand'])) {{'Brand: ' . $line['brand']}} <br>@endif
+                                @if(!empty($line['origin'])) {{'Origin: ' . $line['origin']}} <br>@endif
+                                <!-- {{$line['product_variation']}} {{$line['variation']}} -->
+                                <!-- @if(!empty($line['sub_sku'])), {{$line['sub_sku']}} @endif @if(!empty($line['brand'])), {{$line['brand']}} @endif @if(!empty($line['cat_code'])), {{$line['cat_code']}}@endif -->
+                                <!-- @if(!empty($line['product_custom_fields'])), {{$line['product_custom_fields']}} @endif -->
 
-                            <small>
-                                {!!$line['product_description']!!}
-                            </small>
+                                <small>
+                                    {!!$line['product_description']!!}
+                                </small>
 
-                        </td>
-                        <td style="text-align: center;">{{$line['delivery_time']}}</td>
-                        <td style="text-align: center;">{{$line['units']}}</td>
-                        <td style="text-align: center;">{{$line['quantity']}}</td>
-
-
-
-                        <td style="text-align: right;">{{$line['unit_price_inc_tax']}}</td>
+                            </td>
+                            <td style="text-align: center;">{{$line['delivery_time']}}</td>
+                            <td style="text-align: center;">{{$line['units']}}</td>
+                            <td style="text-align: center;">{{$line['quantity']}}</td>
 
 
-                        <td style="text-align: right;">{{$line['line_total']}}</td>
-                    </tr>
+
+                            <td style="text-align: right;">{{$line['unit_price_inc_tax']}}</td>
+
+
+                            <td style="text-align: right;">{{$line['line_total']}}</td>
+                        </tr>
                     @empty
                     @endforelse
                 </tbody>
@@ -164,26 +168,26 @@
                             </tr>
 
                             <!-- Discount -->
-                            @if( !empty($receipt_details->discount) )
-                            <tr>
-                                <th style="text-align: left;">
-                                    {!! $receipt_details->discount_label !!}
-                                </th>
+                            @if(!empty($receipt_details->discount))
+                                <tr>
+                                    <th style="text-align: left;">
+                                        {!! $receipt_details->discount_label !!}
+                                    </th>
 
-                                <td style="text-align: right;">
-                                    (-) {{$receipt_details->discount}}
-                                </td>
-                            </tr>
+                                    <td style="text-align: right;">
+                                        (-) {{$receipt_details->discount}}
+                                    </td>
+                                </tr>
                             @endif
 
                             <!-- Tax -->
-                            @if( !empty($receipt_details->tax) )
-                            <tr>
-                                <th style="text-align: left;">{!! $receipt_details->tax_label !!}</th>
-                                <td style="text-align: right;">
-                                    (+) {{$receipt_details->tax}}
-                                </td>
-                            </tr>
+                            @if(!empty($receipt_details->tax))
+                                <tr>
+                                    <th style="text-align: left;">{!! $receipt_details->tax_label !!}</th>
+                                    <td style="text-align: right;">
+                                        (+) {{$receipt_details->tax}}
+                                    </td>
+                                </tr>
                             @endif
 
                             <!-- Total -->
@@ -207,10 +211,10 @@
     <p class="m-0"><b>Terms and Conditions:</b></p>
     <table class="table table-slim">
         @foreach($tc_description as $tc)
-        <tr>
-            <td>{{ $loop->iteration.'. ' }} </td>
-            <td>{{ $tc->description }}</td>
-        </tr>
+            <tr>
+                <td>{{ $loop->iteration . '. ' }} </td>
+                <td>{{ $tc->description }}</td>
+            </tr>
         @endforeach
     </table>
     <br>
@@ -225,7 +229,7 @@
                 <td> </td>
             </tr>
             <tr>
-                <td>{{ Auth::user()->first_name .' '. Auth::user()->last_name}}</td>
+                <td>{{ Auth::user()->first_name . ' ' . Auth::user()->last_name}}</td>
                 <td></td>
             </tr>
             <tr>
@@ -241,7 +245,8 @@
 
 
 
-    <footer class="text-center" style="font-size:10px; position: fixed; bottom: 0cm; left: 0px; right: 0px; height: 5px;">
+    <footer class="text-center"
+        style="font-size:10px; position: fixed; bottom: 0cm; left: 0px; right: 0px; height: 5px;">
         System generated report, hence no signature required.
         Printed on <?php echo date("jS F Y", strtotime(date("Y-m-d"))) . " " . date("h:i A"); ?>
     </footer>

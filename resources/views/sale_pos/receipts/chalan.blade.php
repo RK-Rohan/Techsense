@@ -106,7 +106,7 @@
 					<td style="background-color: #357ca5 !important; color: white !important; width: 5% !important">#</td>
 
 					<td style="background-color: #357ca5 !important; color: white !important; width: 20% !important">
-						Code/SKU
+						Part/Model Number
 					</td>
 
 					<td style="background-color: #357ca5 !important; color: white !important; width: 55% !important">

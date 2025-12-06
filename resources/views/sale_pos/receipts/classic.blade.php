@@ -131,7 +131,7 @@
 			<thead>
 				<tr>
 					<th class="text-center" width="5%">SL.</th>
-					<th class="text-center" width="15%">Code/SKU</th>
+					<th class="text-center" width="15%">Part/Model Number</th>
 					<th class="text-center" width="{{$p_width}}%">{{$receipt_details->table_product_label}}</th>
 
 					<th class="text-right" width="15%">{{$receipt_details->table_qty_label}}</th>

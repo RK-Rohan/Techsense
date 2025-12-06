@@ -104,7 +104,7 @@
                         <td> SL. </td>
 
                         <td style="text-align: center;">
-                            Code/SKU
+                            Part/Model Number
                         </td>
 
                         <td style="text-align: center;">
