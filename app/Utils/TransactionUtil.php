@@ -5033,6 +5033,8 @@ class TransactionUtil extends Util
                 'transactions.document',
                 'transactions.transaction_date',
                 'transactions.ref_no',
+                'transactions.custom_field_1',
+                'transactions.custom_field_2',
                 'contacts.name',
                 'contacts.supplier_business_name',
                 'transactions.status',

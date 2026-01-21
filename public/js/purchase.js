@@ -558,7 +558,8 @@ $(document).ready(function() {
             { data: 'action', name: 'action', orderable: false, searchable: false },
             { data: 'transaction_date', name: 'transaction_date' },
             { data: 'ref_no', name: 'ref_no' },
-            { data: 'location_name', name: 'BS.name' },
+            { data: 'custom_field_1', name: 'transactions.custom_field_1' },
+            { data: 'custom_field_2', name: 'transactions.custom_field_2' },
             { data: 'name', name: 'contacts.name' },
             { data: 'status', name: 'status' },
             { data: 'payment_status', name: 'payment_status' },
@@ -592,7 +593,7 @@ $(document).ready(function() {
         },
         createdRow: function(row, data, dataIndex) {
             $(row)
-                .find('td:eq(5)')
+                .find('td:eq(6)')
                 .attr('class', 'clickable_td');
         },
     });

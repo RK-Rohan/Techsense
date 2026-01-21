@@ -52,6 +52,8 @@
                         <th>@lang('sale.total_amount')</th>
                         <th>@lang('sale.total_paid')</th>
                         <th>@lang('lang_v1.sell_due')</th>
+                        <th>{{ $custom_labels['sell']['custom_field_4'] ?? __('lang_v1.custom_field', ['number' => 4]) }}</th>
+                        <th>{{ $custom_labels['sell']['custom_field_6'] ?? __('lang_v1.custom_field', ['number' => 6]) }}</th>
                         <th>Tracking Number</th>
                         {{-- <th>@lang('lang_v1.sell_return_due')</th> --}}
                         <th>@lang('lang_v1.shipping_status')</th>
@@ -61,7 +63,6 @@
                         <th>@lang('lang_v1.types_of_service')</th>
                         <th>{{ $custom_labels['types_of_service']['custom_field_1'] ?? __('lang_v1.service_custom_field_1' )}}</th>
                         <th>{{ $custom_labels['sell']['custom_field_3'] ?? ''}}</th>
-                        <th>{{ $custom_labels['sell']['custom_field_4'] ?? ''}}</th>
                         <th>@lang('lang_v1.added_by')</th>
                         <th>@lang('sale.sell_note')</th>
                         {{-- <th>@lang('sale.staff_note')</th> --}}
@@ -174,6 +175,8 @@ $(document).ready( function(){
             { data: 'final_total', name: 'final_total'},
             { data: 'total_paid', name: 'total_paid', "searchable": false},
             { data: 'total_remaining', name: 'total_remaining'},
+            { data: 'custom_field_4', name: 'transactions.custom_field_4', visible: {{ empty($custom_labels['sell']['custom_field_4']) ? 'false' : 'true' }} },
+            { data: 'custom_field_6', name: 'transactions.custom_field_6', visible: {{ empty($custom_labels['sell']['custom_field_6']) ? 'false' : 'true' }} },
             { data: 'shipping_custom_field_1', name: 'transactions.shipping_custom_field_1', "searchable": true},
             // { data: 'return_due', orderable: false, "searchable": false},
             { data: 'shipping_status', name: 'shipping_status'},
@@ -224,7 +227,6 @@ $(document).ready( function(){
             { data: 'types_of_service_name', name: 'tos.name', @if(empty($is_types_service_enabled)) visible: false @endif},
             { data: 'service_custom_field_1', name: 'service_custom_field_1', @if(empty($is_types_service_enabled)) visible: false @endif},
             { data: 'custom_field_3', name: 'transactions.custom_field_3', visible: {{ empty($custom_labels['sell']['custom_field_3']) ? 'false' : 'true' }} },
-            { data: 'custom_field_4', name: 'transactions.custom_field_4', visible: {{ empty($custom_labels['sell']['custom_field_4']) ? 'false' : 'true' }} },
             { data: 'added_by', name: 'u.first_name'},
             { data: 'additional_notes', name: 'additional_notes'},
             // { data: 'staff_note', name: 'staff_note'},
