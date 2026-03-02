@@ -6,6 +6,11 @@ Phase 3: Integration Hardening
 ## Status
 completed
 
+## Phase Summary
+- Phase 1: Persistence Foundation — completed
+- Phase 2: Drag-and-Drop UX — completed
+- Phase 3: Integration Hardening — completed
+
 ## Notes
 - Phase 1 completed:
   - Added `sort_order` migration for `transaction_sell_lines`.

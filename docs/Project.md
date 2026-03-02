@@ -1,10 +1,14 @@
 # Project
 
 ## Name
-Quotation Row Drag-and-Drop
+Business Management System
 
 ## Goal
-Enable drag-and-drop reordering for quotation item rows, and persist that order across save, edit, and output.
+Manage the full business workflow from quotation to delivery:
+- Start with quotation for industrial sensor equipment to send to the client.
+- After client confirmation, change status to sales / sales order and place purchase order to origin country.
+- Receive delivery, ship to client address, and confirm successful delivery.
+- Convert sales order to sales invoice.
 
 ## Status
 Completed
@@ -23,7 +27,7 @@ We keep feature requirements and implementation plans in `docs/` to track client
 For any new feature or issue:
 1. Assign the task to the working agents on this project.
 2. Agents create/refresh a plan in `docs/` before changes.
-3. Development proceeds by phase with updates recorded in `Phase.md`.
+3. Development proceeds by phase with updates recorded in `docs/Phase.md`.
 
 ## Scope
 - Backend persistence for row order.

@@ -1,13 +1,14 @@
-# Admin Instructions
+# System Admin
 
-Use this file to record admin-level instructions, priorities, and constraints for the project.
+This file manages the overall project and client requirements at the system level.
+Use it to record authoritative instructions, priorities, and constraints that govern all work.
 
-This is the top-level source for client requirements that must be implemented. Each requirement should map to a
-feature or issue entry under `docs/Features.md` or `docs/Issues.md`, with links and updated status.
+Each requirement here should map to a feature or issue entry under `docs/Features.md` or `docs/Issues.md`,
+with links and updated status.
 
 ## Date
 
-## Request / Instruction
+## Requirement / Directive
 
 ## Scope
 - 
@@ -17,3 +18,4 @@ feature or issue entry under `docs/Features.md` or `docs/Issues.md`, with links 
 
 ## Notes
 - 
+
