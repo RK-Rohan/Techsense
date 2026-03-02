@@ -151,6 +151,8 @@ $(document).ready(function () {
     });
 
     set_default_customer();
+    init_pos_row_sorting();
+    reindex_pos_product_rows();
 
     if ($('#search_product').length) {
         //Add Product
@@ -496,6 +498,7 @@ $(document).ready(function () {
         $(this)
             .parents('tr')
             .remove();
+        reindex_pos_product_rows();
         pos_total_row();
     });
 
@@ -1528,6 +1531,125 @@ function get_recent_transactions(status, element_obj) {
     });
 }
 
+function is_reorder_enabled_for_sell_rows() {
+    if ($('form#add_sell_form').length === 0 && $('form#edit_sell_form').length === 0) {
+        return false;
+    }
+
+    if ($('input#status').length > 0) {
+        var status_from_input = $('input#status').val();
+        return status_from_input === 'quotation' || status_from_input === 'draft';
+    }
+
+    if ($('select[name="status"]').length > 0) {
+        var status_from_select = $('select[name="status"]').val();
+        return status_from_select === 'quotation' || status_from_select === 'draft';
+    }
+
+    return false;
+}
+
+function toggle_pos_row_drag_handles(show) {
+    var $handles = $('table#pos_table tbody').find('.row_drag_handle');
+    if ($handles.length === 0) {
+        return;
+    }
+
+    if (show) {
+        $handles.removeClass('hide');
+    } else {
+        $handles.addClass('hide');
+    }
+}
+
+function fix_pos_row_helper_widths(event, tr) {
+    var $originals = tr.children();
+    var $helper = tr.clone();
+    $helper.children().each(function (index) {
+        $(this).width($originals.eq(index).outerWidth());
+    });
+
+    return $helper;
+}
+
+function reindex_pos_product_rows() {
+    var $rows = $('table#pos_table tbody').find('tr.product_row');
+    if ($rows.length === 0) {
+        $('input#product_row_count').val(0);
+        return;
+    }
+
+    $rows.each(function (rowIndex) {
+        var $row = $(this);
+        $row.attr('data-row_index', rowIndex);
+
+        $row.find('[name]').each(function () {
+            var $field = $(this);
+            var currentName = $field.attr('name');
+            if (!currentName) {
+                return;
+            }
+
+            $field.attr('name', currentName.replace(/products\[\d+\]/g, 'products[' + rowIndex + ']'));
+        });
+
+        var $modal = $row.find('.row_edit_product_price_model');
+        if ($modal.length > 0) {
+            var newModalId = 'row_edit_product_price_modal_' + rowIndex;
+            $modal.attr('id', newModalId);
+            $row.find('[data-target^="#row_edit_product_price_modal_"]').attr(
+                'data-target',
+                '#' + newModalId
+            );
+        }
+    });
+
+    $('input#product_row_count').val($rows.length);
+}
+
+function init_pos_row_sorting() {
+    var $tbody = $('table#pos_table tbody');
+    if ($tbody.length === 0) {
+        return;
+    }
+
+    var enableSorting = is_reorder_enabled_for_sell_rows();
+    toggle_pos_row_drag_handles(enableSorting);
+
+    if (typeof $tbody.sortable !== 'function' || !enableSorting) {
+        if ($tbody.data('row-sortable-initialized') && typeof $tbody.sortable === 'function') {
+            $tbody.sortable('destroy');
+            $tbody.removeData('row-sortable-initialized');
+        }
+        return;
+    }
+
+    if ($tbody.data('row-sortable-initialized')) {
+        return;
+    }
+
+    $tbody.sortable({
+        items: '> tr.product_row',
+        handle: '.row_drag_handle',
+        axis: 'y',
+        helper: fix_pos_row_helper_widths,
+        placeholder: 'pos-row-sort-placeholder',
+        start: function (event, ui) {
+            ui.placeholder.height(ui.item.outerHeight());
+        },
+        update: function () {
+            reindex_pos_product_rows();
+            pos_total_row();
+        },
+    });
+
+    $tbody.data('row-sortable-initialized', true);
+}
+
+$(document).on('change', 'select[name="status"], input#status', function () {
+    init_pos_row_sorting();
+});
+
 //variation_id is null when weighing_scale_barcode is used.
 function pos_product_row(variation_id = null, purchase_line_id = null, weighing_scale_barcode = null, quantity = 1) {
 
@@ -1649,6 +1771,8 @@ function pos_product_row(variation_id = null, purchase_line_id = null, weighing_
                     $('table#pos_table tbody')
                         .append(result.html_content)
                         .find('input.pos_quantity');
+                    reindex_pos_product_rows();
+                    init_pos_row_sorting();
                     //increment row count
                     $('input#product_row_count').val(parseInt(product_row) + 1);
                     var this_row = $('table#pos_table tbody')
@@ -2725,6 +2849,7 @@ function get_sales_orders() {
                         $(this).remove();
                     }
                 });
+                reindex_pos_product_rows();
                 pos_total_row();
             },
         });
@@ -2776,6 +2901,8 @@ $("#sales_order_ids").on("select2:select", function (e) {
 
                 //increment row count
                 $('input#product_row_count').val(product_row);
+                reindex_pos_product_rows();
+                init_pos_row_sorting();
 
                 pos_total_row();
 
@@ -2821,9 +2948,10 @@ $("#sales_order_ids").on("select2:unselect", function (e) {
         if (typeof ($(this).data('so_id')) !== 'undefined'
             && $(this).data('so_id') == sales_order_id) {
             $(this).remove();
-            pos_total_row();
         }
     });
+    reindex_pos_product_rows();
+    pos_total_row();
 });
 
 $(document).on('click', '#add_expense', function () {

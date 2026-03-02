@@ -19,6 +19,9 @@ $multiplier = $value['multiplier'];
 <tr class="product_row" data-row_index="{{$row_count}}" @if(!empty($so_line)) data-so_id="{{$so_line->transaction_id}}" @endif>
 	
 	<td>
+		<span class="row_drag_handle text-muted" title="Drag to reorder" style="cursor: move; margin-right: 8px;">
+			<i class="fa fa-bars"></i>
+		</span>
         {{ $product->sub_sku ?? $product->sku }}
     </td>
 	<td>

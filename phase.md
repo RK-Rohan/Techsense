@@ -1,0 +1,21 @@
+# Current Phase
+
+## Phase
+Phase 3: Integration Hardening
+
+## Status
+completed
+
+## Notes
+- Phase 1 completed:
+  - Added `sort_order` migration for `transaction_sell_lines`.
+  - Persisted `sort_order` during sell line create/update.
+  - Applied ordered reads in edit and receipt line retrieval paths.
+- Phase 2 completed:
+  - Added draggable row handle in quotation sell row template.
+  - Enabled sortable row behavior in `#pos_table` for quotation/draft sell forms.
+  - Added row reindexing for input names and modal targets after reorder/remove/add.
+- Phase 3 completed:
+  - Ordered sell line load in edit flow for consistent ordering.
+  - Drag handle icon updated to `fa fa-bars` to display in current Font Awesome build.
+  - Confirmed drag-and-drop works for quotation rows.

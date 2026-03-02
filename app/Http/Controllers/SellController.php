@@ -960,6 +960,8 @@ class SellController extends Controller
             ->leftjoin('units', 'units.id', '=', 'p.unit_id')
             ->leftjoin('units as u', 'p.secondary_unit_id', '=', 'u.id')
             ->where('transaction_sell_lines.transaction_id', $id)
+            ->orderBy('transaction_sell_lines.sort_order')
+            ->orderBy('transaction_sell_lines.id')
             ->with(['warranties', 'so_line'])
             ->select(
                 DB::raw("IF(pv.is_dummy = 0, CONCAT(p.name, ' (', pv.name, ':',variations.name, ')'), p.name) AS product_name"),

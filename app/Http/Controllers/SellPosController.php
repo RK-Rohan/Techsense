@@ -915,6 +915,8 @@ class SellPosController extends Controller
             ->leftjoin('units', 'units.id', '=', 'p.unit_id')
             ->leftjoin('units as u', 'p.secondary_unit_id', '=', 'u.id')
             ->where('transaction_sell_lines.transaction_id', $id)
+            ->orderBy('transaction_sell_lines.sort_order')
+            ->orderBy('transaction_sell_lines.id')
             ->with(['warranties'])
             ->select(
                 DB::raw("IF(pv.is_dummy = 0, CONCAT(p.name, ' (', pv.name, ':',variations.name, ')'), p.name) AS product_name"),
@@ -3096,7 +3098,10 @@ class SellPosController extends Controller
             );
             $quotation->save();
 
-            $sell_lines = TransactionSellLine::where('transaction_id', $transaction->id)->get();
+            $sell_lines = TransactionSellLine::where('transaction_id', $transaction->id)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get();
             $new_sell_lines = [];
             foreach ($sell_lines as $sell_line) {
                 $sl = $sell_line->replicate();

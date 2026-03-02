@@ -443,6 +443,7 @@ class TransactionUtil extends Util
         $modifiers_formatted = [];
         $combo_lines = [];
         $products_modified_combo = [];
+        $sort_order = 0;
         foreach ($products as $product) {
             $multiplier = 1;
             if (isset($product['sub_unit_id']) && $product['sub_unit_id'] == $product['product_unit_id']) {
@@ -455,7 +456,14 @@ class TransactionUtil extends Util
 
             //Check if transaction_sell_lines_id is set, used when editing.
             if (!empty($product['transaction_sell_lines_id'])) {
-                $edit_id_temp = $this->editSellLine($product, $location_id, $status_before, $multiplier, $uf_data);
+                $edit_id_temp = $this->editSellLine(
+                    $product,
+                    $location_id,
+                    $status_before,
+                    $multiplier,
+                    $uf_data,
+                    $sort_order
+                );
                 $edit_ids = array_merge($edit_ids, $edit_id_temp);
 
                 //update or create modifiers for existing sell lines
@@ -465,6 +473,7 @@ class TransactionUtil extends Util
                             if (!empty($product['modifier_sell_line_id'][$key])) {
                                 $edit_modifier = TransactionSellLine::find($product['modifier_sell_line_id'][$key]);
                                 $edit_modifier->quantity = isset($product['modifier_quantity'][$key]) ? $product['modifier_quantity'][$key] : 1;
+                                $edit_modifier->sort_order = $sort_order;
                                 $modifiers_formatted[] = $edit_modifier;
                                 //Dont delete modifier sell line if exists
                                 $edit_ids[] = $product['modifier_sell_line_id'][$key];
@@ -481,6 +490,7 @@ class TransactionUtil extends Util
                                         'unit_price_inc_tax' => $this_price,
                                         'parent_sell_line_id' => $product['transaction_sell_lines_id'],
                                         'children_type' => 'modifier',
+                                        'sort_order' => $sort_order,
                                     ]);
                                 }
                             }
@@ -537,6 +547,7 @@ class TransactionUtil extends Util
                     'so_line_id' => !empty($product['so_line_id']) ? $product['so_line_id'] : null,
                     'tc_line' => !empty($input['tc_line']) ? $input['tc_line'] : null,
                     'secondary_unit_quantity' => !empty($product['secondary_unit_quantity']) ? $this->num_uf($product['secondary_unit_quantity']) : 0,
+                    'sort_order' => $sort_order,
                 ];
 
                 foreach ($extra_line_parameters as $key => $value) {
@@ -564,6 +575,7 @@ class TransactionUtil extends Util
                                     'unit_price' => $this_price,
                                     'unit_price_inc_tax' => $this_price,
                                     'children_type' => 'modifier',
+                                    'sort_order' => $sort_order,
                                 ];
                             }
                         }
@@ -580,6 +592,9 @@ class TransactionUtil extends Util
                 //Update purchase order line quantity received
                 $this->updateSalesOrderLine($line['so_line_id'], $line['quantity'], 0);
             }
+
+            // Preserve current visual order from submitted row sequence.
+            $sort_order++;
         }
 
         // dd($lines_formatted[]->id);
@@ -716,6 +731,7 @@ class TransactionUtil extends Util
                 'unit_price_inc_tax' => $price,
                 'sub_unit_id' => null,
                 'discount_id' => null,
+                'sort_order' => $parent_sell_line->sort_order,
                 'parent_sell_line_id' => $parent_sell_line->id,
                 'children_type' => 'combo',
             ]);
@@ -731,7 +747,7 @@ class TransactionUtil extends Util
      * @param  int  $location_id
      * @return bool
      */
-    public function editSellLine($product, $location_id, $status_before, $multiplier = 1, $uf_data = true)
+    public function editSellLine($product, $location_id, $status_before, $multiplier = 1, $uf_data = true, $sort_order = 0)
     {
         //Get the old order quantity
         $sell_line = TransactionSellLine::with(['product', 'warranties'])
@@ -783,6 +799,7 @@ class TransactionUtil extends Util
             'sub_unit_id' => !empty($product['sub_unit_id']) ? $product['sub_unit_id'] : null,
             'res_service_staff_id' => !empty($product['res_service_staff_id']) ? $product['res_service_staff_id'] : null,
             'secondary_unit_quantity' => !empty($product['secondary_unit_quantity']) ? $this->num_uf($product['secondary_unit_quantity']) : 0,
+            'sort_order' => $sort_order,
         ]);
         $sell_line->save();
 
@@ -1473,7 +1490,12 @@ class TransactionUtil extends Util
                 $sell_line_relations[] = 'lot_details';
             }
 
-            $lines = $transaction->sell_lines()->get();
+            $lines = $transaction->sell_lines()
+                ->with($sell_line_relations)
+                ->whereNull('parent_sell_line_id')
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get();
 
             foreach ($lines as $key => $value) {
                 if (!empty($value->sub_unit_id)) {
@@ -1541,7 +1563,11 @@ class TransactionUtil extends Util
             $output['total_line_discount'] = !empty($total_line_discount) ? $this->num_f($total_line_discount, true, $business_details) : 0;
         } elseif ($transaction_type == 'sell_return') {
             $parent_sell = Transaction::find($transaction->return_parent_id);
-            $lines = $parent_sell->sell_lines;
+            $lines = $parent_sell->sell_lines()
+                ->whereNull('parent_sell_line_id')
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get();
 
             foreach ($lines as $key => $value) {
                 if (!empty($value->sub_unit_id)) {
