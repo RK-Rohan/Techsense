@@ -7,3 +7,6 @@ Homestead.yaml
 npm-debug.log
 .env
 .scribe
+.phpunit.result.cache
+/storage/framework/cache/data/
+/storage/logs/
