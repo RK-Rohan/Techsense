@@ -1,5 +1,13 @@
 <?php
 
+$viewPaths = [
+    resource_path('views'),
+];
+
+if (is_dir(base_path('custom_views'))) {
+    $viewPaths[] = base_path('custom_views');
+}
+
 return [
 
     /*
@@ -13,10 +21,7 @@ return [
     |
     */
 
-    'paths' => [
-        base_path('custom_views'),
-        resource_path('views'),
-    ],
+    'paths' => $viewPaths,
 
     /*
     |--------------------------------------------------------------------------
