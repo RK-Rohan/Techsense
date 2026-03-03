@@ -3,3 +3,4 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/dailyvoi/techsense.dailyvoice.live/
     - /bin/bash deploy.sh
+    - /usr/bin/php "$DEPLOYPATH/artisan" migrate --force
