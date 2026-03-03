@@ -24,3 +24,5 @@ completed
   - Ordered sell line load in edit flow for consistent ordering.
   - Drag handle icon updated to `fa fa-bars` to display in current Font Awesome build.
   - Confirmed drag-and-drop works for quotation rows.
+  - Resolved production incident `ISS-2026-03-03-01` (`sort_order` missing in DB schema during edit/print PDF flow).
+  - Added deploy migration execution in `.cpanel.yml` (`php artisan migrate --force`) to prevent repeat incidents.

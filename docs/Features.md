@@ -16,4 +16,4 @@ Track client-requested features and their implementation status.
 - Status: done
 - Plan Doc: Completed and archived (previously `docs/Quotation-Row-Drag-Drop-Plan.md`)
 - Acceptance Criteria:
-- Notes: Order persists across save, edit, and output. Drag handle visible for quotation/draft.
+- Notes: Order persists across save, edit, and output. Drag handle visible for quotation/draft. Production schema mismatch issue tracked as `ISS-2026-03-03-01` and resolved.

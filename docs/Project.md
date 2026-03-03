@@ -16,6 +16,7 @@ Completed
 ## Outcome
 - Quotation rows can be reordered via drag handle.
 - Order persists on save, edit, and output.
+- Deployment now applies DB migrations automatically to keep schema aligned with code changes.
 
 ## Client
 Techsence Bangladesh Ltd. (Business Management System user).
@@ -33,6 +34,7 @@ For any new feature or issue:
 - Backend persistence for row order.
 - Quotation row drag-and-drop UX.
 - Order-consistent read/render behavior.
+- Deployment safety for schema changes used by quotation/sales edit and print flows.
 
 ## Out of scope
 - Unrelated purchase flow changes.

@@ -17,3 +17,4 @@
 - Validate create/edit/save/reload order consistency.
 - Validate print/download quotation order consistency.
 - Validate no regressions in row calculations and row removal.
+- Production hardening: ensure schema migrations run during cPanel deployment to avoid code/schema mismatch.
