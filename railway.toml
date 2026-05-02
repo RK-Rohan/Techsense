@@ -1,6 +1,6 @@
 [build]
 builder = "RAILPACK"
-buildCommand = "composer install --no-interaction --prefer-dist --optimize-autoloader && npm ci && npm run production"
+buildCommand = "npm run production"
 
 [deploy]
 startCommand = "php -d variables_order=EGPCS artisan serve --host=0.0.0.0 --port=${PORT}"

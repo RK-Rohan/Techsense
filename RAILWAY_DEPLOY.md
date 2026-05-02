@@ -17,7 +17,7 @@ Even with `railway.toml`, verify these in service settings:
 1. Service source: connect this GitHub repo and branch.
 2. Builder: Railpack (default if no Dockerfile).
 3. Build Command:
-   - `composer install --no-interaction --prefer-dist --optimize-autoloader && npm ci && npm run production`
+   - `npm run production`
 4. Start Command:
    - `php -d variables_order=EGPCS artisan serve --host=0.0.0.0 --port=${PORT}`
 5. Pre-Deploy Command:
@@ -52,6 +52,10 @@ Database:
 - `DB_SOCKET=`
 - `MYSQL_ATTR_SSL_CA=`
 
+Railpack/Build controls (set manually in Railway service variables):
+- `RAILPACK_PHP_EXTENSIONS=bcmath,gd,intl,zip,exif,pcntl`
+- `RAILPACK_INSTALL_COMMAND=composer install --no-dev --optimize-autoloader --no-scripts --no-interaction`
+
 ## 4) First Deployment Checklist
 
 1. Deploy app service.
@@ -75,7 +79,11 @@ If you need async jobs/schedules:
   - Check `APP_KEY`, DB vars, and start command.
 - If build fails with `No version available for php 8.0` or `php 8.1`:
   - Ensure latest commit is deployed (this repo now uses `composer.json` -> `"php": "^8.2"`).
+- If build fails at `install:composer` with exit code `2`:
+  - Add `RAILPACK_PHP_EXTENSIONS=bcmath,gd,intl,zip,exif,pcntl` in Railway service variables.
+  - Add `RAILPACK_INSTALL_COMMAND=composer install --no-dev --optimize-autoloader --no-scripts --no-interaction`.
+  - Redeploy latest commit.
 - If migration fails:
   - Run `php artisan migrate:status` in Railway shell.
 - If static assets missing:
-  - Ensure build command includes `npm ci && npm run production`.
+  - Ensure build command includes `npm run production`.
