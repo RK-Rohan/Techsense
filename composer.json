@@ -20,6 +20,7 @@
         "ext-gd": "*",
         "ext-intl": "*",
         "ext-pcntl": "*",
+        "ext-pdo_mysql": "*",
         "ext-zip": "*",
         "aloha/twilio": "^4.0",
         "arcanedev/log-viewer": "9.x",
