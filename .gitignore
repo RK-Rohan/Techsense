@@ -6,6 +6,8 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 .env
+.env.local
+.env.remote
 .scribe
 .phpunit.result.cache
 /storage/framework/cache/data/
