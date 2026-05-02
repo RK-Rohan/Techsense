@@ -68,9 +68,6 @@
         "files": [
             "app/Http/helpers.php"
         ],
-        "classmap": [
-            "database"
-        ],
         "psr-4": {
             "App\\": "app/",
             "Modules\\": "Modules/",
