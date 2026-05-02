@@ -7,5 +7,5 @@ startCommand = "php -d variables_order=EGPCS artisan serve --host=0.0.0.0 --port
 preDeployCommand = "php artisan migrate --force"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-healthcheckPath = "/"
+healthcheckPath = "/health"
 healthcheckTimeout = 300

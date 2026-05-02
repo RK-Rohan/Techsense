@@ -76,6 +76,10 @@ use App\Http\Controllers\CombinedPurchaseReturnController;
 
 include_once 'install_r.php';
 
+Route::get('/health', function () {
+    return response('ok', 200);
+});
+
 Route::middleware(['setData'])->group(function () {
     Route::get('/', function () {
         return view('welcome');
