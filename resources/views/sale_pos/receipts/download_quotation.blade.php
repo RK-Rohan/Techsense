@@ -3,9 +3,15 @@
 <head>
     <meta http-equiv="Content-Type" content="charset=utf-8" />
     <style>
+        @page {
+            margin: 14mm 10mm 18mm 10mm;
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
             font-size: 12px;
+            margin: 0;
+            padding: 0;
         }
     </style>
 </head>
@@ -125,9 +131,15 @@
                                 <!-- @if(!empty($line['sub_sku'])), {{$line['sub_sku']}} @endif @if(!empty($line['brand'])), {{$line['brand']}} @endif @if(!empty($line['cat_code'])), {{$line['cat_code']}}@endif -->
                                 <!-- @if(!empty($line['product_custom_fields'])), {{$line['product_custom_fields']}} @endif -->
 
-                                <small>
-                                    {!!$line['product_description']!!}
-                                </small>
+                                @php
+                                    $raw_description = $line['product_description'] ?? '';
+                                    $raw_description = preg_replace('/<\s*br\s*\/?>/i', "\n", $raw_description);
+                                    $safe_description = strip_tags($raw_description);
+                                    $safe_description = preg_replace("/\n{3,}/", "\n\n", $safe_description);
+                                @endphp
+                                @if(!empty(trim($safe_description)))
+                                    <small style="white-space: pre-wrap;">{!! nl2br(e(trim($safe_description))) !!}</small>
+                                @endif
 
                             </td>
                             <td style="text-align: center;">{{$line['delivery_time']}}</td>
@@ -245,8 +257,7 @@
 
 
 
-    <footer class="text-center"
-        style="font-size:10px; position: fixed; bottom: 0cm; left: 0px; right: 0px; height: 5px;">
+    <footer class="text-center" style="font-size:10px;">
         System generated report, hence no signature required.
         Printed on <?php echo date("jS F Y", strtotime(date("Y-m-d"))) . " " . date("h:i A"); ?>
     </footer>
@@ -263,6 +274,9 @@
         .product_table td {
             border: 1px solid black;
             font-size: 13px !important;
+            vertical-align: top;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         .item_table_header {
@@ -277,13 +291,17 @@
             font-size: 13px;
         }
 
+        .product_table {
+            table-layout: fixed;
+            width: 100%;
+        }
 
         footer {
             position: fixed;
             bottom: 0px;
             left: 0px;
             right: 0px;
-            height: 10px;
+            height: 12px;
         }
 
         .m-0 {
