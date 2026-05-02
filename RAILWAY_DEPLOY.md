@@ -25,6 +25,9 @@ Even with `railway.toml`, verify these in service settings:
 6. Healthcheck path:
    - `/`
 
+Important:
+- Railway build image must support your PHP version. This repo now targets PHP `^8.1`.
+
 ## 3) Environment Variables (App Service)
 
 Set these in Railway Variables:
@@ -70,6 +73,8 @@ If you need async jobs/schedules:
 
 - If app fails to boot:
   - Check `APP_KEY`, DB vars, and start command.
+- If build fails with `No version available for php 8.0`:
+  - Ensure latest commit is deployed (this repo now uses `composer.json` -> `"php": "^8.1"`).
 - If migration fails:
   - Run `php artisan migrate:status` in Railway shell.
 - If static assets missing:
