@@ -15,6 +15,12 @@
     ],
     "require": {
         "php": "^8.2",
+        "ext-bcmath": "*",
+        "ext-exif": "*",
+        "ext-gd": "*",
+        "ext-intl": "*",
+        "ext-pcntl": "*",
+        "ext-zip": "*",
         "aloha/twilio": "^4.0",
         "arcanedev/log-viewer": "9.x",
         "automattic/woocommerce": "^3.0",

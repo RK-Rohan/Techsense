@@ -56,6 +56,9 @@ Railpack/Build controls (set manually in Railway service variables):
 - `RAILPACK_PHP_EXTENSIONS=bcmath,gd,intl,zip,exif,pcntl`
 - `RAILPACK_INSTALL_COMMAND=composer install --no-dev --optimize-autoloader --no-scripts --no-interaction`
 
+Note:
+- Core PHP extensions are now also explicitly required in `composer.json` (`ext-bcmath`, `ext-exif`, `ext-gd`, `ext-intl`, `ext-pcntl`, `ext-zip`) so Railpack can auto-install them before Composer runs.
+
 ## 4) First Deployment Checklist
 
 1. Deploy app service.
