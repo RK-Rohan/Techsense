@@ -4,7 +4,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git unzip default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
-RUN install-php-extensions exif intl pcntl bcmath gd pdo_mysql zip
+RUN install-php-extensions exif intl pcntl bcmath gd pdo_mysql zip fileinfo
 
 WORKDIR /app
 COPY php.ini /usr/local/etc/php/conf.d/99-app.ini
