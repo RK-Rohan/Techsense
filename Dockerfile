@@ -5,9 +5,10 @@ RUN install-php-extensions exif intl pcntl bcmath gd pdo_mysql zip
 WORKDIR /app
 COPY php.ini /usr/local/etc/php/conf.d/99-app.ini
 
-FROM composer:2 AS vendor
+FROM base AS vendor
 WORKDIR /app
 
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY composer.json composer.lock ./
 RUN composer install \
     --no-dev \
