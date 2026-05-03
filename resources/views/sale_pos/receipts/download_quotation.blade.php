@@ -120,39 +120,65 @@
                 </thead>
                 <tbody>
                     @forelse($receipt_details->lines as $line)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{$line['sub_sku']}}</td>
-                            <td class="description-cell">
-                                {{$line['name']}} <br>
-                                @if(!empty($line['brand'])) {{'Brand: ' . $line['brand']}} <br>@endif
-                                @if(!empty($line['origin'])) {{'Origin: ' . $line['origin']}} <br>@endif
-                                <!-- {{$line['product_variation']}} {{$line['variation']}} -->
-                                <!-- @if(!empty($line['sub_sku'])), {{$line['sub_sku']}} @endif @if(!empty($line['brand'])), {{$line['brand']}} @endif @if(!empty($line['cat_code'])), {{$line['cat_code']}}@endif -->
-                                <!-- @if(!empty($line['product_custom_fields'])), {{$line['product_custom_fields']}} @endif -->
+                        @php
+                            $raw_description = $line['product_description'] ?? '';
+                            $raw_description = preg_replace('/<\s*br\s*\/?>/i', "\n", $raw_description);
+                            $safe_description = strip_tags($raw_description);
+                            $safe_description = preg_replace("/\n{3,}/", "\n\n", $safe_description);
+                            $safe_description = trim($safe_description);
 
-                                @php
-                                    $raw_description = $line['product_description'] ?? '';
-                                    $raw_description = preg_replace('/<\s*br\s*\/?>/i', "\n", $raw_description);
-                                    $safe_description = strip_tags($raw_description);
-                                    $safe_description = preg_replace("/\n{3,}/", "\n\n", $safe_description);
-                                @endphp
-                                @if(!empty(trim($safe_description)))
-                                    <small class="description-text">{!! nl2br(e(trim($safe_description))) !!}</small>
-                                @endif
+                            $prefix_text = trim(
+                                $line['name']
+                                . (!empty($line['brand']) ? "\nBrand: " . $line['brand'] : '')
+                                . (!empty($line['origin']) ? "\nOrigin: " . $line['origin'] : '')
+                            );
 
-                            </td>
-                            <td style="text-align: center;">{{$line['delivery_time']}}</td>
-                            <td style="text-align: center;">{{$line['units']}}</td>
-                            <td style="text-align: center;">{{$line['quantity']}}</td>
+                            $full_description = trim($prefix_text . (!empty($safe_description) ? "\n" . $safe_description : ''));
 
+                            $description_chunks = [];
+                            $max_chunk_chars = 900;
+                            $current_chunk = '';
 
+                            foreach (preg_split("/\r\n|\n|\r/", $full_description) as $desc_line) {
+                                $desc_line = trim($desc_line);
+                                if ($desc_line === '') {
+                                    continue;
+                                }
 
-                            <td style="text-align: right;">{{$line['unit_price_inc_tax']}}</td>
+                                $candidate = $current_chunk === '' ? $desc_line : ($current_chunk . "\n" . $desc_line);
+                                if (mb_strlen($candidate) > $max_chunk_chars && $current_chunk !== '') {
+                                    $description_chunks[] = $current_chunk;
+                                    $current_chunk = $desc_line;
+                                } else {
+                                    $current_chunk = $candidate;
+                                }
+                            }
 
+                            if ($current_chunk !== '') {
+                                $description_chunks[] = $current_chunk;
+                            }
 
-                            <td style="text-align: right;">{{$line['line_total']}}</td>
-                        </tr>
+                            if (empty($description_chunks)) {
+                                $description_chunks[] = '';
+                            }
+                        @endphp
+
+                        @foreach($description_chunks as $chunk_index => $chunk_text)
+                            <tr>
+                                <td>{{ $chunk_index === 0 ? $loop->parent->iteration : '' }}</td>
+                                <td>{{ $chunk_index === 0 ? $line['sub_sku'] : '' }}</td>
+                                <td class="description-cell">
+                                    @if($chunk_text !== '')
+                                        <small class="description-text">{!! nl2br(e($chunk_text)) !!}</small>
+                                    @endif
+                                </td>
+                                <td style="text-align: center;">{{ $chunk_index === 0 ? $line['delivery_time'] : '' }}</td>
+                                <td style="text-align: center;">{{ $chunk_index === 0 ? $line['units'] : '' }}</td>
+                                <td style="text-align: center;">{{ $chunk_index === 0 ? $line['quantity'] : '' }}</td>
+                                <td style="text-align: right;">{{ $chunk_index === 0 ? $line['unit_price_inc_tax'] : '' }}</td>
+                                <td style="text-align: right;">{{ $chunk_index === 0 ? $line['line_total'] : '' }}</td>
+                            </tr>
+                        @endforeach
                     @empty
                     @endforelse
                 </tbody>
