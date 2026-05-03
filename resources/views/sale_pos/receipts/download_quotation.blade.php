@@ -123,7 +123,7 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{$line['sub_sku']}}</td>
-                            <td>
+                            <td class="description-cell">
                                 {{$line['name']}} <br>
                                 @if(!empty($line['brand'])) {{'Brand: ' . $line['brand']}} <br>@endif
                                 @if(!empty($line['origin'])) {{'Origin: ' . $line['origin']}} <br>@endif
@@ -138,7 +138,7 @@
                                     $safe_description = preg_replace("/\n{3,}/", "\n\n", $safe_description);
                                 @endphp
                                 @if(!empty(trim($safe_description)))
-                                    <small style="white-space: pre-wrap;">{!! nl2br(e(trim($safe_description))) !!}</small>
+                                    <small class="description-text">{!! nl2br(e(trim($safe_description))) !!}</small>
                                 @endif
 
                             </td>
@@ -292,8 +292,32 @@
         }
 
         .product_table {
-            table-layout: fixed;
+            table-layout: auto;
             width: 100%;
+            page-break-inside: auto;
+        }
+
+        .product_table thead {
+            display: table-header-group;
+        }
+
+        .product_table tbody tr {
+            page-break-inside: auto !important;
+            page-break-after: auto;
+        }
+
+        .product_table td,
+        .product_table th {
+            page-break-inside: auto !important;
+            page-break-before: auto;
+            white-space: normal;
+        }
+
+        .description-cell,
+        .description-text {
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
         }
 
         footer {
