@@ -75,17 +75,20 @@ class BackUpController extends Controller
                 return $notAllowed;
             }
 
-            // start the backup process
-            Artisan::call('backup:run');
-            $output = Artisan::output();
+            // Start backup in detached mode to avoid HTTP timeout on large backups.
+            $phpBinary = escapeshellarg(PHP_BINARY);
+            $artisan = escapeshellarg(base_path('artisan'));
+            $logFile = escapeshellarg(storage_path('logs/backup-run.log'));
+            $command = "{$phpBinary} {$artisan} backup:run >> {$logFile} 2>&1 &";
+            exec($command);
 
-            // log the results
-            Log::info("Backpack\BackupManager -- new backup started from admin interface \r\n".$output);
+            Log::info('Backpack\\BackupManager -- backup dispatched from admin interface.');
 
             $output = ['success' => 1,
-                'msg' => __('lang_v1.success'),
+                'msg' => __('lang_v1.success').'. Backup started in background.',
             ];
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('Backpack\\BackupManager -- failed to dispatch backup: '.$e->getMessage());
             $output = ['success' => 0,
                 'msg' => $e->getMessage(),
             ];
