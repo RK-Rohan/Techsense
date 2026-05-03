@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Utils\Util;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Log;
 use Storage;
 
@@ -78,7 +79,17 @@ class BackUpController extends Controller
             // Start backup in detached mode to avoid HTTP timeout on large backups.
             $phpBinary = escapeshellarg(PHP_BINARY);
             $artisan = escapeshellarg(base_path('artisan'));
-            $logFile = escapeshellarg(storage_path('logs/backup-run.log'));
+
+            $logDirectory = storage_path('logs');
+            if (! File::exists($logDirectory)) {
+                File::makeDirectory($logDirectory, 0755, true);
+            }
+
+            $resolvedLogFile = File::isDirectory($logDirectory)
+                ? storage_path('logs/backup-run.log')
+                : '/tmp/backup-run.log';
+
+            $logFile = escapeshellarg($resolvedLogFile);
             $command = "{$phpBinary} {$artisan} backup:run >> {$logFile} 2>&1 &";
             exec($command);
 
