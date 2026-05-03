@@ -8,6 +8,7 @@ RUN install-php-extensions exif intl pcntl bcmath gd pdo_mysql zip
 
 WORKDIR /app
 COPY php.ini /usr/local/etc/php/conf.d/99-app.ini
+COPY docker/Caddyfile /etc/caddy/Caddyfile
 
 FROM base AS vendor
 WORKDIR /app
@@ -39,14 +40,16 @@ WORKDIR /app
 COPY . .
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public ./public
+COPY docker/start.sh /usr/local/bin/start.sh
 
 RUN rm -rf node_modules \
     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod +x /usr/local/bin/start.sh
 
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 
 EXPOSE 8080
 
-CMD ["sh", "-lc", "php -d variables_order=EGPCS artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+CMD ["/usr/local/bin/start.sh"]
