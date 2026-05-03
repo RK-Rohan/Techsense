@@ -2115,6 +2115,7 @@ class TransactionUtil extends Util
             $base_unit_price = $line->unit_price_inc_tax / $base_unit_multiplier;
 
             $origin_id = $line->product->origin;
+            $countryName = null;
 
             $country = Country::find($origin_id);
 
@@ -2132,6 +2133,7 @@ class TransactionUtil extends Util
                 'product_variation' => (empty($product_variation->name) || $product_variation->name == 'DUMMY') ? '' : $product_variation->name,
                 //Field for 2nd column
                 'quantity' => $this->num_f($line->quantity, false, $business_details, true),
+                'quantity_uf' => $line->quantity,
                 'delivery_time' => $line->delivery_time,
                 'units' => $unit_name,
 
