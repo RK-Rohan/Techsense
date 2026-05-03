@@ -1,0 +1,14 @@
+.git
+.gitignore
+.idea
+.claude
+node_modules
+vendor
+storage/logs
+storage/framework/cache/data
+npm-debug.log
+.env
+.env.local
+.env.remote
+.env.railway
+.phpunit.result.cache

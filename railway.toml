@@ -1,9 +1,7 @@
 [build]
-builder = "RAILPACK"
-buildCommand = "npm run production"
+builder = "DOCKERFILE"
 
 [deploy]
-startCommand = "php -d variables_order=EGPCS artisan serve --host=0.0.0.0 --port=${PORT}"
 preDeployCommand = "php artisan migrate --force"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
