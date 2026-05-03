@@ -1,7 +1,7 @@
 FROM dunglas/frankenphp:php8.2.30-bookworm AS base
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git unzip \
+    && apt-get install -y --no-install-recommends git unzip default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
 RUN install-php-extensions exif intl pcntl bcmath gd pdo_mysql zip
