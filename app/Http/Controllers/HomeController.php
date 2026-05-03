@@ -527,11 +527,11 @@ class HomeController extends Controller
      */
     public function getTotalUnreadNotifications()
     {
-        $unread_notifications = auth()->user()->unreadNotifications;
-        $total_unread = $unread_notifications->count();
+        $total_unread = auth()->user()->unreadNotifications()->count();
 
         $notification_html = '';
         $modal_notifications = [];
+        $unread_notifications = auth()->user()->unreadNotifications;
         foreach ($unread_notifications as $unread_notification) {
             if (isset($data['show_popup'])) {
                 $modal_notifications[] = $unread_notification;
