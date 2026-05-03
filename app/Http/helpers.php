@@ -85,8 +85,13 @@ if (! function_exists('isFileImage')) {
 function isAppInstalled()
 {
     $envPath = base_path('.env');
+    $hasRuntimeConfig = ! empty(config('app.key'))
+        && ! empty(config('database.default'))
+        && ! empty(config('database.connections.mysql.host'))
+        && ! empty(config('database.connections.mysql.database'))
+        && ! empty(config('database.connections.mysql.username'));
 
-    return file_exists($envPath);
+    return file_exists($envPath) || $hasRuntimeConfig;
 }
 
 /**

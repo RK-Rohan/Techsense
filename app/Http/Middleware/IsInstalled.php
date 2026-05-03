@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 
 class IsInstalled
 {
@@ -17,7 +18,16 @@ class IsInstalled
     public function handle($request, Closure $next)
     {
         $envPath = base_path('.env');
-        if (! file_exists($envPath)) {
+
+        // Railway and similar platforms may provide env vars at runtime
+        // without creating a physical .env file in the container.
+        $hasRuntimeConfig = ! empty(Config::get('app.key'))
+            && ! empty(Config::get('database.default'))
+            && ! empty(Config::get('database.connections.mysql.host'))
+            && ! empty(Config::get('database.connections.mysql.database'))
+            && ! empty(Config::get('database.connections.mysql.username'));
+
+        if (! file_exists($envPath) && ! $hasRuntimeConfig) {
             return redirect(url('/').'/install');
         } else {
             // if (!Cache::has('callback')) {
