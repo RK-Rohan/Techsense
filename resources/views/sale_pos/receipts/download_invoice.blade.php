@@ -13,6 +13,17 @@
             margin: 0;
             padding: 0;
         }
+
+        table.product_table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .sl-col {
+            width: 4%;
+            text-align: center;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -124,13 +135,13 @@
             <table class="table product_table" width="100%" style="font-size: 14px;">
                 <thead>
                     <tr class="item_table_header">
-                        <th>SL.</th>
-                        <th width="15%">Part/Model Number</th>
-                        <th width="40%">{{$receipt_details->table_product_label}}</th>
-                        <th style="text-align: center;" width="8%">Unit</th>
-                        <th class="text-right" width="8%">{{$receipt_details->table_qty_label}}</th>
-                        <th style="text-align: right;" width="17%">{{$receipt_details->table_unit_price_label}}</th>
-                        <th class="text-right" width="20%">{{$receipt_details->table_subtotal_label}}</th>
+                        <th class="sl-col">SL.</th>
+                        <th width="12%">Part/Model Number</th>
+                        <th width="38%">{{$receipt_details->table_product_label}}</th>
+                        <th style="text-align: center;" width="7%">Unit</th>
+                        <th class="text-right" width="7%">{{$receipt_details->table_qty_label}}</th>
+                        <th style="text-align: right;" width="15%">{{$receipt_details->table_unit_price_label}}</th>
+                        <th class="text-right" width="17%">{{$receipt_details->table_subtotal_label}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -138,7 +149,7 @@
 
                     @forelse($receipt_details->lines as $line)
                         <tr>
-                            <td>{{ $loop->iteration }}</td>
+                            <td class="sl-col">{{ $loop->iteration }}</td>
                             <td>{{$line['sub_sku']}}</td>
                             <td>
                                 {{$line['name']}} <br>
