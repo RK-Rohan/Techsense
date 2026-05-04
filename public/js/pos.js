@@ -1261,6 +1261,9 @@ $(document).on('submit', 'form#add_sell_form, form#edit_sell_form, form#add_pos_
                     clearBtn: true,
                 });
             },
+            error: function () {
+                toastr.error('Unable to load add product form.');
+            },
         });
     });
 

@@ -253,17 +253,12 @@
 
 <script type="text/javascript">
   $(document).ready(function() {
-    // Initialize TinyMCE when the quick add modal is shown and clean up on close
-    $(document).one('shown.bs.modal', '.quick_add_product_modal', function () {
-      tinymce.init({
-        selector: 'textarea#product_description1'
-      });
-    });
-
     $(document).on('hidden.bs.modal', '.quick_add_product_modal', function () {
-      var editor = tinymce.get('product_description1');
-      if (editor) {
-        editor.remove();
+      if (typeof tinymce !== 'undefined') {
+        var editor = tinymce.get('product_description1');
+        if (editor) {
+          editor.remove();
+        }
       }
     });
 
@@ -337,6 +332,10 @@
             } else {
               toastr.error(data.msg);
             }
+          },
+          error: function() {
+            form.find('button[type="submit"]').attr('disabled', false);
+            toastr.error('Failed to save product. Please try again.');
           }
         });
         return false;

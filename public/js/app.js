@@ -2780,12 +2780,16 @@ $(document).on('hidden.bs.modal', '.view_modal', function (e) {
     }
 });
 $(document).on('shown.bs.modal', '.quick_add_product_modal', function (e) {
-    tinymce.init({
-        selector: 'textarea#product_description',
-    });
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({
+            selector: 'textarea#product_description1',
+        });
+    }
 });
 $(document).on('hidden.bs.modal', '.quick_add_product_modal', function (e) {
-    tinymce.remove("textarea#product_description");
+    if (typeof tinymce !== 'undefined') {
+        tinymce.remove('textarea#product_description1');
+    }
 });
 
 $(window).scroll(function () {
