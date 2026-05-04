@@ -150,7 +150,7 @@
         <div class="col-sm-8">
             <div class="form-group">
                 {!! Form::label('product_description', __('lang_v1.product_description') . ':') !!}
-                <!-- {!! Form::textarea('product_description', ['class' => 'form-control']); !!} -->
+                {{-- {!! Form::textarea('product_description', null, ['class' => 'form-control']) !!} --}}
                 <textarea class="form-control" name="product_description1" cols="50" rows="5" id="product_description1"></textarea>
             </div>
         </div>
