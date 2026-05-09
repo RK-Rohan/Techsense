@@ -311,7 +311,7 @@
         .product_table td {
             border: 1px solid black;
             font-size: 13px !important;
-            vertical-align: top;
+            vertical-align: middle;
             word-break: break-word;
             overflow-wrap: anywhere;
         }
@@ -355,6 +355,10 @@
             white-space: normal !important;
             word-break: break-word !important;
             overflow-wrap: break-word !important;
+        }
+
+        .description-cell {
+            vertical-align: top;
         }
 
         footer {

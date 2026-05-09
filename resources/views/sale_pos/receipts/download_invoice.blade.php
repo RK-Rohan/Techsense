@@ -151,7 +151,7 @@
                         <tr>
                             <td class="sl-col">{{ $loop->iteration }}</td>
                             <td>{{$line['sub_sku']}}</td>
-                            <td>
+                            <td class="description-cell">
                                 {{$line['name']}} <br>
                                 @if(!empty($line['brand'])) {{'Brand: ' . $line['brand']}} <br>@endif
                                 @if(!empty($line['origin'])) {{'Origin: ' . $line['origin']}}<br>@endif
@@ -391,9 +391,13 @@
     .product_table td {
         border: 1px solid black;
         font-size: 12px !important;
-        vertical-align: top;
+        vertical-align: middle;
         word-break: break-word;
         overflow-wrap: anywhere;
+    }
+
+    .description-cell {
+        vertical-align: top;
     }
 
     .item_table_header {
