@@ -1036,6 +1036,15 @@ class ProductUtil extends Util
                         ->select(['price_inc_tax', 'price_type'])
                         ->first();
 
+        if (empty($price_group)) {
+            $variation = Variation::find($variation_id);
+
+            return [
+                'price_inc_tax' => ! empty($variation) ? $variation->sell_price_inc_tax : null,
+                'price_exc_tax' => ! empty($variation) ? $variation->default_sell_price : null,
+            ];
+        }
+
         if(isset($price_group->price_type) && $price_group->price_type == 'percentage'){
             //calculate the price
             $variation = Variation::find($variation_id);

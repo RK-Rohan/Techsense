@@ -1730,12 +1730,12 @@ function pos_product_row(variation_id = null, purchase_line_id = null, weighing_
 
         var price_group = '';
         if ($('#price_group').length > 0) {
-            price_group = parseInt($('#price_group').val());
+            price_group = $('#price_group').val();
         }
 
         //If default price group present
         if ($('#default_price_group').length > 0 &&
-            price_group === '') {
+            !price_group) {
             price_group = $('#default_price_group').val();
         }
 

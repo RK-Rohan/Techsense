@@ -1773,6 +1773,7 @@ class SellPosController extends Controller
         $purchase_line_id = request()->get('purchase_line_id');
 
         $price_group = request()->input('price_group');
+        $price_group = is_numeric($price_group) && (int) $price_group > 0 ? (int) $price_group : null;
         if (!empty($price_group)) {
             $variation_group_prices = $this->productUtil->getVariationGroupPrice($variation_id, $price_group, $product->tax_id);
 
