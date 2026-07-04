@@ -254,13 +254,10 @@
 <script type="text/javascript">
   $(document).ready(function() {
     $(document).on('hidden.bs.modal', '.quick_add_product_modal', function () {
-      if (typeof tinymce !== 'undefined') {
-        var editor = tinymce.get('product_description1');
-        if (editor) {
-          editor.remove();
-        }
-      }
+      destroyProductDescriptionEditor(this);
     });
+
+    initProductDescriptionEditor(this);
 
     $("form#quick_add_product_form").validate({
       rules: {

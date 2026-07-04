@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\System;
 use App\Utils\ModuleUtil;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
@@ -71,7 +72,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
 
-        $asset_v = config('constants.asset_version', 1);
+        $asset_v = $this->getAssetVersion();
         View::share('asset_v', $asset_v);
 
         // Share the list of modules enabled in sidebar
@@ -245,6 +246,32 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //
+    }
+
+    /**
+     * Build a cache-busting asset version that updates when built frontend files change.
+     *
+     * @return int
+     */
+    protected function getAssetVersion()
+    {
+        $asset_v = (int) config('constants.asset_version', 1);
+        $asset_files = [
+            public_path('mix-manifest.json'),
+            public_path('js/vendor.js'),
+            public_path('js/app.js'),
+            public_path('js/product.js'),
+            public_path('css/vendor.css'),
+            public_path('css/app.css'),
+        ];
+
+        foreach ($asset_files as $asset_file) {
+            if (File::exists($asset_file)) {
+                $asset_v = max($asset_v, (int) File::lastModified($asset_file));
+            }
+        }
+
+        return $asset_v;
     }
 
     /**

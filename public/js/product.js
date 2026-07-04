@@ -1,5 +1,44 @@
 //This file contains all functions used products tab
 
+window.initProductDescriptionEditor = function(context) {
+    if (typeof tinymce === 'undefined') {
+        return;
+    }
+
+    var $context = context ? $(context) : $(document);
+
+    $context.find('textarea#product_description, textarea#product_description1').each(function() {
+        var editor_id = $(this).attr('id');
+        if (editor_id && !tinymce.get(editor_id)) {
+            tinymce.init({
+                selector: 'textarea#' + editor_id,
+                height: 280,
+                menubar: false,
+                plugins: 'lists link table code autoresize',
+                toolbar:
+                    'undo redo | bold italic underline | bullist numlist | alignleft aligncenter alignright alignjustify | link table | code',
+                branding: false,
+                autoresize_bottom_margin: 16,
+            });
+        }
+    });
+};
+
+window.destroyProductDescriptionEditor = function(context) {
+    if (typeof tinymce === 'undefined') {
+        return;
+    }
+
+    var $context = context ? $(context) : $(document);
+
+    $context.find('textarea#product_description, textarea#product_description1').each(function() {
+        var editor = tinymce.get($(this).attr('id'));
+        if (editor) {
+            editor.remove();
+        }
+    });
+};
+
 $(document).ready(function() {
     $(document).on('ifChecked', 'input#enable_stock', function() {
         $('div#alert_quantity_div').show();
@@ -557,21 +596,7 @@ $(document).ready(function() {
     };
     $('#upload_image').fileinput(img_fileinput_setting);
 
-    $('textarea#product_description, textarea#product_description1').each(function() {
-        var editor_id = $(this).attr('id');
-        if (editor_id && !tinymce.get(editor_id)) {
-            tinymce.init({
-                selector: 'textarea#' + editor_id,
-                height: 280,
-                menubar: false,
-                plugins: 'lists link table code autoresize',
-                toolbar:
-                    'undo redo | bold italic underline | bullist numlist | alignleft aligncenter alignright alignjustify | link table | code',
-                branding: false,
-                autoresize_bottom_margin: 16,
-            });
-        }
-    });
+    initProductDescriptionEditor(document);
 });
 
 function toggle_dsp_input() {
