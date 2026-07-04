@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Utils\Util;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 use Log;
 use Storage;
 
@@ -76,32 +75,31 @@ class BackUpController extends Controller
                 return $notAllowed;
             }
 
-            // Start backup in detached mode to avoid HTTP timeout on large backups.
-            $phpBinary = escapeshellarg(PHP_BINARY);
-            $artisan = escapeshellarg(base_path('artisan'));
+            // start the backup process
+            $backup_disk = config('backup.backup.destination.disks')[0];
+            Artisan::call('backup:run', ['--only-to-disk' => $backup_disk]);
+            $output = Artisan::output();
 
-            $logDirectory = storage_path('logs');
-            if (! File::exists($logDirectory)) {
-                File::makeDirectory($logDirectory, 0755, true);
+            if (str_contains($output, 'Backup failed because') || str_contains($output, 'The dump process failed')) {
+                throw new \RuntimeException(trim($output) !== '' ? trim($output) : 'Backup command failed.');
             }
 
-            $resolvedLogFile = File::isDirectory($logDirectory)
-                ? storage_path('logs/backup-run.log')
-                : '/tmp/backup-run.log';
-
-            $logFile = escapeshellarg($resolvedLogFile);
-            $command = "{$phpBinary} {$artisan} backup:run >> {$logFile} 2>&1 &";
-            exec($command);
-
-            Log::info('Backpack\\BackupManager -- backup dispatched from admin interface.');
+            // log the results
+            Log::info("Backpack\BackupManager -- new backup started from admin interface \r\n".$output);
 
             $output = ['success' => 1,
-                'msg' => __('lang_v1.success').'. Backup started in background.',
+                'msg' => __('lang_v1.success'),
+                'art_output' => $output,
             ];
-        } catch (\Throwable $e) {
-            Log::error('Backpack\\BackupManager -- failed to dispatch backup: '.$e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Backup create failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             $output = ['success' => 0,
-                'msg' => $e->getMessage(),
+                'msg' => __('lang_v1.something_went_wrong'),
+                'error' => $e->getMessage(),
             ];
         }
 

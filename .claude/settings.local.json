@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(railway --version)",
+      "Bash(npm install *)",
+      "Bash(node import-db.js)"
+    ]
+  }
+}

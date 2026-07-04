@@ -61,8 +61,32 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
-            //'dump' => [ 'dump_binary_path' => 'D:\laragon\bin\mysql\mysql-8.0.30-winx64\bin'] 
-            // Uncomment above line for windows & provide path to mysql dump binary for backup to work
+            'dump' => array_filter([
+                'dump_binary_path' => env('DB_DUMP_BINARY_PATH'),
+            ]),
+        ],
+
+        'backup' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('BACKUP_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('BACKUP_DB_PORT', env('DB_PORT', '3306')),
+            'database' => env('BACKUP_DB_DATABASE', env('DB_DATABASE', 'forge')),
+            'username' => env('BACKUP_DB_USERNAME', env('DB_USERNAME', 'forge')),
+            'password' => env('BACKUP_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('BACKUP_DB_SOCKET', env('DB_SOCKET', '')),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => env('BACKUP_DB_ENGINE', env('DB_ENGINE', 'InnoDB')),
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+            'dump' => array_filter([
+                'dump_binary_path' => env('DB_DUMP_BINARY_PATH'),
+            ]),
         ],
 
         'pgsql' => [

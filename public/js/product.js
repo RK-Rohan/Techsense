@@ -208,6 +208,10 @@ $(document).ready(function() {
 
         var is_valid_product_form = true;
 
+        if (typeof tinymce !== 'undefined' && tinymce.triggerSave) {
+            tinymce.triggerSave();
+        }
+
         var variation_skus = [];
 
         $('#product_form_part').find('.input_sub_sku').each( function(){
@@ -553,12 +557,21 @@ $(document).ready(function() {
     };
     $('#upload_image').fileinput(img_fileinput_setting);
 
-    if ($('textarea#product_description').length > 0) {
-        tinymce.init({
-            selector: 'textarea#product_description',
-            height:250
-        });
-    }
+    $('textarea#product_description, textarea#product_description1').each(function() {
+        var editor_id = $(this).attr('id');
+        if (editor_id && !tinymce.get(editor_id)) {
+            tinymce.init({
+                selector: 'textarea#' + editor_id,
+                height: 280,
+                menubar: false,
+                plugins: 'lists link table code autoresize',
+                toolbar:
+                    'undo redo | bold italic underline | bullist numlist | alignleft aligncenter alignright alignjustify | link table | code',
+                branding: false,
+                autoresize_bottom_margin: 16,
+            });
+        }
+    });
 });
 
 function toggle_dsp_input() {
