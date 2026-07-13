@@ -1,5 +1,142 @@
 <?php
 
+if (! function_exists('sanitizeEditorHtmlForPdf')) {
+    /**
+     * Keep the formatting produced by the product editor while removing markup
+     * that should never be passed to a PDF renderer.
+     */
+    function sanitizeEditorHtmlForPdf(?string $html): string
+    {
+        $html = trim((string) $html);
+
+        if ($html === '') {
+            return '';
+        }
+
+        // Older product descriptions can be plain text rather than editor HTML.
+        if (! preg_match('/<\s*[a-z][^>]*>/i', $html)) {
+            return nl2br(htmlspecialchars($html, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+        }
+
+        $allowedTags = [
+            'a', 'b', 'blockquote', 'br', 'del', 'div', 'em', 'h1', 'h2', 'h3',
+            'h4', 'h5', 'h6', 'i', 'li', 'ol', 'p', 's', 'span', 'strike',
+            'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'tfoot', 'th',
+            'thead', 'tr', 'u', 'ul',
+        ];
+        $removeWithContents = ['applet', 'embed', 'iframe', 'object', 'script', 'style'];
+
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $previousLibxmlState = libxml_use_internal_errors(true);
+        $document->loadHTML(
+            '<?xml encoding="UTF-8"><div id="editor-pdf-root">'.$html.'</div>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
+        libxml_use_internal_errors($previousLibxmlState);
+
+        $root = $document->getElementById('editor-pdf-root');
+
+        if (! $root) {
+            return '';
+        }
+
+        $sanitizeStyle = static function (string $style): string {
+            $safeDeclarations = [];
+
+            foreach (explode(';', $style) as $declaration) {
+                if (! str_contains($declaration, ':')) {
+                    continue;
+                }
+
+                [$property, $value] = array_map('trim', explode(':', $declaration, 2));
+                $property = strtolower($property);
+                $value = strtolower($value);
+
+                $isSafe = match ($property) {
+                    'text-align' => preg_match('/^(left|center|right|justify)$/', $value),
+                    'font-style' => preg_match('/^(normal|italic|oblique)$/', $value),
+                    'font-weight' => preg_match('/^(normal|bold|[1-9]00)$/', $value),
+                    'text-decoration', 'text-decoration-line' => preg_match('/^(none|underline|line-through|underline line-through|line-through underline)$/', $value),
+                    'vertical-align' => preg_match('/^(baseline|top|middle|bottom|sub|super)$/', $value),
+                    'list-style-type' => preg_match('/^(disc|circle|square|decimal|lower-alpha|upper-alpha|lower-roman|upper-roman|none)$/', $value),
+                    default => false,
+                };
+
+                if ($isSafe) {
+                    $safeDeclarations[] = $property.': '.$value;
+                }
+            }
+
+            return implode('; ', $safeDeclarations);
+        };
+
+        $sanitizeNode = function (DOMNode $node) use (&$sanitizeNode, $allowedTags, $removeWithContents, $sanitizeStyle): void {
+            foreach (iterator_to_array($node->childNodes) as $child) {
+                if ($child instanceof DOMComment) {
+                    $node->removeChild($child);
+                    continue;
+                }
+
+                if (! $child instanceof DOMElement) {
+                    continue;
+                }
+
+                $tag = strtolower($child->tagName);
+
+                if (in_array($tag, $removeWithContents, true)) {
+                    $node->removeChild($child);
+                    continue;
+                }
+
+                $sanitizeNode($child);
+
+                if (! in_array($tag, $allowedTags, true)) {
+                    while ($child->firstChild) {
+                        $node->insertBefore($child->firstChild, $child);
+                    }
+                    $node->removeChild($child);
+                    continue;
+                }
+
+                foreach (iterator_to_array($child->attributes) as $attribute) {
+                    $name = strtolower($attribute->name);
+                    $value = trim($attribute->value);
+                    $keep = false;
+
+                    if (in_array($name, ['colspan', 'rowspan'], true)) {
+                        $keep = preg_match('/^[1-9]\d{0,2}$/', $value) === 1;
+                    } elseif ($name === 'align') {
+                        $keep = preg_match('/^(left|center|right|justify)$/i', $value) === 1;
+                    } elseif ($name === 'start' && $tag === 'ol') {
+                        $keep = preg_match('/^-?\d{1,4}$/', $value) === 1;
+                    } elseif ($name === 'href' && $tag === 'a') {
+                        $keep = preg_match('/^(https?:\/\/|mailto:|tel:|#)/i', $value) === 1;
+                    } elseif ($name === 'style') {
+                        $value = $sanitizeStyle($value);
+                        $keep = $value !== '';
+                    }
+
+                    if ($keep) {
+                        $child->setAttribute($name, $value);
+                    } else {
+                        $child->removeAttribute($attribute->name);
+                    }
+                }
+            }
+        };
+
+        $sanitizeNode($root);
+
+        $safeHtml = '';
+        foreach ($root->childNodes as $child) {
+            $safeHtml .= $document->saveHTML($child);
+        }
+
+        return trim($safeHtml);
+    }
+}
+
 /**
  * boots pos.
  */

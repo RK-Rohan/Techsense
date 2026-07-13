@@ -159,14 +159,9 @@
                                 <!-- {{$line['product_variation']}} {{$line['variation']}} -->
                                 <!-- @if(!empty($line['sub_sku'])), {{$line['sub_sku']}} @endif @if(!empty($line['brand'])), {{$line['brand']}} @endif @if(!empty($line['cat_code'])), {{$line['cat_code']}}@endif -->
                                 <!-- @if(!empty($line['product_custom_fields'])), {{$line['product_custom_fields']}} @endif -->
-                                @php
-                                    $raw_description = $line['product_description'] ?? '';
-                                    $raw_description = preg_replace('/<\s*br\s*\/?>/i', "\n", $raw_description);
-                                    $safe_description = strip_tags($raw_description);
-                                    $safe_description = preg_replace("/\n{3,}/", "\n\n", $safe_description);
-                                @endphp
-                                @if(!empty(trim($safe_description)))
-                                    <small style="white-space: pre-wrap;">{!! nl2br(e(trim($safe_description))) !!}</small>
+                                @php($formatted_description = sanitizeEditorHtmlForPdf($line['product_description'] ?? ''))
+                                @if($formatted_description !== '')
+                                    <div class="product-description">{!! $formatted_description !!}</div>
                                 @endif
 
 
@@ -396,8 +391,73 @@
         overflow-wrap: anywhere;
     }
 
-    .description-cell {
+    .product_table td.description-cell {
         vertical-align: top;
+    }
+
+    .product-description {
+        margin-top: 3px;
+        line-height: 1.25;
+        white-space: normal;
+    }
+
+    .product-description p,
+    .product-description div,
+    .product-description blockquote,
+    .product-description h1,
+    .product-description h2,
+    .product-description h3,
+    .product-description h4,
+    .product-description h5,
+    .product-description h6 {
+        margin: 0 0 3px;
+        padding: 0;
+    }
+
+    .product-description h1,
+    .product-description h2,
+    .product-description h3,
+    .product-description h4,
+    .product-description h5,
+    .product-description h6 {
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .product-description ul,
+    .product-description ol {
+        margin: 2px 0 3px 15px;
+        padding: 0;
+    }
+
+    .product-description li {
+        margin: 0;
+        padding: 0;
+    }
+
+    .product-description blockquote {
+        border-left: 2px solid #999;
+        padding-left: 5px;
+    }
+
+    .product-description table {
+        border-collapse: collapse;
+        table-layout: fixed;
+        width: 100%;
+        margin: 3px 0;
+    }
+
+    .product-description table th,
+    .product-description table td {
+        border: 1px solid #777;
+        padding: 2px 3px;
+        vertical-align: top;
+        word-break: break-word;
+    }
+
+    .product-description table th {
+        background-color: #eeeeee;
+        font-weight: bold;
     }
 
     .item_table_header {
