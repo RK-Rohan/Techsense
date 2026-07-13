@@ -1268,23 +1268,17 @@ class TransactionUtil extends Util
         }
 
         //Shop Contact Info
-        $output['contact'] = '';
+        $contact_details = [];
         if ($il->show_mobile_number == 1 && !empty($location_details->mobile)) {
-            $output['contact'] .= __('contact.mobile') . ': ' . $location_details->mobile . ',';
+            $contact_details[] = __('contact.mobile') . ': ' . $location_details->mobile;
         }
-        // if ($il->show_alternate_number == 1 && !empty($location_details->alternate_number)) {
-        //     if (empty($output['contact'])) {
-        //         $output['contact'] .= __('contact.mobile') . ': ';
-        //     } else {
-        //         $output['contact'] .= ', ' . $location_details->alternate_number;
-        //     }
-        // }
+        if ($il->show_alternate_number == 1 && !empty($location_details->alternate_number)) {
+            $contact_details[] = $location_details->alternate_number;
+        }
         if ($il->show_email == 1 && !empty($location_details->email)) {
-            if (!empty($output['contact'])) {
-                $output['contact'] .= "\n";
-            }
-            $output['contact'] .= __('business.email') . ': ' . $location_details->email;
+            $contact_details[] = __('business.email') . ': ' . $location_details->email;
         }
+        $output['contact'] = implode(', ', $contact_details);
 
         //Customer show_customer
         $customer = Contact::find($transaction->contact_id);
