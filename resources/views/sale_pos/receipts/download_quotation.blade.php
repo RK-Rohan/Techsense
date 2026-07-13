@@ -50,8 +50,12 @@
                             <h5 class="text-center" style="margin: 5px;">
                                 <p class="text-center m-0" style="line-height: 20px;">
                                     {!! $receipt_details->address !!}<br>
-                                    {!! $receipt_details->contact !!}<br>
-                                    Website: {{ $receipt_details->website }}<br>
+                                    @if(!empty($receipt_details->phone_contact))
+                                        {!! $receipt_details->phone_contact !!}<br>
+                                    @endif
+                                    @if(!empty($receipt_details->email))Email: {{ $receipt_details->email }}@endif
+                                    @if(!empty($receipt_details->email) && !empty($receipt_details->website)), @endif
+                                    @if(!empty($receipt_details->website))Website: {{ $receipt_details->website }}@endif<br>
                                 </p>
                             </h5>
                         </td>
