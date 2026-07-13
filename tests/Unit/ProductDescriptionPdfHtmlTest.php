@@ -44,6 +44,14 @@ class ProductDescriptionPdfHtmlTest extends TestCase
         $this->assertSame("First line<br />\nSecond &amp; line", $result);
     }
 
+    public function test_it_renders_non_breaking_spaces_instead_of_printing_the_entity(): void
+    {
+        $result = sanitizeEditorHtmlForPdf('<p>O-ring&nbsp;&nbsp;ISO3601</p>');
+
+        $this->assertStringContainsString("O-ring\u{00A0}\u{00A0}ISO3601", $result);
+        $this->assertStringNotContainsString('&amp;nbsp;', $result);
+    }
+
     public function test_dompdf_renders_the_supported_formatting(): void
     {
         $description = sanitizeEditorHtmlForPdf(

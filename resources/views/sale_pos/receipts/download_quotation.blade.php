@@ -120,76 +120,36 @@
                 <thead>
                     <tr class="item_table_header">
                         <th class="sl-col">SL.</th>
-                        <th width="12%">Part/Model Number</th>
-                        <th width="34%">{{$receipt_details->table_product_label}}</th>
-                        <th width="12%">Delivery Time</th>
+                        <th width="13%">Part/Model Number</th>
+                        <th width="42%">{{$receipt_details->table_product_label}}</th>
+                        <th width="11%">Delivery Time</th>
                         <th style="text-align: center;" width="6%">Unit</th>
-                        <th class="text-right" width="6%">{{$receipt_details->table_qty_label}}</th>
-                        <th style="text-align: right;" width="13%">{{$receipt_details->table_unit_price_label}}</th>
-                        <th style="text-align: right;" width="13%">{{$receipt_details->table_subtotal_label}}</th>
+                        <th class="text-right" width="5%">{{$receipt_details->table_qty_label}}</th>
+                        <th style="text-align: right;" width="9%">{{$receipt_details->table_unit_price_label}}</th>
+                        <th style="text-align: right;" width="10%">{{$receipt_details->table_subtotal_label}}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($receipt_details->lines as $line)
-                        @php
-                            $raw_description = $line['product_description'] ?? '';
-                            $raw_description = preg_replace('/<\s*br\s*\/?>/i', "\n", $raw_description);
-                            $safe_description = strip_tags($raw_description);
-                            $safe_description = preg_replace("/\n{3,}/", "\n\n", $safe_description);
-                            $safe_description = trim($safe_description);
+                        <tr>
+                            <td class="sl-col">{{ $loop->iteration }}</td>
+                            <td>{{$line['sub_sku']}}</td>
+                            <td class="description-cell">
+                                <div>{{$line['name']}}</div>
+                                @if(!empty($line['brand'])) <div>{{'Brand: ' . $line['brand']}}</div>@endif
+                                @if(!empty($line['origin'])) <div>{{'Origin: ' . $line['origin']}}</div>@endif
 
-                            $prefix_text = trim(
-                                $line['name']
-                                . (!empty($line['brand']) ? "\nBrand: " . $line['brand'] : '')
-                                . (!empty($line['origin']) ? "\nOrigin: " . $line['origin'] : '')
-                            );
-
-                            $full_description = trim($prefix_text . (!empty($safe_description) ? "\n" . $safe_description : ''));
-
-                            $description_chunks = [];
-                            $max_chunk_chars = 900;
-                            $current_chunk = '';
-
-                            foreach (preg_split("/\r\n|\n|\r/", $full_description) as $desc_line) {
-                                $desc_line = trim($desc_line);
-                                if ($desc_line === '') {
-                                    continue;
-                                }
-
-                                $candidate = $current_chunk === '' ? $desc_line : ($current_chunk . "\n" . $desc_line);
-                                if (mb_strlen($candidate) > $max_chunk_chars && $current_chunk !== '') {
-                                    $description_chunks[] = $current_chunk;
-                                    $current_chunk = $desc_line;
-                                } else {
-                                    $current_chunk = $candidate;
-                                }
-                            }
-
-                            if ($current_chunk !== '') {
-                                $description_chunks[] = $current_chunk;
-                            }
-
-                            if (empty($description_chunks)) {
-                                $description_chunks[] = '';
-                            }
-                        @endphp
-
-                        @foreach($description_chunks as $chunk_index => $chunk_text)
-                            <tr>
-                                <td class="sl-col">{{ $chunk_index === 0 ? $loop->parent->iteration : '' }}</td>
-                                <td>{{ $chunk_index === 0 ? $line['sub_sku'] : '' }}</td>
-                                <td class="description-cell">
-                                    @if($chunk_text !== '')
-                                        <small class="description-text">{!! nl2br(e($chunk_text)) !!}</small>
-                                    @endif
-                                </td>
-                                <td style="text-align: center;">{{ $chunk_index === 0 ? $line['delivery_time'] : '' }}</td>
-                                <td style="text-align: center;">{{ $chunk_index === 0 ? $line['units'] : '' }}</td>
-                                <td style="text-align: center;">{{ $chunk_index === 0 ? $line['quantity'] : '' }}</td>
-                                <td style="text-align: right;">{{ $chunk_index === 0 ? $line['unit_price_inc_tax'] : '' }}</td>
-                                <td style="text-align: right;">{{ $chunk_index === 0 ? $line['line_total'] : '' }}</td>
-                            </tr>
-                        @endforeach
+                                @php($formatted_description = sanitizeEditorHtmlForPdf($line['product_description'] ?? ''))
+                                @if($formatted_description !== '')
+                                    <div class="product-description">{!! $formatted_description !!}</div>
+                                @endif
+                            </td>
+                            <td style="text-align: center;">{{$line['delivery_time']}}</td>
+                            <td style="text-align: center;">{{$line['units']}}</td>
+                            <td style="text-align: center;">{{$line['quantity']}}</td>
+                            <td style="text-align: right;">{{$line['unit_price_inc_tax']}}</td>
+                            <td style="text-align: right;">{{$line['line_total']}}</td>
+                        </tr>
                     @empty
                     @endforelse
                 </tbody>
@@ -329,7 +289,7 @@
         }
 
         .product_table {
-            table-layout: auto;
+            table-layout: fixed;
             width: 100%;
             page-break-inside: auto;
         }
@@ -350,15 +310,80 @@
             white-space: normal;
         }
 
-        .description-cell,
-        .description-text {
+        .description-cell {
             white-space: normal !important;
             word-break: break-word !important;
             overflow-wrap: break-word !important;
+            vertical-align: top;
         }
 
-        .description-cell {
+        .product-description {
+            margin-top: 4px;
+            font-size: 12px;
+            line-height: 1.15;
+            white-space: normal;
+        }
+
+        .product-description p,
+        .product-description div,
+        .product-description blockquote,
+        .product-description h1,
+        .product-description h2,
+        .product-description h3,
+        .product-description h4,
+        .product-description h5,
+        .product-description h6 {
+            margin: 0 0 3px;
+            padding: 0;
+        }
+
+        .product-description h1,
+        .product-description h2,
+        .product-description h3,
+        .product-description h4,
+        .product-description h5,
+        .product-description h6 {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .product-description ul,
+        .product-description ol {
+            margin: 2px 0 3px 15px;
+            padding: 0;
+        }
+
+        .product-description li {
+            margin: 0;
+            padding: 0;
+        }
+
+        .product-description blockquote {
+            border-left: 2px solid #999;
+            padding-left: 5px;
+        }
+
+        .product-description table {
+            border-collapse: collapse;
+            table-layout: fixed;
+            width: 100%;
+            margin: 3px 0;
+        }
+
+        .product-description table th,
+        .product-description table td {
+            border: 1px solid #777;
+            padding: 1px 2px;
+            font-size: 11px;
+            line-height: 1.1;
             vertical-align: top;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .product-description table th {
+            background-color: #eeeeee;
+            font-weight: bold;
         }
 
         footer {
