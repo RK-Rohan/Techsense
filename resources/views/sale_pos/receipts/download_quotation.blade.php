@@ -125,11 +125,11 @@
                     <tr class="item_table_header">
                         <th class="sl-col">SL.</th>
                         <th width="13%">Part/Model Number</th>
-                        <th width="42%">{{$receipt_details->table_product_label}}</th>
+                        <th width="37%">{{$receipt_details->table_product_label}}</th>
                         <th width="11%">Delivery Time</th>
                         <th style="text-align: center;" width="6%">Unit</th>
                         <th class="text-right" width="5%">{{$receipt_details->table_qty_label}}</th>
-                        <th style="text-align: right;" width="9%">{{$receipt_details->table_unit_price_label}}</th>
+                        <th style="text-align: right;" width="14%">{{$receipt_details->table_unit_price_label}}</th>
                         <th style="text-align: right;" width="10%">{{$receipt_details->table_subtotal_label}}</th>
                     </tr>
                 </thead>
