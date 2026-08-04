@@ -3257,24 +3257,45 @@ class SellPosController extends Controller
             ? implode(', ', $transaction->shipping_address(true))
             : (string) $transaction->shipping_address));
 
+        $is_techsense = Str::contains(Str::lower((string) optional($transaction->business)->name), 'techsense');
+        $seller_bin = optional($transaction->business)->tax_number_1
+            ?: optional($transaction->business)->tax_number_2
+            ?: ($is_techsense ? config('constants.mushak_registered_bin') : null);
+        if ($is_techsense && config('constants.mushak_registered_address')) {
+            $seller_address = config('constants.mushak_registered_address');
+        }
+        $purchaser_bin = optional($contact)->tax_number;
+        $mushak_invoice_no = $transaction->custom_field_3 ?: $transaction->invoice_no;
+        $government_seal_path = public_path('img/bangladesh-government-seal.png');
+        $government_seal = file_exists($government_seal_path)
+            ? base64_encode(file_get_contents($government_seal_path))
+            : null;
+
         $authorised_person = optional($transaction->sales_person)->user_full_name;
-        $designation = collect(optional($transaction->sales_person)->roles)->pluck('name')
-            ->reject(function ($role) use ($business_id) {
-                return $role === 'Admin#' . $business_id;
-            })->first();
+        $designation = optional($transaction->sales_person)->custom_field_1;
+        if (empty($designation)) {
+            $designation = collect(optional($transaction->sales_person)->roles)->pluck('name')
+                ->reject(function ($role) use ($business_id) {
+                    return $role === 'Admin#' . $business_id;
+                })->first();
+        }
 
         $data = compact(
             'transaction',
             'lines',
             'seller_address',
+            'seller_bin',
             'purchaser_address',
+            'purchaser_bin',
             'destination',
+            'mushak_invoice_no',
+            'government_seal',
             'authorised_person',
             'designation'
         );
 
         $pdf = PDF::loadView('sale_pos.receipts.mushak_6_3', $data)
-            ->setPaper('a4', 'landscape');
+            ->setPaper('a4', 'portrait');
 
         $filename = 'Mushak_6.3_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $transaction->invoice_no) . '.pdf';
 

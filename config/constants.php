@@ -80,4 +80,6 @@ return [
     'show_payment_type_on_contact_pay' => false,
     'enable_gst_report_india' => env('ENABLE_GST_REPORT_INDIA', false),
     'enable_secondary_unit' => false, //Experimental feature, may depreciate
+    'mushak_registered_bin' => env('MUSHAK_REGISTERED_BIN', '001376661-0108'),
+    'mushak_registered_address' => env('MUSHAK_REGISTERED_ADDRESS', '28, Kawran Bazar, Taj Menson (4th floor)'),
 ];
