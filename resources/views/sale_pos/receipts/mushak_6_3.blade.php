@@ -42,11 +42,14 @@
         .items .blank-row td { height: 17px; }
         .items tfoot td { font-weight: normal; }
         .items tfoot .total-label, .items tfoot .total-value { font-weight: bold; }
-        .notes { font-size: 6.8px; margin: 6px 0 12px; }
-        .signature td { padding: 2px 2px; vertical-align: bottom; }
-        .signature .label { width: 21%; white-space: nowrap; }
-        .signature .value { border-bottom: 1px dotted #777; width: 29%; }
-        .signature-gap td { height: 15px; }
+        .authorisation { margin-top: 8px; width: 55%; }
+        .authorisation td { padding: 2px 2px; vertical-align: top; }
+        .authorisation .label { width: 34%; white-space: nowrap; }
+        .authorisation .colon { text-align: center; width: 4%; }
+        .authorisation .value { width: 62%; }
+        .authorisation .signature-row td,
+        .authorisation .seal-row td { height: 17px; }
+        .notes { font-size: 6.8px; margin: 13px 0 0; }
     </style>
 </head>
 <body>
@@ -174,12 +177,13 @@
         </tfoot>
     </table>
 
-    <p class="notes">* Value exclusive all taxes i.e. SD&nbsp; and VAT</p>
-
-    <table class="signature">
-        <tr><td class="label">Name of Authorised Person</td><td class="value">{{ $authorised_person }}</td><td class="label">Designation</td><td class="value">{{ $designation }}</td></tr>
-        <tr class="signature-gap"><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="label">Signature</td><td class="value"></td><td class="label">Seal</td><td class="value"></td></tr>
+    <table class="authorisation">
+        <tr><td class="label">Name of Authorised Person</td><td class="colon">:</td><td class="value">{{ $authorised_person }}</td></tr>
+        <tr><td class="label">Designation</td><td class="colon">:</td><td class="value">{{ $designation }}</td></tr>
+        <tr class="signature-row"><td class="label">Signature</td><td class="colon">:</td><td class="value"></td></tr>
+        <tr class="seal-row"><td class="label">Seal</td><td class="colon">:</td><td class="value"></td></tr>
     </table>
+
+    <p class="notes">* Value exclusive all taxes i.e. SD&nbsp; and VAT</p>
 </body>
 </html>
