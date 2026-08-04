@@ -552,6 +552,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])
         ->name('packing.downloadPdf');
     Route::get('/download-invoice/{id}/pdf', [SellPosController::class, 'downloadInvoicePdf'])
         ->name('sells.downloadInvoicePdf');
+    Route::get('/download-mushak-6-3/{id}/pdf', [SellPosController::class, 'downloadMushak63Pdf'])
+        ->name('sells.downloadMushak63Pdf');
     Route::get('/sells/invoice-url/{id}', [SellPosController::class, 'showInvoiceUrl']);
     Route::get('/show-notification/{id}', [HomeController::class, 'showNotification']);
 });

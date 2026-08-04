@@ -421,6 +421,7 @@ class SellController extends Controller
                             if (auth()->user()->can('print_invoice')) {
                                 $html .= '<li><a target="_blank" href="' . action([\App\Http\Controllers\SellPosController::class, 'downloadInvoicePdf'], [$row->id]) . '" ><i class="fas fa-print" aria-hidden="true"></i> ' . __('Download Invoice') . '</a></li>';
                                 $html .= '<li><a target="_blank" href="' . action([\App\Http\Controllers\SellPosController::class, 'downloadPackingListPdf'], [$row->id]) . '" ><i class="fas fa-file-alt" aria-hidden="true"></i> ' . __('Delivery Chalan') . '</a></li>';
+                                $html .= '<li><a target="_blank" href="' . route('sells.downloadMushak63Pdf', [$row->id]) . '" ><i class="fas fa-file-invoice" aria-hidden="true"></i> ' . __('Mushak 6.3') . '</a></li>';
                             }
                             $html .= '<li class="divider"></li>';
                             if (!$only_shipments) {

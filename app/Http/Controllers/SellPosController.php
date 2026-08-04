@@ -3163,6 +3163,125 @@ class SellPosController extends Controller
     }
 
     /**
+     * Generate the statutory Mushak 6.3 VAT invoice for a sales invoice.
+     */
+    public function downloadMushak63Pdf($id)
+    {
+        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+
+        $business_id = request()->session()->get('user.business_id');
+        $transaction = Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->with([
+                'business',
+                'contact',
+                'location',
+                'sales_person.roles',
+                'tax',
+                'sell_lines' => function ($query) {
+                    $query->whereNull('parent_sell_line_id')
+                        ->orderBy('sort_order')
+                        ->orderBy('id');
+                },
+                'sell_lines.product.unit',
+                'sell_lines.product.brand',
+                'sell_lines.variations',
+                'sell_lines.sub_unit',
+                'sell_lines.line_tax',
+            ])
+            ->findOrFail($id);
+
+        abort_unless(User::can_access_this_location($transaction->location_id, $business_id), 403, 'Unauthorized action.');
+
+        $has_order_vat = !empty($transaction->tax_id) && (float) $transaction->tax_amount !== 0.0;
+        $line_base_total = $transaction->sell_lines->sum(function ($line) use ($has_order_vat) {
+            $unit_price = $has_order_vat ? $line->unit_price_inc_tax : $line->unit_price;
+
+            return (float) $unit_price * (float) $line->quantity;
+        });
+
+        $lines = $transaction->sell_lines->map(function ($line) use ($transaction, $line_base_total, $has_order_vat) {
+            $quantity = (float) $line->quantity;
+            // Order-level VAT is calculated on the invoice subtotal, whose line
+            // source in this application is unit_price_inc_tax. Otherwise the
+            // product-level VAT base is the tax-exclusive unit_price.
+            $unit_price = (float) ($has_order_vat ? $line->unit_price_inc_tax : $line->unit_price);
+            $total_value = $quantity * $unit_price;
+            $line_vat = $has_order_vat ? 0 : (float) $line->item_tax * $quantity;
+
+            // Some invoices apply VAT at invoice level rather than per product.
+            // Allocate that amount proportionately so the Mushak table remains auditable.
+            $allocated_order_vat = $has_order_vat && $line_base_total > 0
+                ? ((float) $transaction->tax_amount * ($total_value / $line_base_total))
+                : 0;
+            $vat = $line_vat + $allocated_order_vat;
+            $vat_rate = $has_order_vat && optional($transaction->tax)->amount !== null
+                ? (float) $transaction->tax->amount
+                : (optional($line->line_tax)->amount !== null
+                    ? (float) $line->line_tax->amount
+                    : ($total_value > 0 ? ($vat / $total_value) * 100 : 0));
+
+            $description = $line->product ? $line->product->name : '';
+            if ($line->product && $line->product->brand) {
+                $description .= ' (' . $line->product->brand->name . ')';
+            }
+            if ($line->variations && !empty($line->variations->sub_sku)) {
+                $description .= "\n" . $line->variations->sub_sku;
+            }
+
+            return [
+                'description' => $description,
+                'unit' => optional($line->sub_unit)->short_name ?: optional(optional($line->product)->unit)->short_name,
+                'quantity' => $quantity,
+                'unit_price' => $unit_price,
+                'total_value' => $total_value,
+                'sd_rate' => 0,
+                'sd_amount' => 0,
+                'vat_rate' => $vat_rate,
+                'vat_amount' => $vat,
+                'total_including_tax' => $total_value + $vat,
+            ];
+        });
+
+        $contact = $transaction->contact;
+        $location = $transaction->location;
+        $seller_address = collect([
+            optional($location)->landmark,
+            optional($location)->city,
+            optional($location)->state,
+            optional($location)->country,
+            optional($location)->zip_code,
+        ])->filter()->implode(', ');
+        $purchaser_address = $contact ? collect($contact->contact_address_array)->filter()->implode(', ') : '';
+        $destination = trim(strip_tags($transaction->shipping_address(true)
+            ? implode(', ', $transaction->shipping_address(true))
+            : (string) $transaction->shipping_address));
+
+        $authorised_person = optional($transaction->sales_person)->user_full_name;
+        $designation = collect(optional($transaction->sales_person)->roles)->pluck('name')
+            ->reject(function ($role) use ($business_id) {
+                return $role === 'Admin#' . $business_id;
+            })->first();
+
+        $data = compact(
+            'transaction',
+            'lines',
+            'seller_address',
+            'purchaser_address',
+            'destination',
+            'authorised_person',
+            'designation'
+        );
+
+        $pdf = PDF::loadView('sale_pos.receipts.mushak_6_3', $data)
+            ->setPaper('a4', 'landscape');
+
+        $filename = 'Mushak_6.3_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $transaction->invoice_no) . '.pdf';
+
+        return $pdf->stream($filename);
+    }
+
+    /**
      * download pdf for given quotation
      */
     public function downloadQuotationPdf($id)
