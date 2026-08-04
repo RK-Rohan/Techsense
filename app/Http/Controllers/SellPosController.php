@@ -3279,11 +3279,6 @@ class SellPosController extends Controller
                     return $role === 'Admin#' . $business_id;
                 })->first();
         }
-        if ($is_techsense) {
-            $authorised_person = config('constants.mushak_authorised_person') ?: $authorised_person;
-            $designation = config('constants.mushak_authorised_designation') ?: $designation;
-        }
-
         $data = compact(
             'transaction',
             'lines',
