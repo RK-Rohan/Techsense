@@ -39,7 +39,6 @@
         .items .number { text-align: right; white-space: nowrap; }
         .items .centered { text-align: center; }
         .items .description { line-height: 1.1; }
-        .items .blank-row td { height: 17px; }
         .items tfoot td { font-weight: normal; }
         .items tfoot .total-label, .items tfoot .total-value { font-weight: bold; }
         .authorisation { margin-top: 8px; width: 55%; }
@@ -158,11 +157,6 @@
                 </tr>
             @empty
             @endforelse
-            @for ($row = $lines->count(); $row < 10; $row++)
-                <tr class="blank-row">
-                    @for ($column = 1; $column <= 11; $column++)<td></td>@endfor
-                </tr>
-            @endfor
         </tbody>
         <tfoot>
             <tr>
