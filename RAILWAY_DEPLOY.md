@@ -15,15 +15,12 @@ Already added:
 Even with `railway.toml`, verify these in service settings:
 
 1. Service source: connect this GitHub repo and branch.
-2. Builder: Railpack (default if no Dockerfile).
-3. Build Command:
-   - `npm run production`
-4. Start Command:
-   - `php -d variables_order=EGPCS artisan serve --host=0.0.0.0 --port=${PORT}`
-5. Pre-Deploy Command:
+2. Builder: Dockerfile. The repository Dockerfile builds PHP dependencies and frontend assets.
+3. Start Command: leave blank so Railway uses the Dockerfile `CMD`.
+4. Pre-Deploy Command:
    - `php artisan migrate --force`
-6. Healthcheck path:
-   - `/`
+5. Healthcheck path:
+   - `/health`
 
 Important:
 - Railway build image must support your PHP version. This repo now targets PHP `^8.2`.
@@ -44,20 +41,19 @@ Set these in Railway Variables:
 
 Database:
 - `DB_CONNECTION=mysql`
-- `DB_HOST=<Railway MySQL private host>`
-- `DB_PORT=3306`
-- `DB_DATABASE=railway`
-- `DB_USERNAME=root`
-- `DB_PASSWORD=<Railway MySQL password>`
+- `DB_HOST=${{MySQL.MYSQLHOST}}`
+- `DB_PORT=${{MySQL.MYSQLPORT}}`
+- `DB_DATABASE=${{MySQL.MYSQLDATABASE}}`
+- `DB_USERNAME=${{MySQL.MYSQLUSER}}`
+- `DB_PASSWORD=${{MySQL.MYSQLPASSWORD}}`
 - `DB_SOCKET=`
 - `MYSQL_ATTR_SSL_CA=`
 
-Railpack/Build controls (set manually in Railway service variables):
-- `RAILPACK_PHP_EXTENSIONS=bcmath,gd,intl,zip,exif,pcntl`
-- `RAILPACK_INSTALL_COMMAND=composer install --no-dev --optimize-autoloader --no-scripts --no-interaction`
-
-Note:
-- Core PHP extensions are now also explicitly required in `composer.json` (`ext-bcmath`, `ext-exif`, `ext-gd`, `ext-intl`, `ext-pcntl`, `ext-zip`) so Railpack can auto-install them before Composer runs.
+`MySQL` in these references must exactly match the database service name in the
+Railway project. If it has another name, replace `MySQL` in every reference.
+The application also accepts Railway's native `MYSQLHOST`, `MYSQLPORT`,
+`MYSQLDATABASE`, `MYSQLUSER`, `MYSQLPASSWORD`, and `MYSQL_URL` names when they
+are exposed to the app service.
 
 ## 4) First Deployment Checklist
 
@@ -80,13 +76,13 @@ If you need async jobs/schedules:
 
 - If app fails to boot:
   - Check `APP_KEY`, DB vars, and start command.
-- If build fails with `No version available for php 8.0` or `php 8.1`:
-  - Ensure latest commit is deployed (this repo now uses `composer.json` -> `"php": "^8.2"`).
-- If build fails at `install:composer` with exit code `2`:
-  - Add `RAILPACK_PHP_EXTENSIONS=bcmath,gd,intl,zip,exif,pcntl` in Railway service variables.
-  - Add `RAILPACK_INSTALL_COMMAND=composer install --no-dev --optimize-autoloader --no-scripts --no-interaction`.
-  - Redeploy latest commit.
+- If the Docker build fails:
+  - Ensure the latest commit is deployed and Railway is using the repository Dockerfile.
+  - Do not override the Dockerfile build or start commands with old Railpack commands.
 - If migration fails:
+  - Inspect the resolved variables on the app service (not only on the MySQL service).
+  - An error containing `mysql:host=;` means the database references resolved to empty values.
+  - Confirm the service name in `${{MySQL.MYSQLHOST}}` exactly matches the MySQL service.
   - Run `php artisan migrate:status` in Railway shell.
 - If static assets missing:
-  - Ensure build command includes `npm run production`.
+  - Check the Docker build's `assets` stage; it runs `npm run production`.

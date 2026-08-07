@@ -2,6 +2,18 @@
 
 use Illuminate\Support\Str;
 
+$firstNonEmptyEnv = static function (array $keys, $default = null) {
+    foreach ($keys as $key) {
+        $value = env($key);
+
+        if ($value !== null && $value !== '') {
+            return $value;
+        }
+    }
+
+    return $default;
+};
+
 return [
 
     /*
@@ -45,12 +57,15 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
+            // Railway exposes MYSQL_* variables. Prefer Laravel's DB_* names,
+            // but ignore blank values so a broken reference cannot create an
+            // invalid "mysql:host=;..." DSN.
+            'url' => $firstNonEmptyEnv(['DATABASE_URL', 'MYSQL_URL']),
+            'host' => $firstNonEmptyEnv(['DB_HOST', 'MYSQLHOST'], '127.0.0.1'),
+            'port' => $firstNonEmptyEnv(['DB_PORT', 'MYSQLPORT'], '3306'),
+            'database' => $firstNonEmptyEnv(['DB_DATABASE', 'MYSQLDATABASE'], 'forge'),
+            'username' => $firstNonEmptyEnv(['DB_USERNAME', 'MYSQLUSER'], 'forge'),
+            'password' => $firstNonEmptyEnv(['DB_PASSWORD', 'MYSQLPASSWORD'], ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
