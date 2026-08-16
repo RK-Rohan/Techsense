@@ -176,7 +176,7 @@ class ReportController extends Controller
                 ->editColumn('total_paid', '{{@format_currency($total_paid)}}')
                 ->editColumn('total_due', '{{@format_currency($total_due)}}')
                 ->editColumn('payment_status', function ($row) {
-                    return view('sell.partials.payment_status', ['payment_status' => $row->payment_status, 'id' => $row->id]);
+                    return (string) view('sell.partials.payment_status', ['payment_status' => $row->payment_status, 'id' => $row->id]);
                 })
                 ->addColumn('action', function ($row) {
                     return '<a href="' . action([\App\Http\Controllers\SellController::class, 'show'], [$row->id]) . '" class="btn btn-xs btn-primary btn-modal" data-container=".view_modal"><i class="fa fa-eye"></i> ' . __('messages.view') . '</a>';
