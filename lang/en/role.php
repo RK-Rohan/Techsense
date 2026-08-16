@@ -57,6 +57,7 @@ return [
     'register_report.view' => 'View register report',
     'sales_representative.view' => 'View sales representative report',
     'expense_report.view' => 'View expense report',
+    'due_payment_received.view' => 'View due payment received report',
 
     'business_settings.access' => 'Access business settings',
     'barcode_settings.access' => 'Access barcode settings',

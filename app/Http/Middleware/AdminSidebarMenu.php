@@ -506,7 +506,7 @@ class AdminSidebarMenu
                 auth()->user()->can('purchase_n_sell_report.view') || auth()->user()->can('contacts_report.view')
                 || auth()->user()->can('stock_report.view') || auth()->user()->can('tax_report.view')
                 || auth()->user()->can('trending_product_report.view') || auth()->user()->can('sales_representative.view') || auth()->user()->can('register_report.view')
-                || auth()->user()->can('expense_report.view')
+                || auth()->user()->can('expense_report.view') || auth()->user()->can('due_payment_received.view')
             ) {
                 $menu->dropdown(
                     __('report.reports'),
@@ -523,6 +523,14 @@ class AdminSidebarMenu
                             'Bill Due',
                             ['icon' => 'fa fas fa-file-invoice-dollar', 'active' => request()->segment(2) == 'bill-due']
                         );
+
+                        if (auth()->user()->can('due_payment_received.view')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\ReportController::class, 'duePaymentReceivedReport']),
+                                __('lang_v1.due_payment_received_report'),
+                                ['icon' => 'fa fas fa-hand-holding-usd', 'active' => request()->segment(2) == 'due-payment-received']
+                            );
+                        }
 
                         if (config('constants.show_report_606') == true) {
                             $sub->url(

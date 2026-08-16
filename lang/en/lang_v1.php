@@ -337,6 +337,8 @@ return [
     'card_transaction_no' => 'Card Transaction No.',
     'bank_account_no' => 'Bank Account No.',
     'sell_payment_report' => 'Sell Payment Report',
+    'due_payment_received_report' => 'Due Payment Received Report',
+    'payment_method_wise_summary' => 'Payment Method Wise Summary',
     'restaurant' => 'Restaurant',
     'user_type' => 'User type',
     'business_inactive' => 'Sorry, your business is inactive!!',

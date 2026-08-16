@@ -109,7 +109,6 @@ class ReportController extends Controller
 
     public function getBillDueReport()
     {
-        dd('hi');
         $is_admin = $this->businessUtil->is_admin(auth()->user());
 
         if (!$is_admin && !auth()->user()->hasAnyPermission([
@@ -190,7 +189,7 @@ class ReportController extends Controller
         $customers = Contact::customersDropdown($business_id, false);
         $created_by = User::forDropdown($business_id, false, false, true);
 
-        return view('report.partials.bill_due_report')->with(compact('business_locations', 'customers', 'created_by'));
+        return view('report.bill_due_report')->with(compact('business_locations', 'customers', 'created_by'));
     }
 
 
@@ -2587,6 +2586,212 @@ class ReportController extends Controller
 
         return view('report.sell_payment_report')
             ->with(compact('business_locations', 'customers', 'payment_types', 'customer_groups'));
+    }
+
+    /**
+     * Returns payment method-wise received totals for the sell payment report filters.
+     * Used for both the Sell Payment Report summary and the Due Payment Received Report.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function sellPaymentMethodWiseSummary(Request $request)
+    {
+        if (! auth()->user()->can('purchase_n_sell_report.view') && ! auth()->user()->can('due_payment_received.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = $request->session()->get('user.business_id');
+
+        $customer_id = $request->get('supplier_id', null);
+        $contact_filter1 = ! empty($customer_id) ? "AND t.contact_id=$customer_id" : '';
+        $contact_filter2 = ! empty($customer_id) ? "AND transactions.contact_id=$customer_id" : '';
+
+        $location_id = $request->get('location_id', null);
+        $parent_payment_query_part = empty($location_id) ? 'AND transaction_payments.parent_id IS NULL' : '';
+
+        $query = TransactionPayment::leftjoin('transactions as t', function ($join) use ($business_id) {
+            $join->on('transaction_payments.transaction_id', '=', 't.id')
+                ->where('t.business_id', $business_id)
+                ->whereIn('t.type', ['sell', 'opening_balance']);
+        })
+            ->where('transaction_payments.business_id', $business_id)
+            ->where(function ($q) use ($business_id, $contact_filter1, $contact_filter2, $parent_payment_query_part) {
+                $q->whereRaw("(transaction_payments.transaction_id IS NOT NULL AND t.type IN ('sell', 'opening_balance') $parent_payment_query_part $contact_filter1)")
+                    ->orWhereRaw("EXISTS(SELECT * FROM transaction_payments as tp JOIN transactions ON tp.transaction_id = transactions.id WHERE transactions.type IN ('sell', 'opening_balance') AND transactions.business_id = $business_id AND tp.parent_id=transaction_payments.id $contact_filter2)");
+            });
+
+        $start_date = $request->get('start_date');
+        $end_date = $request->get('end_date');
+        if (! empty($start_date) && ! empty($end_date)) {
+            $query->whereBetween(DB::raw('date(paid_on)'), [$start_date, $end_date]);
+        }
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('t.location_id', $permitted_locations);
+        }
+
+        if (! empty($request->get('customer_group_id'))) {
+            $query->whereIn('t.contact_id', function ($sub) use ($business_id, $request) {
+                $sub->select('id')->from('contacts')
+                    ->where('business_id', $business_id)
+                    ->where('customer_group_id', $request->get('customer_group_id'));
+            });
+        }
+
+        if (! empty($location_id)) {
+            $query->where('t.location_id', $location_id);
+        }
+
+        //Net received amount per method (return payments subtracted)
+        $totals = $query->select(
+            'transaction_payments.method',
+            DB::raw('SUM(IF(transaction_payments.is_return = 1, -1 * transaction_payments.amount, transaction_payments.amount)) as total_amount')
+        )
+            ->groupBy('transaction_payments.method')
+            ->pluck('total_amount', 'method');
+
+        $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
+
+        $summary = [];
+        $grand_total = 0;
+        foreach ($payment_types as $key => $label) {
+            $amount = ! empty($totals[$key]) ? (float) $totals[$key] : 0;
+            $summary[] = [
+                'method' => $key,
+                'label' => $label,
+                'amount' => $amount,
+            ];
+            $grand_total += $amount;
+        }
+
+        return response()->json([
+            'summary' => $summary,
+            'grand_total' => $grand_total,
+        ]);
+    }
+
+    /**
+     * Shows due payment received report - payments received against sales,
+     * filterable by date, for VAT & Tax reconciliation purposes.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function duePaymentReceivedReport(Request $request)
+    {
+        if (! auth()->user()->can('due_payment_received.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = $request->session()->get('user.business_id');
+
+        $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
+
+        if ($request->ajax()) {
+            $customer_id = $request->get('supplier_id', null);
+            $contact_filter1 = ! empty($customer_id) ? "AND t.contact_id=$customer_id" : '';
+            $contact_filter2 = ! empty($customer_id) ? "AND transactions.contact_id=$customer_id" : '';
+
+            $location_id = $request->get('location_id', null);
+            $parent_payment_query_part = empty($location_id) ? 'AND transaction_payments.parent_id IS NULL' : '';
+
+            $query = TransactionPayment::leftjoin('transactions as t', function ($join) use ($business_id) {
+                $join->on('transaction_payments.transaction_id', '=', 't.id')
+                    ->where('t.business_id', $business_id)
+                    ->whereIn('t.type', ['sell', 'opening_balance']);
+            })
+                ->leftjoin('contacts as c', 't.contact_id', '=', 'c.id')
+                ->where('transaction_payments.business_id', $business_id)
+                ->where(function ($q) use ($business_id, $contact_filter1, $contact_filter2, $parent_payment_query_part) {
+                    $q->whereRaw("(transaction_payments.transaction_id IS NOT NULL AND t.type IN ('sell', 'opening_balance') $parent_payment_query_part $contact_filter1)")
+                        ->orWhereRaw("EXISTS(SELECT * FROM transaction_payments as tp JOIN transactions ON tp.transaction_id = transactions.id WHERE transactions.type IN ('sell', 'opening_balance') AND transactions.business_id = $business_id AND tp.parent_id=transaction_payments.id $contact_filter2)");
+                })
+                ->select(
+                    DB::raw("IF(transaction_payments.transaction_id IS NULL,
+                                (SELECT c.name FROM transactions as ts
+                                JOIN contacts as c ON ts.contact_id=c.id
+                                WHERE ts.id=(
+                                        SELECT tps.transaction_id FROM transaction_payments as tps
+                                        WHERE tps.parent_id=transaction_payments.id LIMIT 1
+                                    )
+                                ),
+                                (SELECT CONCAT(COALESCE(CONCAT(c.supplier_business_name, '<br>'), ''), c.name) FROM transactions as ts JOIN
+                                    contacts as c ON ts.contact_id=c.id
+                                    WHERE ts.id=t.id
+                                )
+                            ) as customer"),
+                    'transaction_payments.amount',
+                    'transaction_payments.is_return',
+                    'method',
+                    'paid_on',
+                    'transaction_payments.payment_ref_no',
+                    't.invoice_no',
+                    't.id as transaction_id',
+                    'cheque_number',
+                    'card_transaction_number',
+                    'bank_account_number',
+                    'transaction_payments.id as DT_RowId'
+                )
+                ->groupBy('transaction_payments.id');
+
+            $start_date = $request->get('start_date');
+            $end_date = $request->get('end_date');
+            if (! empty($start_date) && ! empty($end_date)) {
+                $query->whereBetween(DB::raw('date(paid_on)'), [$start_date, $end_date]);
+            }
+
+            $permitted_locations = auth()->user()->permitted_locations();
+            if ($permitted_locations != 'all') {
+                $query->whereIn('t.location_id', $permitted_locations);
+            }
+
+            if (! empty($location_id)) {
+                $query->where('t.location_id', $location_id);
+            }
+
+            if (! empty($request->get('payment_types'))) {
+                $query->where('transaction_payments.method', $request->get('payment_types'));
+            }
+
+            return Datatables::of($query)
+                ->editColumn('invoice_no', function ($row) {
+                    if (! empty($row->transaction_id)) {
+                        return '<a data-href="' . action([\App\Http\Controllers\SellController::class, 'show'], [$row->transaction_id])
+                            . '" href="#" data-container=".view_modal" class="btn-modal">' . $row->invoice_no . '</a>';
+                    } else {
+                        return '';
+                    }
+                })
+                ->editColumn('paid_on', '{{@format_datetime($paid_on)}}')
+                ->editColumn('method', function ($row) use ($payment_types) {
+                    $method = ! empty($payment_types[$row->method]) ? $payment_types[$row->method] : '';
+                    if ($row->method == 'cheque') {
+                        $method .= '<br>(' . __('lang_v1.cheque_no') . ': ' . $row->cheque_number . ')';
+                    } elseif ($row->method == 'card') {
+                        $method .= '<br>(' . __('lang_v1.card_transaction_no') . ': ' . $row->card_transaction_number . ')';
+                    } elseif ($row->method == 'bank_transfer') {
+                        $method .= '<br>(' . __('lang_v1.bank_account_no') . ': ' . $row->bank_account_number . ')';
+                    }
+                    if ($row->is_return == 1) {
+                        $method .= '<br><small>(' . __('lang_v1.change_return') . ')</small>';
+                    }
+
+                    return $method;
+                })
+                ->editColumn('amount', function ($row) {
+                    $amount = $row->is_return == 1 ? -1 * $row->amount : $row->amount;
+
+                    return '<span class="paid-amount" data-orig-value="' . $amount . '">' . $this->transactionUtil->num_f($amount, true) . '</span>';
+                })
+                ->rawColumns(['invoice_no', 'amount', 'method', 'customer'])
+                ->make(true);
+        }
+
+        $business_locations = BusinessLocation::forDropdown($business_id);
+        $customers = Contact::customersDropdown($business_id, false);
+
+        return view('report.due_payment_received_report')
+            ->with(compact('business_locations', 'customers', 'payment_types'));
     }
 
     /**

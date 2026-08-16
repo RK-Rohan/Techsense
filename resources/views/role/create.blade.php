@@ -1367,7 +1367,7 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
-                {!! Form::checkbox('permissions[]', 'expense_report.view', false, 
+                {!! Form::checkbox('permissions[]', 'expense_report.view', false,
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.expense_report.view' ) }}
               </label>
             </div>
@@ -1376,7 +1376,15 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
-                {!! Form::checkbox('permissions[]', 'profit_loss_report.view', false, 
+                {!! Form::checkbox('permissions[]', 'due_payment_received.view', false,
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.due_payment_received.view' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'profit_loss_report.view', false,
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.profit_loss_report.view' ) }}
               </label>
             </div>

@@ -71,9 +71,25 @@
     </div>
     <div class="row">
         <div class="col-md-12">
+            @component('components.widget', ['class' => 'box-primary', 'title' => __('lang_v1.payment_method') . ' ' . __('sale.total')])
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="spr_method_summary_table">
+                        <thead>
+                            <tr id="spr_method_summary_header"></tr>
+                        </thead>
+                        <tbody>
+                            <tr id="spr_method_summary_row"></tr>
+                        </tbody>
+                    </table>
+                </div>
+            @endcomponent
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
             @component('components.widget', ['class' => 'box-primary'])
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped" 
+                    <table class="table table-bordered table-striped"
                     id="sell_payment_report_table">
                         <thead>
                             <tr>
@@ -111,4 +127,56 @@
 @section('javascript')
     <script src="{{ asset('js/report.js?v=' . $asset_v) }}"></script>
     <script src="{{ asset('js/payment.js?v=' . $asset_v) }}"></script>
+    <script>
+    $(document).ready(function() {
+        function spr_load_method_summary() {
+            var start = '';
+            var end = '';
+            if ($('input#spr_date_filter').val()) {
+                start = $('input#spr_date_filter').data('daterangepicker').startDate.format('YYYY-MM-DD');
+                end = $('input#spr_date_filter').data('daterangepicker').endDate.format('YYYY-MM-DD');
+            }
+
+            $.ajax({
+                url: '{{ action("App\\Http\\Controllers\\ReportController@sellPaymentMethodWiseSummary") }}',
+                dataType: 'json',
+                data: {
+                    supplier_id: $('select#customer_id').val(),
+                    location_id: $('select#location_id').val(),
+                    customer_group_id: $('select#customer_group_filter').val(),
+                    start_date: start,
+                    end_date: end
+                },
+                success: function(result) {
+                    var $header = $('#spr_method_summary_header');
+                    var $row = $('#spr_method_summary_row');
+                    $header.empty();
+                    $row.empty();
+
+                    $.each(result.summary, function(i, item) {
+                        $header.append('<th class="text-center">' + item.label + '</th>');
+                        $row.append('<td class="text-center display_currency" data-currency_symbol="true">' + item.amount + '</td>');
+                    });
+
+                    $header.append('<th class="text-center"><strong>@lang("sale.total")</strong></th>');
+                    $row.append('<td class="text-center display_currency" data-currency_symbol="true"><strong>' + result.grand_total + '</strong></td>');
+
+                    __currency_convert_recursively($('#spr_method_summary_table'));
+                }
+            });
+        }
+
+        spr_load_method_summary();
+
+        $('#sell_payment_report_form #location_id, #sell_payment_report_form #customer_id, #sell_payment_report_form #customer_group_filter').change(function() {
+            spr_load_method_summary();
+        });
+
+        if ($('#spr_date_filter').length == 1) {
+            $('#spr_date_filter').on('apply.daterangepicker cancel.daterangepicker', function() {
+                spr_load_method_summary();
+            });
+        }
+    });
+    </script>
 @endsection

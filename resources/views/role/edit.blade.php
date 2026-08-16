@@ -1361,7 +1361,7 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
-                {!! Form::checkbox('permissions[]', 'expense_report.view', in_array('expense_report.view', $role_permissions), 
+                {!! Form::checkbox('permissions[]', 'expense_report.view', in_array('expense_report.view', $role_permissions),
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.expense_report.view' ) }}
               </label>
             </div>
@@ -1370,7 +1370,15 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
-                {!! Form::checkbox('permissions[]', 'profit_loss_report.view', in_array('profit_loss_report.view', $role_permissions), 
+                {!! Form::checkbox('permissions[]', 'due_payment_received.view', in_array('due_payment_received.view', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.due_payment_received.view' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'profit_loss_report.view', in_array('profit_loss_report.view', $role_permissions),
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.profit_loss_report.view' ) }}
               </label>
             </div>
