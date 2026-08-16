@@ -92,7 +92,7 @@ $(document).ready(function () {
         processing: true,
         serverSide: true,
         ajax: {
-            url: '{{ action("ReportController@getBillDueReport") }}',
+            url: '{{ action([\App\Http\Controllers\ReportController::class, "getBillDueReport"]) }}',
             data: function (d) {
                 if ($('#date_range').val()) {
                     var date_range = $('#date_range').val().split(' ~ ');
