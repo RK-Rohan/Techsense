@@ -172,9 +172,9 @@ class ReportController extends Controller
 
             return Datatables::of($sells)
                 ->editColumn('transaction_date', '{{@format_date($transaction_date)}}')
-                ->editColumn('final_total', '{{@format_currency($final_total)}}')
-                ->editColumn('total_paid', '{{@format_currency($total_paid)}}')
-                ->editColumn('total_due', '{{@format_currency($total_due)}}')
+                ->editColumn('final_total', '@format_currency($final_total)')
+                ->editColumn('total_paid', '@format_currency($total_paid)')
+                ->editColumn('total_due', '@format_currency($total_due)')
                 ->editColumn('payment_status', function ($row) {
                     return (string) view('sell.partials.payment_status', ['payment_status' => $row->payment_status, 'id' => $row->id]);
                 })
