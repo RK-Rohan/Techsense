@@ -105,20 +105,20 @@
             <table class="table product_table" width="100%" style="font-size: 14px;">
                 <thead>
                     <tr class="item_table_header">
-                        <td> SL. </td>
+                        <td class="sl-col"> SL. </td>
 
-                        <td style="text-align: center;">
+                        <td style="text-align: center;" width="22%">
                             Part/Model Number
                         </td>
 
-                        <td style="text-align: center;">
+                        <td style="text-align: center;" width="54%">
                             {{$receipt_details->table_product_label}}
                         </td>
 
-                        <td style="text-align: center;">
+                        <td style="text-align: center;" width="10%">
                             Unit
                         </td>
-                        <td style="text-align: center;">
+                        <td style="text-align: center;" width="10%">
                             {{$receipt_details->table_qty_label}}
                         </td>
                     </tr>
@@ -126,11 +126,11 @@
                 <tbody>
                     @foreach($receipt_details->lines as $line)
                     <tr>
-                        <td>
+                        <td class="sl-col">
                             {{$loop->iteration}}
                         </td>
                         <td>{{$line['sub_sku']}}</td>
-                        <td>
+                        <td class="description-cell">
                             {{$line['name']}} <br>
                             @if(!empty($line['brand'])) {{'Brand: '.$line['brand']}} <br>@endif
                             @if(!empty($line['origin'])) {{'Origin: '.$line['origin']}}<br>@endif
@@ -138,9 +138,12 @@
                             <!-- {{$line['product_variation']}} {{$line['variation']}} -->
                             <!-- @if(!empty($line['sub_sku'])), {{$line['sub_sku']}} @endif @if(!empty($line['brand'])), {{$line['brand']}} @endif @if(!empty($line['cat_code'])), {{$line['cat_code']}}@endif -->
                             <!-- @if(!empty($line['product_custom_fields'])), {{$line['product_custom_fields']}} @endif -->
-                            <small>
-                                {!!$line['product_description']!!}
-                            </small>
+                            @php
+                                $formatted_description = sanitizeEditorHtmlForPdf($line['product_description'] ?? '');
+                            @endphp
+                            @if($formatted_description !== '')
+                                <div class="product-description">{!! $formatted_description !!}</div>
+                            @endif
                         </td>
                         <td>{{$line['units']}}</td>
                         <td>
@@ -276,6 +279,92 @@
         .product_table td {
             border: 1px solid black;
             font-size: 12px !important;
+        }
+
+        .product_table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .product_table td {
+            vertical-align: middle;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .product_table td.description-cell {
+            vertical-align: top;
+        }
+
+        .sl-col {
+            width: 4%;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .product-description {
+            margin-top: 3px;
+            line-height: 1.25;
+            white-space: normal;
+        }
+
+        .product-description p,
+        .product-description div,
+        .product-description blockquote,
+        .product-description h1,
+        .product-description h2,
+        .product-description h3,
+        .product-description h4,
+        .product-description h5,
+        .product-description h6 {
+            margin: 0 0 3px;
+            padding: 0;
+        }
+
+        .product-description h1,
+        .product-description h2,
+        .product-description h3,
+        .product-description h4,
+        .product-description h5,
+        .product-description h6 {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .product-description ul,
+        .product-description ol {
+            margin: 2px 0 3px 15px;
+            padding: 0;
+        }
+
+        .product-description li {
+            margin: 0;
+            padding: 0;
+        }
+
+        .product-description blockquote {
+            border-left: 2px solid #999;
+            padding-left: 5px;
+        }
+
+        .product-description table {
+            border-collapse: collapse;
+            table-layout: fixed;
+            width: 100%;
+            margin: 3px 0;
+        }
+
+        .product-description table th,
+        .product-description table td {
+            border: 1px solid #777;
+            padding: 2px 3px;
+            vertical-align: top;
+            word-break: break-word;
+        }
+
+        .product-description table th {
+            background-color: #eeeeee;
+            font-weight: bold;
         }
 
         .item_table_header {
