@@ -705,7 +705,9 @@ $(document).on('submit', 'form#quick_add_brand_form', function(e) {
                 $('#brand_id')
                     .append(newOption)
                     .trigger('change');
-                $('div.view_modal').modal('hide');
+                // The brand form is opened from the product page (.view_modal)
+                // and from the quick-add-product popup (.quick_add_taxonomy_modal).
+                form.closest('.modal').modal('hide');
                 toastr.success(result.msg);
             } else {
                 toastr.error(result.msg);

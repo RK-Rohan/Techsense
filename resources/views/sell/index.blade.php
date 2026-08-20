@@ -107,19 +107,97 @@
 
 @section('javascript')
 <script type="text/javascript">
+//Remembers the All-sales filters for the browser tab, so returning from an
+//edit/view page keeps whatever was selected. Cleared when the tab closes.
+var sell_filter_storage_key = 'sell_list_filters';
+var sell_filter_fields = [
+    'sell_list_filter_location_id',
+    'sell_list_filter_customer_id',
+    'sell_list_filter_payment_status',
+    'created_by',
+    'sales_cmsn_agnt',
+    'service_staffs',
+    'shipping_status',
+    'sell_list_filter_source',
+];
+
+function __store_sell_filters() {
+    try {
+        var state = {};
+        $.each(sell_filter_fields, function(i, id) {
+            var $el = $('#' + id);
+            if ($el.length) {
+                state[id] = $el.val();
+            }
+        });
+
+        state.date_range = $('#sell_list_filter_date_range').val() || '';
+        state.only_subscriptions = $('#only_subscriptions').is(':checked') ? 1 : 0;
+
+        sessionStorage.setItem(sell_filter_storage_key, JSON.stringify(state));
+    } catch (e) {
+        //Storage unavailable (private mode/quota) - filters simply won't persist.
+    }
+}
+
+function __restore_sell_filters() {
+    var state = null;
+    try {
+        state = JSON.parse(sessionStorage.getItem(sell_filter_storage_key));
+    } catch (e) {
+        return;
+    }
+
+    if (!state) {
+        return;
+    }
+
+    $.each(sell_filter_fields, function(i, id) {
+        var $el = $('#' + id);
+        if ($el.length && typeof state[id] !== 'undefined' && state[id] !== null) {
+            //Set silently: the table has not been created yet at restore time.
+            $el.val(state[id]).trigger('change.select2');
+        }
+    });
+
+    //The ajax payload reads the picker's dates, so sync the widget too - not
+    //just the visible text - or a restored range would be ignored.
+    if (state.date_range) {
+        var $range = $('#sell_list_filter_date_range');
+        $range.val(state.date_range);
+
+        var picker = $range.data('daterangepicker');
+        var parts = state.date_range.split(' ~ ');
+        if (picker && parts.length === 2) {
+            picker.setStartDate(moment(parts[0], moment_date_format));
+            picker.setEndDate(moment(parts[1], moment_date_format));
+            $range.val(state.date_range);
+        }
+    }
+
+    if (state.only_subscriptions) {
+        $('#only_subscriptions').iCheck('check');
+    }
+}
+
 $(document).ready( function(){
     //Date range as a button
     $('#sell_list_filter_date_range').daterangepicker(
         dateRangeSettings,
         function (start, end) {
             $('#sell_list_filter_date_range').val(start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format));
+            __store_sell_filters();
             sell_table.ajax.reload();
         }
     );
     $('#sell_list_filter_date_range').on('cancel.daterangepicker', function(ev, picker) {
         $('#sell_list_filter_date_range').val('');
+        __store_sell_filters();
         sell_table.ajax.reload();
     });
+
+    //Restore before the table is built so the first request already filters.
+    __restore_sell_filters();
 
     sell_table = $('#sell_table').DataTable({
         processing: true,
@@ -264,10 +342,12 @@ $(document).ready( function(){
     });
 
     $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_customer_id, #sell_list_filter_payment_status, #created_by, #sales_cmsn_agnt, #service_staffs, #shipping_status, #sell_list_filter_source',  function() {
+        __store_sell_filters();
         sell_table.ajax.reload();
     });
 
     $('#only_subscriptions').on('ifChanged', function(event){
+        __store_sell_filters();
         sell_table.ajax.reload();
     });
 });

@@ -65,8 +65,10 @@ class SellController extends Controller
         ];
 
         $this->shipping_status_colors = [
+            'none' => 'bg-gray',
             'ordered' => 'bg-yellow',
             'packed' => 'bg-info',
+            'partial' => 'bg-purple',
             'shipped' => 'bg-navy',
             'delivered' => 'bg-green',
             'cancelled' => 'bg-red',
@@ -170,13 +172,31 @@ class SellController extends Controller
                 }
             }
 
-            if (!empty(request()->input('payment_status')) && request()->input('payment_status') != 'overdue') {
-                $sells->where('transactions.payment_status', request()->input('payment_status'));
-            } elseif (request()->input('payment_status') == 'overdue') {
-                $sells->whereIn('transactions.payment_status', ['due', 'partial'])
-                    ->whereNotNull('transactions.pay_term_number')
-                    ->whereNotNull('transactions.pay_term_type')
-                    ->whereRaw("IF(transactions.pay_term_type='days', DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY) < CURDATE(), DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH) < CURDATE())");
+            //Payment status filter, accepts one or more statuses.
+            $payment_statuses = request()->input('payment_status');
+            $payment_statuses = is_array($payment_statuses) ? $payment_statuses : (empty($payment_statuses) ? [] : [$payment_statuses]);
+            $payment_statuses = array_filter($payment_statuses, function ($status) {
+                return $status !== null && $status !== '';
+            });
+
+            if (!empty($payment_statuses)) {
+                $has_overdue = in_array('overdue', $payment_statuses);
+                $plain_statuses = array_values(array_diff($payment_statuses, ['overdue']));
+
+                $sells->where(function ($query) use ($plain_statuses, $has_overdue) {
+                    if (!empty($plain_statuses)) {
+                        $query->orWhereIn('transactions.payment_status', $plain_statuses);
+                    }
+
+                    if ($has_overdue) {
+                        $query->orWhere(function ($q) {
+                            $q->whereIn('transactions.payment_status', ['due', 'partial'])
+                                ->whereNotNull('transactions.pay_term_number')
+                                ->whereNotNull('transactions.pay_term_type')
+                                ->whereRaw("IF(transactions.pay_term_type='days', DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY) < CURDATE(), DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH) < CURDATE())");
+                        });
+                    }
+                });
             }
 
             //Add condition for location,used in sales representative expense report
@@ -282,7 +302,17 @@ class SellController extends Controller
             }
 
             if (!empty(request()->input('shipping_status'))) {
-                $sells->where('transactions.shipping_status', request()->input('shipping_status'));
+                $shipping_status = request()->input('shipping_status');
+
+                //'none' also covers sales saved before a shipping status existed.
+                if ($shipping_status == 'none') {
+                    $sells->where(function ($q) {
+                        $q->where('transactions.shipping_status', 'none')
+                            ->orWhereNull('transactions.shipping_status');
+                    });
+                } else {
+                    $sells->where('transactions.shipping_status', $shipping_status);
+                }
             }
 
             if (!empty(request()->input('for_dashboard_sales_order'))) {

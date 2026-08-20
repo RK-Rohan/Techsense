@@ -50,7 +50,12 @@
         <div class="col-sm-4">
           <div class="form-group">
             {!! Form::label('brand_id', __('product.brand') . ':') !!}
-            {!! Form::select('brand_id', $brands, null, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
+            <div class="input-group">
+              {!! Form::select('brand_id', $brands, null, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
+              <span class="input-group-btn">
+                <button type="button" @if(!auth()->user()->can('brand.create')) disabled @endif class="btn btn-default bg-white btn-flat btn-modal" data-href="{{action([\App\Http\Controllers\BrandController::class, 'create'], ['quick_add' => true])}}" title="@lang('brand.add_brand')" data-container=".quick_add_taxonomy_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -70,7 +75,12 @@
         <div class="col-sm-4">
           <div class="form-group">
             {!! Form::label('category_id', __('product.category') . ':') !!}
-            {!! Form::select('category_id', $categories, null, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
+            <div class="input-group">
+              {!! Form::select('category_id', $categories, null, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
+              <span class="input-group-btn">
+                <button type="button" @if(!auth()->user()->can('category.create')) disabled @endif class="btn btn-default bg-white btn-flat btn-modal" data-href="{{action([\App\Http\Controllers\TaxonomyController::class, 'create'], ['type' => 'product', 'quick_add' => true])}}" title="@lang('category.add_category')" data-container=".quick_add_taxonomy_modal"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -251,10 +261,55 @@
   </div><!-- /.modal-content -->
 </div><!-- /.modal-dialog -->
 
+<!-- Nested modal for adding a brand/category without leaving this popup. -->
+<div class="modal fade quick_add_taxonomy_modal" tabindex="-1" role="dialog" aria-labelledby="modalTitle"></div>
+
 <script type="text/javascript">
   $(document).ready(function() {
     $(document).on('hidden.bs.modal', '.quick_add_product_modal', function () {
       destroyProductDescriptionEditor(this);
+    });
+
+    //Bootstrap removes the scroll lock of the still-open parent when the
+    //nested modal closes; put it back so the product popup stays scrollable.
+    $(document).on('hidden.bs.modal', '.quick_add_taxonomy_modal', function () {
+      if ($('.quick_add_product_modal').hasClass('in')) {
+        $('body').addClass('modal-open');
+      }
+    });
+
+    //Adds the newly created brand/category to its select and picks it.
+    var __append_quick_taxonomy = function(selector, item) {
+      var $select = $('.quick_add_product_modal').find(selector);
+      if (!$select.length || !item) {
+        return;
+      }
+
+      $select.append(new Option(item.name, item.id, true, true)).trigger('change');
+    };
+
+    $(document).on('submit', 'form#quick_add_category_form', function(e) {
+      e.preventDefault();
+      var form = $(this);
+
+      $.ajax({
+        method: 'POST',
+        url: form.attr('action'),
+        dataType: 'json',
+        data: form.serialize(),
+        beforeSend: function(xhr) {
+          __disable_submit_button(form.find('button[type="submit"]'));
+        },
+        success: function(result) {
+          if (result.success == true) {
+            __append_quick_taxonomy('#category_id', result.data);
+            $('div.quick_add_taxonomy_modal').modal('hide');
+            toastr.success(result.msg);
+          } else {
+            toastr.error(result.msg);
+          }
+        },
+      });
     });
 
     initProductDescriptionEditor(this);
