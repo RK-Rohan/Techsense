@@ -320,6 +320,14 @@ class AdminSidebarMenu
                             ['icon' => 'fa fas fa-pen-square', 'active' => request()->segment(1) == 'terms-conditions' && request()->segment(2) == null]
                         );
 
+                        if (auth()->user()->can('print_invoice')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\MushakInvoiceController::class, 'index']),
+                                __('lang_v1.mushak_6_3'),
+                                ['icon' => 'fa fas fa-file-invoice', 'active' => request()->segment(1) == 'mushak']
+                            );
+                        }
+
 
                         if (auth()->user()->can('access_sell_return') || auth()->user()->can('access_own_sell_return')) {
                             $sub->url(

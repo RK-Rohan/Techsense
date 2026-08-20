@@ -3266,6 +3266,27 @@ class SellPosController extends Controller
         }
         $purchaser_bin = optional($contact)->tax_number;
         $mushak_invoice_no = $transaction->custom_field_3 ?: $transaction->invoice_no;
+
+        //A generated Mushak overrides the derived values field by field. Sales
+        //without one keep printing exactly as they did before this module.
+        $mushak = \App\MushakInvoice::where('business_id', $business_id)
+            ->where('transaction_id', $transaction->id)
+            ->first();
+
+        $mushak_issued_at = null;
+        $mushak_purchaser_name = null;
+        $mushak_vehicle_details = null;
+
+        if (! empty($mushak)) {
+            $mushak_invoice_no = $mushak->mushak_invoice_no ?: $mushak_invoice_no;
+            $purchaser_bin = $mushak->purchaser_bin ?: $purchaser_bin;
+            $purchaser_address = $mushak->purchaser_address ?: $purchaser_address;
+            $destination = $mushak->destination_address ?: $destination;
+            $mushak_issued_at = $mushak->issued_at;
+            $mushak_purchaser_name = $mushak->purchaser_name;
+            $mushak_vehicle_details = $mushak->vehicle_details;
+        }
+
         $government_seal_path = public_path('img/bangladesh-government-seal.png');
         $government_seal = file_exists($government_seal_path)
             ? base64_encode(file_get_contents($government_seal_path))
@@ -3290,7 +3311,10 @@ class SellPosController extends Controller
             'mushak_invoice_no',
             'government_seal',
             'authorised_person',
-            'designation'
+            'designation',
+            'mushak_issued_at',
+            'mushak_purchaser_name',
+            'mushak_vehicle_details'
         );
 
         $pdf = PDF::loadView('sale_pos.receipts.mushak_6_3', $data)

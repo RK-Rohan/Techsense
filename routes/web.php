@@ -137,6 +137,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::resource('brands', BrandController::class);
 
     Route::resource('terms-conditions', TermsConditionController::class);
+
+    Route::get('mushak/get-transactions', [\App\Http\Controllers\MushakInvoiceController::class, 'getTransactions']);
+    Route::get('mushak/transaction-defaults/{transaction_id}', [\App\Http\Controllers\MushakInvoiceController::class, 'getTransactionDefaults']);
+    Route::resource('mushak', \App\Http\Controllers\MushakInvoiceController::class)->except(['show']);
+
     Route::resource('agent_transaction', AgentTransactionController::class);
     Route::get('/payments/add_agent_payment/{agent_transaction_id}', [TransactionPaymentController::class, 'addAgentPayment']);
 

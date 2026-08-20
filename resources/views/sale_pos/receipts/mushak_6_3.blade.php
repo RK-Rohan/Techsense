@@ -62,9 +62,12 @@
         $percent = function ($value) {
             return rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
         };
-        $issuedAt = \Carbon\Carbon::parse($transaction->transaction_date);
-        $purchaserName = optional($transaction->contact)->supplier_business_name
-            ?: optional($transaction->contact)->full_name;
+        //A generated Mushak overrides these; otherwise fall back to the sale.
+        $issuedAt = \Carbon\Carbon::parse(!empty($mushak_issued_at) ? $mushak_issued_at : $transaction->transaction_date);
+        $purchaserName = !empty($mushak_purchaser_name)
+            ? $mushak_purchaser_name
+            : (optional($transaction->contact)->supplier_business_name
+                ?: optional($transaction->contact)->full_name);
         $totalValue = $lines->sum('total_value');
         $totalVat = $lines->sum('vat_amount');
         $totalVatFraction = $totalValue > 0 ? $totalVat / $totalValue : 0;
@@ -101,7 +104,7 @@
                     <tr><td class="field-label">Purchaser's BIN</td><td class="colon">:</td><td class="field-value">{{ $purchaser_bin }}</td></tr>
                     <tr><td class="field-label">Address of Purchaser</td><td class="colon">:</td><td class="field-value">{{ $purchaser_address }}</td></tr>
                     <tr><td class="field-label">Address of Destination</td><td class="colon">:</td><td class="field-value">{{ $destination ?: $purchaser_address }}</td></tr>
-                    <tr><td class="field-label">Nature and Number of Vehicle</td><td class="colon">:</td><td class="field-value">{{ $transaction->shipping_details ?: 'Transport' }}</td></tr>
+                    <tr><td class="field-label">Nature and Number of Vehicle</td><td class="colon">:</td><td class="field-value">{{ $mushak_vehicle_details ?: ($transaction->shipping_details ?: 'Transport') }}</td></tr>
                 </table>
             </td>
             <td class="party-right">
