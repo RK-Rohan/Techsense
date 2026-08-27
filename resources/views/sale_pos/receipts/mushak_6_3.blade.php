@@ -22,6 +22,7 @@
         .field-label { white-space: nowrap; }
         .colon { text-align: center; width: 3%; }
         .seller .field-label { width: 31%; }
+        .seller .field-value { white-space: nowrap; }
         .seller .uppercase { white-space: nowrap; }
         .party-wrap { margin-bottom: 12px; }
         .party-wrap > tbody > tr > td { vertical-align: top; }
@@ -120,22 +121,22 @@
 
     <table class="items">
         <colgroup>
-            <col style="width: 3.6%"><col style="width: 21.2%"><col style="width: 5.8%"><col style="width: 5%">
+            <col style="width: 3.6%"><col style="width: 21.2%"><col style="width: 5.8%"><col style="width: 6.5%">
             <col style="width: 7.1%"><col style="width: 10.8%"><col style="width: 10.5%"><col style="width: 10.6%">
-            <col style="width: 5%"><col style="width: 9.8%"><col style="width: 10.6%">
+            <col style="width: 5%"><col style="width: 8.3%"><col style="width: 10.6%">
         </colgroup>
         <thead>
             <tr>
                 <th width="3.6%" style="width: 3.6%">SL<br>No.</th>
                 <th width="21.2%" style="width: 21.2%">Description of Goods /<br>Services (including Brand<br>name if applicable)</th>
                 <th width="5.8%" style="width: 5.8%">Unit of<br>Supply</th>
-                <th width="5%" style="width: 5%">Quantity</th>
+                <th width="6.5%" style="width: 6.5%">Quantity</th>
                 <th width="7.1%" style="width: 7.1%">Unit price*</th>
                 <th width="10.8%" style="width: 10.8%">Total Value</th>
                 <th width="10.5%" style="width: 10.5%">Rate of<br>Supplementary Duty</th>
                 <th width="10.6%" style="width: 10.6%">Supplementary<br>Duty</th>
                 <th width="5%" style="width: 5%">VAT Rate</th>
-                <th width="9.8%" style="width: 9.8%">VAT</th>
+                <th width="8.3%" style="width: 8.3%">VAT</th>
                 <th width="10.6%" style="width: 10.6%">Value including SP<br>and VAT</th>
             </tr>
             <tr>
