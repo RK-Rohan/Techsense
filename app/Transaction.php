@@ -27,6 +27,7 @@ class Transaction extends Model
         'sales_order_ids' => 'array',
         'export_custom_fields_info' => 'array',
         'purchase_requisition_ids' => 'array',
+        'expense_sub_category_ids' => 'array',
     ];
 
     /**

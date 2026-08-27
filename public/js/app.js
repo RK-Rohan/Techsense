@@ -1,3 +1,42 @@
+function __restore_list_filters(storageKey, selectors) {
+    var saved;
+    try {
+        saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    } catch (e) {
+        saved = {};
+    }
+
+    selectors.forEach(function (selector) {
+        if (!Object.prototype.hasOwnProperty.call(saved, selector) || !$(selector).length) {
+            return;
+        }
+        var element = $(selector);
+        element.val(saved[selector]).trigger('change.select2');
+
+        if (element.data('daterangepicker') && saved[selector]) {
+            var dates = saved[selector].split(' ~ ');
+            if (dates.length === 2) {
+                element.data('daterangepicker').setStartDate(moment(dates[0], moment_date_format));
+                element.data('daterangepicker').setEndDate(moment(dates[1], moment_date_format));
+            }
+        }
+    });
+}
+
+function __remember_list_filters(storageKey, selectors) {
+    var save = function () {
+        var values = {};
+        selectors.forEach(function (selector) {
+            if ($(selector).length) {
+                values[selector] = $(selector).val();
+            }
+        });
+        localStorage.setItem(storageKey, JSON.stringify(values));
+    };
+
+    $(document).on('change apply.daterangepicker cancel.daterangepicker', selectors.join(','), save);
+}
+
 $(document).ready(function () {
     getTotalUnreadNotifications();
     $('body').on('click', 'label', function (e) {
@@ -1530,15 +1569,25 @@ $(document).ready(function () {
         );
 
         $('#expense_date_range').on('cancel.daterangepicker', function (ev, picker) {
-            $('#product_sr_date_filter').val('');
+            $('#expense_date_range').val('');
             expense_table.ajax.reload();
         });
     }
 
     //Expense table
+    __restore_list_filters('expense_list_filters', [
+        '#location_id', '#expense_for', '#expense_contact_filter', '#expense_category_id',
+        '#expense_sub_category_id_filter', '#expense_payment_status', '#expense_date_range'
+    ]);
+    __remember_list_filters('expense_list_filters', [
+        '#location_id', '#expense_for', '#expense_contact_filter', '#expense_category_id',
+        '#expense_sub_category_id_filter', '#expense_payment_status', '#expense_date_range'
+    ]);
+
     expense_table = $('#expense_table').DataTable({
         processing: true,
         serverSide: true,
+        stateSave: true,
         aaSorting: [[1, 'desc']],
         ajax: {
             url: '/expenses',
@@ -1561,11 +1610,11 @@ $(document).ready(function () {
             { data: 'action', name: 'action', orderable: false, searchable: false },
             { data: 'transaction_date', name: 'transaction_date' },
             { data: 'ref_no', name: 'ref_no' },
-            { data: 'recur_details', name: 'recur_details', orderable: false, searchable: false },
+            { data: 'recur_details', name: 'transactions.recur_interval', searchable: false },
             { data: 'category', name: 'ec.name' },
             { data: 'sub_category', name: 'esc.name' },
             { data: 'location_name', name: 'bl.name' },
-            { data: 'payment_status', name: 'payment_status', orderable: false },
+            { data: 'payment_status', name: 'transactions.payment_status' },
             { data: 'tax', name: 'tr.name' },
             { data: 'final_total', name: 'final_total' },
             { data: 'payment_due', name: 'payment_due' },

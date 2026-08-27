@@ -71,23 +71,35 @@ class PurchaseController extends Controller
                 $purchases->whereIn('transactions.location_id', $permitted_locations);
             }
 
-            if (! empty(request()->supplier_id)) {
-                $purchases->where('contacts.id', request()->supplier_id);
+            $supplier_ids = array_values(array_filter((array) request()->supplier_id));
+            if (! empty($supplier_ids)) {
+                $purchases->whereIn('contacts.id', $supplier_ids);
             }
             if (! empty(request()->location_id)) {
                 $purchases->where('transactions.location_id', request()->location_id);
             }
-            if (! empty(request()->input('payment_status')) && request()->input('payment_status') != 'overdue') {
-                $purchases->where('transactions.payment_status', request()->input('payment_status'));
-            } elseif (request()->input('payment_status') == 'overdue') {
-                $purchases->whereIn('transactions.payment_status', ['due', 'partial'])
-                    ->whereNotNull('transactions.pay_term_number')
-                    ->whereNotNull('transactions.pay_term_type')
-                    ->whereRaw("IF(transactions.pay_term_type='days', DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY) < CURDATE(), DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH) < CURDATE())");
+            $payment_statuses = array_values(array_filter((array) request()->input('payment_status')));
+            if (! empty($payment_statuses)) {
+                $has_overdue = in_array('overdue', $payment_statuses);
+                $plain_statuses = array_values(array_diff($payment_statuses, ['overdue']));
+                $purchases->where(function ($query) use ($plain_statuses, $has_overdue) {
+                    if (! empty($plain_statuses)) {
+                        $query->orWhereIn('transactions.payment_status', $plain_statuses);
+                    }
+                    if ($has_overdue) {
+                        $query->orWhere(function ($overdue) {
+                            $overdue->whereIn('transactions.payment_status', ['due', 'partial'])
+                                ->whereNotNull('transactions.pay_term_number')
+                                ->whereNotNull('transactions.pay_term_type')
+                                ->whereRaw("IF(transactions.pay_term_type='days', DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY) < CURDATE(), DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH) < CURDATE())");
+                        });
+                    }
+                });
             }
 
-            if (! empty(request()->status)) {
-                $purchases->where('transactions.status', request()->status);
+            $statuses = array_values(array_filter((array) request()->status));
+            if (! empty($statuses)) {
+                $purchases->whereIn('transactions.status', $statuses);
             }
 
             if (! empty(request()->start_date) && ! empty(request()->end_date)) {
@@ -176,7 +188,10 @@ class PurchaseController extends Controller
                     'final_total',
                     '<span class="final_total" data-orig-value="{{$final_total}}">@format_currency($final_total)</span>'
                 )
-                ->editColumn('transaction_date', '{{@format_datetime($transaction_date)}}')
+                ->editColumn('transaction_date', function ($row) {
+                    return $this->transactionUtil->format_date($row->transaction_date) . '<br><small>' .
+                        \Carbon\Carbon::parse($row->transaction_date)->format('h:i A') . '</small>';
+                })
                 ->editColumn('name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$name}}')
                 ->editColumn(
                     'status',
@@ -210,7 +225,7 @@ class PurchaseController extends Controller
                             return '';
                         }
                     }, ])
-                ->rawColumns(['final_total', 'action', 'payment_due', 'payment_status', 'status', 'ref_no', 'name'])
+                ->rawColumns(['final_total', 'action', 'transaction_date', 'payment_due', 'payment_status', 'status', 'ref_no', 'name'])
                 ->make(true);
         }
 

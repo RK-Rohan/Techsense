@@ -34,6 +34,8 @@
                 'purchaser_address' => $mushak->purchaser_address,
                 'destination_address' => $mushak->destination_address,
                 'vehicle_details' => $mushak->vehicle_details,
+                'authorised_person' => $mushak->authorised_person ?: $defaults['authorised_person'],
+                'designation' => $mushak->designation ?: $defaults['designation'],
             ];
         @endphp
 

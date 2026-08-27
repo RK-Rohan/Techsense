@@ -18,9 +18,16 @@ $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_custo
     sell_table.ajax.reload();
 });
 
+__restore_list_filters('sell_list_filters', [
+    '#sell_list_filter_location_id', '#sell_list_filter_customer_id',
+    '#sell_list_filter_payment_status', '#created_by', '#shipping_status',
+    '#sell_list_filter_date_range'
+]);
+
 sell_table = $('#sell_table').DataTable({
         processing: true,
         serverSide: true,
+        stateSave: true,
         aaSorting: [[1, 'desc']],
         scrollY: "75vh",
         scrollX:        true,
@@ -71,15 +78,17 @@ sell_table = $('#sell_table').DataTable({
             { data: 'action', name: 'action', orderable: false, "searchable": false},
             { data: 'transaction_date', name: 'transaction_date'  },
             { data: 'invoice_no', name: 'invoice_no'},
-            { data: 'conatct_name', name: 'conatct_name'},
+            { data: 'company_name', name: 'contacts.supplier_business_name'},
+            { data: 'contact_name', name: 'contacts.name'},
             { data: 'mobile', name: 'contacts.mobile'},
             { data: 'business_location', name: 'bl.name'},
             { data: 'payment_status', name: 'payment_status'},
-            { data: 'payment_methods', orderable: false, "searchable": false},
+            { data: 'payment_methods', name: 'payment_methods_sort', "searchable": false},
             { data: 'final_total', name: 'final_total'},
             { data: 'total_paid', name: 'total_paid', "searchable": false},
             { data: 'total_remaining', name: 'total_remaining'},
-            { data: 'return_due', orderable: false, "searchable": false},
+            { data: 'tracking_no', name: 'transactions.shipping_custom_field_1'},
+            { data: 'return_due', name: 'amount_return', "searchable": false},
             { data: 'shipping_status', name: 'shipping_status'},
             { data: 'total_items', name: 'total_items', "searchable": false},
             { data: 'types_of_service_name', name: 'tos.name', @if(empty($is_types_service_enabled)) visible: false @endif},
@@ -116,9 +125,15 @@ sell_table = $('#sell_table').DataTable({
             $('.payment_method_count').html(__count_status(data, 'payment_methods'));
         },
         createdRow: function( row, data, dataIndex ) {
-            $( row ).find('td:eq(6)').attr('class', 'clickable_td');
+            $( row ).find('td:eq(7)').attr('class', 'clickable_td');
         }
     });
+
+    __remember_list_filters('sell_list_filters', [
+        '#sell_list_filter_location_id', '#sell_list_filter_customer_id',
+        '#sell_list_filter_payment_status', '#created_by', '#shipping_status',
+        '#sell_list_filter_date_range'
+    ]);
     
     $('#only_subscriptions').on('ifChanged', function(event){
         sell_table.ajax.reload();

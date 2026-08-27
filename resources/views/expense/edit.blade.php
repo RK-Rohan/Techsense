@@ -29,7 +29,7 @@
         <div class="col-sm-4">
             <div class="form-group">
                 {!! Form::label('expense_sub_category_id', __('product.sub_category')  . ':') !!}
-                  {!! Form::select('expense_sub_category_id', $sub_categories, $expense->expense_sub_category_id, ['placeholder' => __('messages.please_select'), 'class' => 'form-control select2']); !!}
+                  {!! Form::select('expense_sub_category_id[]', $sub_categories, $expense->expense_sub_category_ids ?: [$expense->expense_sub_category_id], ['class' => 'form-control select2', 'multiple' => 'multiple', 'id' => 'expense_sub_category_id', 'data-placeholder' => __('messages.please_select'), 'style' => 'width:100%']); !!}
             </div>
         </div>
         <div class="col-sm-4">

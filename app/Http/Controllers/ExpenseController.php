@@ -76,7 +76,7 @@ class ExpenseController extends Controller
                             'transaction_date',
                             'ref_no',
                             'ec.name as category',
-                            'esc.name as sub_category',
+                            DB::raw("COALESCE((SELECT GROUP_CONCAT(ec2.name ORDER BY ec2.name SEPARATOR ', ') FROM expense_categories ec2 WHERE JSON_CONTAINS(COALESCE(transactions.expense_sub_category_ids, '[]'), CAST(ec2.id AS CHAR))), esc.name) as sub_category"),
                             'payment_status',
                             'additional_notes',
                             'final_total',
@@ -130,10 +130,20 @@ class ExpenseController extends Controller
 
             //Add condition for expense sub category, used in list of expense,
             if (request()->has('expense_sub_category_id')) {
-                $expense_sub_category_id = request()->get('expense_sub_category_id');
-                if (! empty($expense_sub_category_id)) {
-                    $expenses->where('transactions.expense_sub_category_id', $expense_sub_category_id);
+                $expense_sub_category_ids = array_values(array_filter((array) request()->get('expense_sub_category_id')));
+                if (! empty($expense_sub_category_ids)) {
+                    $expenses->where(function ($query) use ($expense_sub_category_ids) {
+                        $query->whereIn('transactions.expense_sub_category_id', $expense_sub_category_ids);
+                        foreach ($expense_sub_category_ids as $id) {
+                            $query->orWhereRaw("JSON_CONTAINS(COALESCE(transactions.expense_sub_category_ids, '[]'), ?)", [json_encode((int) $id)]);
+                        }
+                    });
                 }
+            }
+
+            $payment_statuses = array_values(array_filter((array) request()->input('payment_status')));
+            if (! empty($payment_statuses)) {
+                $expenses->whereIn('transactions.payment_status', $payment_statuses);
             }
 
             //Add condition for start and end date filter, uses in sales representative expense report & list of expense
@@ -147,14 +157,6 @@ class ExpenseController extends Controller
             $permitted_locations = auth()->user()->permitted_locations();
             if ($permitted_locations != 'all') {
                 $expenses->whereIn('transactions.location_id', $permitted_locations);
-            }
-
-            //Add condition for payment status for the list of expense
-            if (request()->has('payment_status')) {
-                $payment_status = request()->get('payment_status');
-                if (! empty($payment_status)) {
-                    $expenses->where('transactions.payment_status', $payment_status);
-                }
             }
 
             $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
@@ -201,7 +203,10 @@ class ExpenseController extends Controller
                     'final_total',
                     '<span class="display_currency final-total" data-currency_symbol="true" data-orig-value="@if($type=="expense_refund"){{-1 * $final_total}}@else{{$final_total}}@endif">@if($type=="expense_refund") - @endif @format_currency($final_total)</span>'
                 )
-                ->editColumn('transaction_date', '{{@format_datetime($transaction_date)}}')
+                ->editColumn('transaction_date', function ($row) {
+                    return $this->transactionUtil->format_date($row->transaction_date) . '<br><small>' .
+                        \Carbon\Carbon::parse($row->transaction_date)->format('h:i A') . '</small>';
+                })
                 ->editColumn(
                     'payment_status',
                     '<a href="{{ action([\App\Http\Controllers\TransactionPaymentController::class, \'show\'], [$id])}}" class="view_payment_modal payment-status" data-orig-value="{{$payment_status}}" data-status-name="{{__(\'lang_v1.\' . $payment_status)}}"><span class="label @payment_status($payment_status)">{{__(\'lang_v1.\' . $payment_status)}}
@@ -253,7 +258,7 @@ class ExpenseController extends Controller
 
                     return $ref_no;
                 })
-                ->rawColumns(['final_total', 'action', 'payment_status', 'payment_due', 'ref_no', 'recur_details'])
+                ->rawColumns(['final_total', 'action', 'transaction_date', 'payment_status', 'payment_due', 'ref_no', 'recur_details'])
                 ->make(true);
         }
 

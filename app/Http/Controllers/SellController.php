@@ -214,9 +214,9 @@ class SellController extends Controller
                 });
             }
 
-            if (!empty(request()->customer_id)) {
-                $customer_id = request()->customer_id;
-                $sells->where('contacts.id', $customer_id);
+            $customer_ids = array_values(array_filter((array) request()->customer_id));
+            if (!empty($customer_ids)) {
+                $sells->whereIn('contacts.id', $customer_ids);
             }
             if (!empty(request()->start_date) && !empty(request()->end_date)) {
                 $start = request()->start_date;
@@ -301,18 +301,19 @@ class SellController extends Controller
                 $only_shipments = true;
             }
 
-            if (!empty(request()->input('shipping_status'))) {
-                $shipping_status = request()->input('shipping_status');
-
-                //'none' also covers sales saved before a shipping status existed.
-                if ($shipping_status == 'none') {
-                    $sells->where(function ($q) {
-                        $q->where('transactions.shipping_status', 'none')
-                            ->orWhereNull('transactions.shipping_status');
-                    });
-                } else {
-                    $sells->where('transactions.shipping_status', $shipping_status);
-                }
+            $shipping_statuses_filter = array_values(array_filter((array) request()->input('shipping_status')));
+            if (!empty($shipping_statuses_filter)) {
+                $has_none = in_array('none', $shipping_statuses_filter);
+                $plain_shipping_statuses = array_values(array_diff($shipping_statuses_filter, ['none']));
+                $sells->where(function ($query) use ($plain_shipping_statuses, $has_none) {
+                    if (!empty($plain_shipping_statuses)) {
+                        $query->orWhereIn('transactions.shipping_status', $plain_shipping_statuses);
+                    }
+                    if ($has_none) {
+                        $query->orWhereNull('transactions.shipping_status')
+                            ->orWhere('transactions.shipping_status', 'none');
+                    }
+                });
             }
 
             if (!empty(request()->input('for_dashboard_sales_order'))) {
@@ -336,6 +337,12 @@ class SellController extends Controller
                 WHERE tp.transaction_id = transactions.id
                     AND COALESCE(tp.is_return, 0) = 0
             ) as payment_received_date'));
+            $sells->addSelect(DB::raw('(
+                SELECT GROUP_CONCAT(DISTINCT method ORDER BY method)
+                FROM transaction_payments tp_methods
+                WHERE tp_methods.transaction_id = transactions.id
+                    AND COALESCE(tp_methods.is_return, 0) = 0
+            ) as payment_methods_sort'));
 
             $sells->groupBy('transactions.id');
 
@@ -524,7 +531,10 @@ class SellController extends Controller
                         return '<span class="total-discount" data-orig-value="' . $discount . '">' . $this->transactionUtil->num_f($discount, true) . '</span>';
                     }
                 )
-                ->editColumn('transaction_date', '{{@format_datetime($transaction_date)}}')
+                ->editColumn('transaction_date', function ($row) {
+                    return $this->transactionUtil->format_date($row->transaction_date) . '<br><small>' .
+                        \Carbon\Carbon::parse($row->transaction_date)->format('h:i A') . '</small>';
+                })
                 ->editColumn(
                     'payment_status',
                     function ($row) {
@@ -591,6 +601,8 @@ class SellController extends Controller
                 })
                 ->editColumn('delivery_date', '{{@format_datetime($delivery_date)}}')
                 ->addColumn('conatct_name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$name}}')
+                ->addColumn('company_name', '{{$supplier_business_name}}')
+                ->addColumn('contact_name', '{{$name}}')
                 ->editColumn('total_items', '{{@format_quantity($total_items)}}')
                 ->filterColumn('conatct_name', function ($query, $keyword) {
                     $query->where(function ($q) use ($keyword) {
@@ -636,7 +648,7 @@ class SellController extends Controller
                     },
                 ]);
 
-            $rawColumns = ['final_total', 'action', 'total_paid', 'total_remaining','tracking_no', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'delivery_date','types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status'];
+            $rawColumns = ['final_total', 'action', 'transaction_date', 'total_paid', 'total_remaining','tracking_no', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'delivery_date','types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status'];
 
             return $datatable->rawColumns($rawColumns)
                 ->make(true);

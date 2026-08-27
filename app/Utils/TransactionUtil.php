@@ -6041,7 +6041,9 @@ class TransactionUtil extends Util
         }
 
         if ($request->has('expense_sub_category_id')) {
-            $transaction_data['expense_sub_category_id'] = $request->input('expense_sub_category_id');
+            $sub_category_ids = array_values(array_filter((array) $request->input('expense_sub_category_id')));
+            $transaction_data['expense_sub_category_id'] = $sub_category_ids[0] ?? null;
+            $transaction_data['expense_sub_category_ids'] = $sub_category_ids;
         }
 
         $transaction_data['total_before_tax'] = $transaction_data['final_total'];
@@ -6110,7 +6112,9 @@ class TransactionUtil extends Util
         }
 
         if ($request->has('expense_sub_category_id')) {
-            $transaction_data['expense_sub_category_id'] = $request->input('expense_sub_category_id');
+            $sub_category_ids = array_values(array_filter((array) $request->input('expense_sub_category_id')));
+            $transaction_data['expense_sub_category_id'] = $sub_category_ids[0] ?? null;
+            $transaction_data['expense_sub_category_ids'] = $sub_category_ids;
         }
 
         if ($request->has('expense_category_id')) {

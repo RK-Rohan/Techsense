@@ -52,6 +52,7 @@ class MushakInvoiceController extends Controller
     public function defaultsForTransaction(Transaction $transaction)
     {
         $contact = $transaction->contact;
+        $salesPerson = $transaction->sales_person;
 
         $purchaser_address = $contact
             ? collect($contact->contact_address_array)->filter()->implode(', ')
@@ -71,6 +72,9 @@ class MushakInvoiceController extends Controller
             'purchaser_address' => $purchaser_address,
             'destination_address' => $destination ?: $purchaser_address,
             'vehicle_details' => $transaction->shipping_details ?: 'Transport',
+            'authorised_person' => optional($salesPerson)->user_full_name,
+            'designation' => optional($salesPerson)->custom_field_1
+                ?: collect(optional($salesPerson)->roles)->pluck('name')->first(),
         ];
     }
 
@@ -415,6 +419,8 @@ class MushakInvoiceController extends Controller
             'purchaser_address',
             'destination_address',
             'vehicle_details',
+            'authorised_person',
+            'designation',
         ]);
 
         //Parsed with the business' own date/time format, which the picker uses.

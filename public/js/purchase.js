@@ -514,10 +514,17 @@ $(document).ready(function() {
         update_grand_total();
     });
 
+    __restore_list_filters('purchase_list_filters', [
+        '#purchase_list_filter_location_id', '#purchase_list_filter_supplier_id',
+        '#purchase_list_filter_status', '#purchase_list_filter_payment_status',
+        '#purchase_list_filter_date_range'
+    ]);
+
     //Purchase table
     purchase_table = $('#purchase_table').DataTable({
         processing: true,
         serverSide: true,
+        stateSave: true,
         scrollY: "75vh",
         scrollX:        true,
         scrollCollapse: true,
@@ -564,7 +571,7 @@ $(document).ready(function() {
             { data: 'status', name: 'status' },
             { data: 'payment_status', name: 'payment_status' },
             { data: 'final_total', name: 'final_total' },
-            { data: 'payment_due', name: 'payment_due', orderable: false, searchable: false },
+            { data: 'payment_due', name: 'transactions.final_total', searchable: false },
             { data: 'added_by', name: 'u.first_name' },
         ],
         fnDrawCallback: function(oSettings) {
@@ -597,6 +604,12 @@ $(document).ready(function() {
                 .attr('class', 'clickable_td');
         },
     });
+
+    __remember_list_filters('purchase_list_filters', [
+        '#purchase_list_filter_location_id', '#purchase_list_filter_supplier_id',
+        '#purchase_list_filter_status', '#purchase_list_filter_payment_status',
+        '#purchase_list_filter_date_range'
+    ]);
 
     $(document).on(
         'change',

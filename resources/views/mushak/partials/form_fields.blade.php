@@ -41,6 +41,22 @@
 
     <div class="col-sm-6">
         <div class="form-group">
+            {!! Form::label('authorised_person', "Authorised Person's Name:") !!}
+            {!! Form::text('authorised_person', $values['authorised_person'] ?? null, ['class' => 'form-control', 'placeholder' => "Authorised Person's Name"]); !!}
+        </div>
+    </div>
+
+    <div class="col-sm-6">
+        <div class="form-group">
+            {!! Form::label('designation', 'Designation:') !!}
+            {!! Form::text('designation', $values['designation'] ?? null, ['class' => 'form-control', 'placeholder' => 'Designation']); !!}
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="col-sm-6">
+        <div class="form-group">
             {!! Form::label('purchaser_address', __('lang_v1.purchaser_address') . ':') !!}
             {!! Form::textarea('purchaser_address', $values['purchaser_address'] ?? null, ['class' => 'form-control', 'rows' => 3, 'placeholder' => __('lang_v1.purchaser_address')]); !!}
         </div>

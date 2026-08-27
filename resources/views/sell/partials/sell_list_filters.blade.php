@@ -11,7 +11,7 @@
 <div class="col-md-3">
     <div class="form-group">
         {!! Form::label('sell_list_filter_customer_id',  __('contact.customer') . ':') !!}
-        {!! Form::select('sell_list_filter_customer_id', $customers, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
+        {!! Form::select('sell_list_filter_customer_id[]', $customers, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'multiple' => 'multiple', 'id' => 'sell_list_filter_customer_id', 'data-placeholder' => __('lang_v1.all')]); !!}
     </div>
 </div>
 @endif
@@ -63,7 +63,7 @@
     <div class="col-md-3">
         <div class="form-group">
             {!! Form::label('shipping_status', __('lang_v1.shipping_status') . ':') !!}
-            {!! Form::select('shipping_status', $shipping_statuses, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
+            {!! Form::select('shipping_status[]', $shipping_statuses, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'multiple' => 'multiple', 'id' => 'shipping_status', 'data-placeholder' => __('lang_v1.all')]); !!}
         </div>
     </div>
 @endif

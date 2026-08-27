@@ -45,8 +45,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         {!! Form::label('expense_sub_category_id_filter',__('product.sub_category').':') !!}
-                        {!! Form::select('expense_sub_category_id_filter', $sub_categories, null, ['placeholder' =>
-                        __('report.all'), 'class' => 'form-control select2', 'style' => 'width:100%', 'id' => 'expense_sub_category_id_filter']); !!}
+                        {!! Form::select('expense_sub_category_id_filter[]', $sub_categories, null, ['class' => 'form-control select2', 'multiple' => 'multiple', 'style' => 'width:100%', 'id' => 'expense_sub_category_id_filter', 'data-placeholder' => __('report.all')]); !!}
                     </div>
                 </div>
 
@@ -59,7 +58,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         {!! Form::label('expense_payment_status',  __('purchase.payment_status') . ':') !!}
-                        {!! Form::select('expense_payment_status', ['paid' => __('lang_v1.paid'), 'due' => __('lang_v1.due'), 'partial' => __('lang_v1.partial')], null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
+                        {!! Form::select('expense_payment_status[]', ['paid' => __('lang_v1.paid'), 'due' => __('lang_v1.due'), 'partial' => __('lang_v1.partial')], null, ['class' => 'form-control select2', 'multiple' => 'multiple', 'style' => 'width:100%', 'id' => 'expense_payment_status', 'data-placeholder' => __('lang_v1.all')]); !!}
                     </div>
                 </div>
             @endcomponent

@@ -3300,6 +3300,11 @@ class SellPosController extends Controller
                     return $role === 'Admin#' . $business_id;
                 })->first();
         }
+
+        if (! empty($mushak)) {
+            $authorised_person = $mushak->authorised_person ?: $authorised_person;
+            $designation = $mushak->designation ?: $designation;
+        }
         $data = compact(
             'transaction',
             'lines',
