@@ -119,9 +119,9 @@
 
     <table class="items">
         <colgroup>
-            <col style="width: 4%"><col style="width: 20%"><col style="width: 6.5%"><col style="width: 7.5%">
-            <col style="width: 8.5%"><col style="width: 11.5%"><col style="width: 8.5%"><col style="width: 11%">
-            <col style="width: 7.5%"><col style="width: 10%"><col style="width: 14.5%">
+            <col style="width: 3.6%"><col style="width: 19.1%"><col style="width: 5.8%"><col style="width: 7.3%">
+            <col style="width: 7.1%"><col style="width: 10.8%"><col style="width: 8.2%"><col style="width: 10.6%">
+            <col style="width: 7.1%"><col style="width: 9.8%"><col style="width: 10.6%">
         </colgroup>
         <thead>
             <tr>
