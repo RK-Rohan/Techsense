@@ -125,17 +125,17 @@
         </colgroup>
         <thead>
             <tr>
-                <th>SL<br>No.</th>
-                <th>Description of Goods /<br>Services (including Brand<br>name if applicable)</th>
-                <th>Unit of<br>Supply</th>
-                <th>Quantity</th>
-                <th>Unit price*</th>
-                <th>Total Value</th>
-                <th>Rate of<br>Supplementary Duty</th>
-                <th>Supplementary<br>Duty</th>
-                <th>VAT Rate</th>
-                <th>VAT</th>
-                <th>Value including SP<br>and VAT</th>
+                <th width="3.6%" style="width: 3.6%">SL<br>No.</th>
+                <th width="19.1%" style="width: 19.1%">Description of Goods /<br>Services (including Brand<br>name if applicable)</th>
+                <th width="5.8%" style="width: 5.8%">Unit of<br>Supply</th>
+                <th width="7.3%" style="width: 7.3%">Quantity</th>
+                <th width="7.1%" style="width: 7.1%">Unit price*</th>
+                <th width="10.8%" style="width: 10.8%">Total Value</th>
+                <th width="8.2%" style="width: 8.2%">Rate of<br>Supplementary Duty</th>
+                <th width="10.6%" style="width: 10.6%">Supplementary<br>Duty</th>
+                <th width="7.1%" style="width: 7.1%">VAT Rate</th>
+                <th width="9.8%" style="width: 9.8%">VAT</th>
+                <th width="10.6%" style="width: 10.6%">Value including SP<br>and VAT</th>
             </tr>
             <tr>
                 @for ($column = 1; $column <= 11; $column++)
