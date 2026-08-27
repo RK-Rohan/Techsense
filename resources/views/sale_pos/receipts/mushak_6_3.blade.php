@@ -5,18 +5,18 @@
     <style>
         @page { margin: 12mm 13mm 10mm; }
         * { box-sizing: border-box; }
-        body { color: #000; font-family: DejaVu Sans, sans-serif; font-size: 8px; line-height: 1.2; }
+        body { color: #000; font-family: DejaVu Sans, sans-serif; font-size: 10px; line-height: 1.25; }
         table { border-collapse: collapse; width: 100%; }
         .header td { vertical-align: top; }
         .seal-cell { width: 18%; text-align: center; padding-top: 2px; }
         .seal { height: 52px; width: 52px; }
         .heading { color: #006dcc; text-align: center; width: 64%; }
         .heading h1, .heading h2, .heading p { margin: 0; }
-        .heading h1 { font-size: 12px; font-weight: normal; }
-        .heading h2 { font-size: 11px; margin-top: 2px; }
+        .heading h1 { font-size: 14px; font-weight: normal; }
+        .heading h2 { font-size: 13px; margin-top: 2px; }
         .heading .vat-title { color: #b00080; }
-        .heading p { font-size: 9px; margin-top: 3px; }
-        .form-number { color: #009a36; font-size: 10px; font-weight: bold; text-align: right; width: 18%; padding-top: 25px; }
+        .heading p { font-size: 10.5px; margin-top: 3px; }
+        .form-number { color: #009a36; font-size: 12px; font-weight: bold; text-align: right; width: 18%; padding-top: 25px; }
         .seller { margin: 4px auto 13px; width: 45%; }
         .seller td, .party td { padding: 1.5px 2px; vertical-align: top; }
         .field-label { white-space: nowrap; }
@@ -34,8 +34,8 @@
         .items thead { display: table-header-group; }
         .items tr { page-break-inside: avoid; }
         .items th, .items td { border: 1px solid #000; padding: 2px 1.5px; vertical-align: middle; }
-        .items th { font-size: 6.7px; font-weight: normal; text-align: center; }
-        .items td { font-size: 7px; }
+        .items th { font-size: 8px; font-weight: normal; text-align: center; }
+        .items td { font-size: 8.5px; }
         .items .number { text-align: right; white-space: nowrap; }
         .items .centered { text-align: center; }
         .items .description { line-height: 1.1; }
@@ -48,7 +48,7 @@
         .authorisation .value { width: 62%; }
         .authorisation .signature-row td,
         .authorisation .seal-row td { height: 17px; }
-        .notes { font-size: 6.8px; margin: 13px 0 0; }
+        .notes { font-size: 8px; margin: 13px 0 0; }
     </style>
 </head>
 <body>
