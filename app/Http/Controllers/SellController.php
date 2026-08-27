@@ -532,8 +532,10 @@ class SellController extends Controller
                     }
                 )
                 ->editColumn('transaction_date', function ($row) {
-                    return $this->transactionUtil->format_date($row->transaction_date) . '<br><small>' .
-                        \Carbon\Carbon::parse($row->transaction_date)->format('h:i A') . '</small>';
+                    return $this->transactionUtil->format_date($row->transaction_date);
+                })
+                ->addColumn('transaction_time', function ($row) {
+                    return \Carbon\Carbon::parse($row->transaction_date)->format('h:i A');
                 })
                 ->editColumn(
                     'payment_status',
@@ -648,7 +650,7 @@ class SellController extends Controller
                     },
                 ]);
 
-            $rawColumns = ['final_total', 'action', 'transaction_date', 'total_paid', 'total_remaining','tracking_no', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'delivery_date','types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status'];
+            $rawColumns = ['final_total', 'action', 'total_paid', 'total_remaining','tracking_no', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'delivery_date','types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status'];
 
             return $datatable->rawColumns($rawColumns)
                 ->make(true);

@@ -8,6 +8,7 @@
         <tr>
             <th>@lang('messages.action')</th>
             <th>@lang('messages.date')</th>
+            <th>Time</th>
             <th>Supplier PO</th>
             <th>{{ $custom_field_1_label }}</th>
             <th>{{ $custom_field_2_label }}</th>
@@ -21,7 +22,7 @@
     </thead>
     <tfoot>
         <tr class="bg-gray font-17 text-center footer-total">
-            <td colspan="6"><strong>@lang('sale.total'):</strong></td>
+            <td colspan="7"><strong>@lang('sale.total'):</strong></td>
             <td class="footer_status_count"></td>
             <td class="footer_payment_status_count"></td>
             <td class="footer_purchase_total"></td>

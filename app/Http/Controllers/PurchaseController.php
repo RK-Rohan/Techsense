@@ -189,8 +189,10 @@ class PurchaseController extends Controller
                     '<span class="final_total" data-orig-value="{{$final_total}}">@format_currency($final_total)</span>'
                 )
                 ->editColumn('transaction_date', function ($row) {
-                    return $this->transactionUtil->format_date($row->transaction_date) . '<br><small>' .
-                        \Carbon\Carbon::parse($row->transaction_date)->format('h:i A') . '</small>';
+                    return $this->transactionUtil->format_date($row->transaction_date);
+                })
+                ->addColumn('transaction_time', function ($row) {
+                    return \Carbon\Carbon::parse($row->transaction_date)->format('h:i A');
                 })
                 ->editColumn('name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$name}}')
                 ->editColumn(
@@ -225,7 +227,7 @@ class PurchaseController extends Controller
                             return '';
                         }
                     }, ])
-                ->rawColumns(['final_total', 'action', 'transaction_date', 'payment_due', 'payment_status', 'status', 'ref_no', 'name'])
+                ->rawColumns(['final_total', 'action', 'payment_due', 'payment_status', 'status', 'ref_no', 'name'])
                 ->make(true);
         }
 

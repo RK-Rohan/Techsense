@@ -1609,6 +1609,7 @@ $(document).ready(function () {
         columns: [
             { data: 'action', name: 'action', orderable: false, searchable: false },
             { data: 'transaction_date', name: 'transaction_date' },
+            { data: 'transaction_time', name: 'transaction_date', searchable: false },
             { data: 'ref_no', name: 'ref_no' },
             { data: 'recur_details', name: 'transactions.recur_interval', searchable: false },
             { data: 'category', name: 'ec.name' },
@@ -1636,7 +1637,7 @@ $(document).ready(function () {
         },
         createdRow: function (row, data, dataIndex) {
             $(row)
-                .find('td:eq(4)')
+                .find('td:eq(5)')
                 .attr('class', 'clickable_td');
         },
     });

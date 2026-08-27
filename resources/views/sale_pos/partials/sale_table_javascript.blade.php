@@ -77,6 +77,7 @@ sell_table = $('#sell_table').DataTable({
         columns: [
             { data: 'action', name: 'action', orderable: false, "searchable": false},
             { data: 'transaction_date', name: 'transaction_date'  },
+            { data: 'transaction_time', name: 'transaction_date', searchable: false },
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'company_name', name: 'contacts.supplier_business_name'},
             { data: 'contact_name', name: 'contacts.name'},
@@ -125,7 +126,7 @@ sell_table = $('#sell_table').DataTable({
             $('.payment_method_count').html(__count_status(data, 'payment_methods'));
         },
         createdRow: function( row, data, dataIndex ) {
-            $( row ).find('td:eq(7)').attr('class', 'clickable_td');
+            $( row ).find('td:eq(8)').attr('class', 'clickable_td');
         }
     });
 

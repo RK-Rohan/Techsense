@@ -564,6 +564,7 @@ $(document).ready(function() {
         columns: [
             { data: 'action', name: 'action', orderable: false, searchable: false },
             { data: 'transaction_date', name: 'transaction_date' },
+            { data: 'transaction_time', name: 'transaction_date', searchable: false },
             { data: 'ref_no', name: 'ref_no' },
             { data: 'custom_field_1', name: 'transactions.custom_field_1' },
             { data: 'custom_field_2', name: 'transactions.custom_field_2' },
@@ -600,7 +601,7 @@ $(document).ready(function() {
         },
         createdRow: function(row, data, dataIndex) {
             $(row)
-                .find('td:eq(6)')
+                .find('td:eq(7)')
                 .attr('class', 'clickable_td');
         },
     });
