@@ -17,7 +17,7 @@
         .heading .vat-title { color: #b00080; }
         .heading p { font-size: 9px; margin-top: 3px; }
         .form-number { color: #009a36; font-size: 10px; font-weight: bold; text-align: right; width: 18%; padding-top: 25px; }
-        .seller { margin: 4px auto 13px; width: 55%; }
+        .seller { margin: 4px auto 13px; width: 45%; }
         .seller td, .party td { padding: 1.5px 2px; vertical-align: top; }
         .field-label { white-space: nowrap; }
         .colon { text-align: center; width: 3%; }
