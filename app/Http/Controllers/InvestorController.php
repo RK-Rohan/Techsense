@@ -7,6 +7,9 @@ use App\Models\Investor;
 use App\Account;
 use App\AccountTransaction;
 use App\Utils\Util;
+use App\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use DB;
 use PDF;
 
@@ -20,7 +23,8 @@ class InvestorController extends Controller
 
     public function masterData(Request $request)
     {
-        $investors = Investor::orderBy('name')->get(['id','name','nid','phone']);
+        $investors = Investor::with('user')->orderBy('name')
+            ->get(['id','name','nid','phone','address','emergency_contact_name','emergency_contact_number']);
 
         $rows = $investors->map(function($inv){
             $total_investment = \App\Models\Investment::where('investor_id', $inv->id)->sum('amount');
@@ -34,10 +38,16 @@ class InvestorController extends Controller
                 'name' => $inv->name,
                 'nid' => $inv->nid,
                 'phone' => $inv->phone,
+                'address' => $inv->address,
+                'emergency_contact_name' => $inv->emergency_contact_name,
+                'emergency_contact_number' => $inv->emergency_contact_number,
                 'total_investment' => (float)$total_investment,
                 'total_pay' => (float)$total_pay,
                 'total_due' => (float)$total_due,
                 'profit' => (float)$profit,
+                'has_login' => ! empty($inv->user),
+                'login_username' => optional($inv->user)->username,
+                'login_active' => optional($inv->user)->allow_login ? 1 : 0,
             ];
         });
 
@@ -50,6 +60,9 @@ class InvestorController extends Controller
             'name' => 'required|string|max:191',
             'nid' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string|max:500',
+            'emergency_contact_name' => 'nullable|string|max:191',
+            'emergency_contact_number' => 'nullable|string|max:50',
         ]);
 
         $inv = Investor::create($data);
@@ -63,6 +76,9 @@ class InvestorController extends Controller
             'name' => 'required|string|max:191',
             'nid' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string|max:500',
+            'emergency_contact_name' => 'nullable|string|max:191',
+            'emergency_contact_number' => 'nullable|string|max:50',
         ]);
         $inv->update($data);
         return response()->json(['success' => true, 'msg' => 'Investor updated', 'data' => $inv]);
@@ -270,6 +286,96 @@ class InvestorController extends Controller
         $investor->delete();
 
         return response()->json(['success' => true, 'msg' => 'Investor deleted']);
+    }
+
+    // Fetch the portal login state for an investor (for the Manage Login modal)
+    public function getLogin($id)
+    {
+        $investor = Investor::with('user')->findOrFail($id);
+        $user = $investor->user;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'investor_id' => $investor->id,
+                'investor_name' => $investor->name,
+                'has_login' => ! empty($user),
+                'username' => optional($user)->username,
+                'allow_login' => optional($user)->allow_login ? 1 : 0,
+                'status' => optional($user)->status,
+            ],
+        ]);
+    }
+
+    // Create or update the portal login for an investor
+    public function saveLogin(Request $request, $id)
+    {
+        $investor = Investor::with('user')->findOrFail($id);
+        $user = $investor->user;
+
+        $data = $request->validate([
+            'username' => [
+                'required', 'string', 'min:4', 'max:191',
+                Rule::unique('users', 'username')->ignore(optional($user)->id),
+            ],
+            // Password is required only when creating the account; on edit an
+            // empty value leaves the existing password untouched.
+            'password' => [$user ? 'nullable' : 'required', 'string', 'min:6', 'max:191'],
+            'allow_login' => 'nullable',
+        ]);
+
+        $allow_login = ! empty($data['allow_login']) ? 1 : 0;
+
+        DB::beginTransaction();
+        try {
+            $business_id = $request->session()->get('user.business_id');
+
+            if (empty($user)) {
+                $user = new User;
+                $user->business_id = $business_id;
+                $user->user_type = 'investor';
+                $user->investor_id = $investor->id;
+                $user->surname = '';
+                $user->first_name = $investor->name;
+                $user->last_name = '';
+                $user->contact_number = $investor->phone;
+                $user->language = 'en';
+            }
+
+            $user->username = $data['username'];
+            $user->allow_login = $allow_login;
+            $user->status = $allow_login ? 'active' : 'inactive';
+
+            if (! empty($data['password'])) {
+                $user->password = Hash::make($data['password']);
+            }
+
+            $user->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'msg' => 'Investor login saved',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            return response()->json(['success' => false, 'msg' => 'Something went wrong']);
+        }
+    }
+
+    // Remove the portal login for an investor
+    public function deleteLogin($id)
+    {
+        $investor = Investor::with('user')->findOrFail($id);
+
+        if (! empty($investor->user)) {
+            $investor->user->forceDelete();
+        }
+
+        return response()->json(['success' => true, 'msg' => 'Investor login removed']);
     }
 
     // Generate PDF certificate for an investor

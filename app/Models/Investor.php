@@ -12,6 +12,9 @@ class Investor extends Model
         'name',
         'nid',
         'phone',
+        'address',
+        'emergency_contact_name',
+        'emergency_contact_number',
     ];
 
     public $timestamps = true;
@@ -29,5 +32,13 @@ class Investor extends Model
     public function investments()
     {
         return $this->hasMany(\App\Models\Investment::class);
+    }
+
+    /**
+     * Portal login account for this investor, if one has been created.
+     */
+    public function user()
+    {
+        return $this->hasOne(\App\User::class, 'investor_id');
     }
 }

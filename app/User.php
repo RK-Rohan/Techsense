@@ -55,6 +55,14 @@ class User extends Authenticatable
     }
 
     /**
+     * The investor this login belongs to, for investor portal accounts.
+     */
+    public function investor()
+    {
+        return $this->belongsTo(\App\Models\Investor::class, 'investor_id');
+    }
+
+    /**
      * The contact the user has access to.
      * Applied only when selected_contacts is true for a user in
      * users table

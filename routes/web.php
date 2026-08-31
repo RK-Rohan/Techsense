@@ -155,6 +155,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::put('/account/investor-master/{id}', [\App\Http\Controllers\InvestorController::class, 'masterUpdate']);
     // Legacy investor endpoints removed; keep delete for master page
     Route::delete('/account/investor/{id}', [\App\Http\Controllers\InvestorController::class, 'destroy']);
+    // Investor portal credentials, managed from the investor master page
+    Route::get('/account/investor/{id}/login', [\App\Http\Controllers\InvestorController::class, 'getLogin']);
+    Route::post('/account/investor/{id}/login', [\App\Http\Controllers\InvestorController::class, 'saveLogin']);
+    Route::delete('/account/investor/{id}/login', [\App\Http\Controllers\InvestorController::class, 'deleteLogin']);
 
     // Investment routes
     Route::get('/account/investments', [\App\Http\Controllers\InvestmentController::class, 'index']);
@@ -543,6 +547,14 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 Route::middleware(['auth'])->group(function () {
     Route::get('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout']);
 });
+
+// Investor portal. Deliberately kept out of the CheckUserLogin group above,
+// which admits only staff accounts; CheckInvestorLogin admits only investors.
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'CheckInvestorLogin'])
+    ->prefix('investor-portal')->group(function () {
+        Route::get('/', [\App\Http\Controllers\InvestorPortalController::class, 'index'])->name('investor.portal');
+        Route::get('/data', [\App\Http\Controllers\InvestorPortalController::class, 'data']);
+    });
 
 Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])->group(function () {
     Route::get('/load-more-notifications', [HomeController::class, 'loadMoreNotifications']);
