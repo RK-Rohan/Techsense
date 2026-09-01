@@ -111,6 +111,10 @@
 @endsection
 
 @section('javascript')
+@php
+    $common_settings = !empty(session('business.common_settings')) ? session('business.common_settings') : [];
+    $default_datatable_page_entries = !empty($common_settings['default_datatable_page_entries']) ? (int) $common_settings['default_datatable_page_entries'] : 25;
+@endphp
 <script>
 $(document).ready(function(){
     var money = $.fn.dataTable.render.number(',', '.', 2);
@@ -120,8 +124,15 @@ $(document).ready(function(){
         serverSide: false,
         ajax: { url: '{{ url("/investor-portal/data") }}' },
         order: [[1, 'desc']],
+        // This layout does not load common.js, so the app-wide DataTables
+        // defaults never reach this table. Set them here instead.
+        lengthMenu: [
+            [25, 50, 100, 200, 500, 1000, -1],
+            [25, 50, 100, 200, 500, 1000, 'All'],
+        ],
+        pageLength: {{ $default_datatable_page_entries }},
         columns: [
-            { data: 'id' },
+            { data: 'sl_no' },
             { data: 'received_date' },
             { data: 'investor_name', defaultContent: '' },
             { data: 'invoice_no', defaultContent: '' },

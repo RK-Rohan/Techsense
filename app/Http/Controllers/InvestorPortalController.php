@@ -35,9 +35,13 @@ class InvestorPortalController extends Controller
      */
     public function data(Request $request)
     {
+        // Ordered oldest first so the serial numbers below run 1..N with the
+        // earliest received date as 1. The table still renders newest first,
+        // which puts the highest serial on top.
         $q = Investment::with(['receivedAccount', 'returnAccount'])
             ->where('investor_id', $this->investorId())
-            ->orderBy('received_date', 'desc');
+            ->orderBy('received_date', 'asc')
+            ->orderBy('id', 'asc');
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $q->whereDate('received_date', '>=', $request->input('start_date'))
@@ -47,7 +51,7 @@ class InvestorPortalController extends Controller
         $investments = $q->get();
         $investor_name = optional(auth()->user()->investor)->name;
 
-        $rows = $investments->map(function ($inv) use ($investor_name) {
+        $rows = $investments->values()->map(function ($inv, $index) use ($investor_name) {
             $amount = (float) $inv->amount;
             $returned = (float) $inv->return_amount;
             $due = $returned < $amount ? $amount - $returned : 0;
@@ -63,6 +67,7 @@ class InvestorPortalController extends Controller
 
             return [
                 'id' => $inv->id,
+                'sl_no' => $index + 1,
                 'received_date' => $inv->received_date,
                 'investor_name' => $investor_name,
                 'invoice_no' => $inv->invoice_no,
