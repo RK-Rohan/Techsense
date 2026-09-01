@@ -7,10 +7,18 @@
     appearing in previews.
 --}}
 @php
-    $app_name = config('app.name', 'TBL Engineering');
-    $og_title = trim($__env->yieldContent('title')) !== ''
-        ? trim($__env->yieldContent('title')) . ' - ' . $app_name
-        : $app_name;
+    $app_name = trim(config('app.name', 'TBL Engineering'));
+    $page_title = trim($__env->yieldContent('title'));
+
+    // Append the app name only when the page title does not already carry it,
+    // otherwise a login page titled after the business repeats it in previews.
+    if ($page_title === '' || strcasecmp($page_title, $app_name) === 0) {
+        $og_title = $app_name;
+    } elseif (stripos($page_title, $app_name) !== false) {
+        $og_title = $page_title;
+    } else {
+        $og_title = $page_title . ' - ' . $app_name;
+    }
     $og_description = $__env->yieldContent(
         'meta_description',
         'Business management and invoicing system for TBL Engineering.'
