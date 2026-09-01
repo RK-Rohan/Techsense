@@ -11,7 +11,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title')</title> 
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    @include('layouts.partials.meta-icons')
 
     <link rel="stylesheet" href="{{ asset('css/vendor.css?v='.$asset_v) }}">
 

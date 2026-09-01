@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title') - {{ Session::get('business.name') }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    @include('layouts.partials.meta-icons')
 
     <link rel="stylesheet" href="{{ asset('css/vendor.css?v='.$asset_v) }}">
     <link rel="stylesheet" href="{{ asset('css/app.css?v='.$asset_v) }}">

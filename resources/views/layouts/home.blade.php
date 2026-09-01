@@ -9,7 +9,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>@yield('title')</title>
-        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+        @include('layouts.partials.meta-icons')
 
         <!-- Fonts -->
         <!-- <link href="https://fonts.googleapis.com/css?family=Raleway:100,300,600" rel="stylesheet" type="text/css"> -->
