@@ -108,38 +108,40 @@
             <col style="width: 7%">
         </colgroup>
         <thead>
+            {{-- Three header bands: group titles, sub-headings, column
+                 numbers. The full-height cells span exactly two bands so the
+                 header closes flush against the numbers row. --}}
             <tr>
-                <th rowspan="3">Serial<br>No.</th>
-                <th rowspan="3">Date</th>
+                <th rowspan="2">Serial<br>No.</th>
+                <th rowspan="2">Date</th>
                 <th colspan="2">Opening Balance of<br>Stock Inputs</th>
-                <th rowspan="3">Challan/Bill<br>of Entry<br>No.</th>
-                <th rowspan="3">Date</th>
+                <th rowspan="2">Challan/Bill<br>of Entry<br>No.</th>
+                <th rowspan="2">Date</th>
                 <th colspan="3">Seller/Supplier</th>
                 <th colspan="5">Purchased Inputs</th>
                 <th colspan="2">Total Quantity of<br>Inputs</th>
                 <th colspan="2">Use of Inputs in<br>Production/Processing<br>of Goods</th>
                 <th colspan="2">Closing Balance of<br>Inputs</th>
-                <th rowspan="3">Remarks</th>
+                <th rowspan="2">Remarks</th>
             </tr>
             <tr>
-                <th rowspan="2">Quantity<br>(Unit)</th>
-                <th rowspan="2">Value<br>(Excluding<br>All Taxes)</th>
-                <th rowspan="2">Name</th>
-                <th rowspan="2">Address</th>
-                <th rowspan="2">Registration /<br>Enlistment /<br>National ID No.</th>
-                <th rowspan="2">Description</th>
-                <th rowspan="2">Quantity</th>
-                <th rowspan="2">Value<br>(Excluding<br>All Taxes)</th>
-                <th rowspan="2">Supple-<br>mentary<br>Duty<br>(if any)</th>
-                <th rowspan="2">VAT</th>
-                <th rowspan="2">Quantity<br>(Unit)</th>
-                <th rowspan="2">Value<br>(Excluding<br>All Taxes)</th>
-                <th rowspan="2">Quantity<br>(Unit)</th>
-                <th rowspan="2">Value<br>(Excluding<br>All Taxes)</th>
-                <th rowspan="2">Quantity<br>(Unit)</th>
-                <th rowspan="2">Value<br>(Excluding<br>All Taxes)</th>
+                <th>Quantity<br>(Unit)</th>
+                <th>Value<br>(Excluding<br>All Taxes)</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Registration /<br>Enlistment /<br>National ID No.</th>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Value<br>(Excluding<br>All Taxes)</th>
+                <th>Supple-<br>mentary<br>Duty<br>(if any)</th>
+                <th>VAT</th>
+                <th>Quantity<br>(Unit)</th>
+                <th>Value<br>(Excluding<br>All Taxes)</th>
+                <th>Quantity<br>(Unit)</th>
+                <th>Value<br>(Excluding<br>All Taxes)</th>
+                <th>Quantity<br>(Unit)</th>
+                <th>Value<br>(Excluding<br>All Taxes)</th>
             </tr>
-            <tr></tr>
             <tr>
                 @for ($column = 1; $column <= 21; $column++)
                     <th>
