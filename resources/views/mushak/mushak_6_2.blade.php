@@ -81,12 +81,27 @@ $(document).ready(function() {
         $('#mushak_6_2_pdf').attr('href', base_url + '?' + pdf_params);
     }
 
+    //This book is filed monthly, so it opens on the current month. The
+    //settings are copied rather than mutated, otherwise every other picker
+    //initialised after this one would inherit the same default.
+    var mushak_6_2_date_settings = $.extend({}, dateRangeSettings, {
+        startDate: moment().startOf('month'),
+        endDate: moment().endOf('month'),
+    });
+
     $('#mushak_6_2_date_range').daterangepicker(
-        dateRangeSettings,
+        mushak_6_2_date_settings,
         function(start, end) {
             $('#mushak_6_2_date_range').val(start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format));
             load_mushak_6_2();
         }
+    );
+
+    //Show the default range straight away: the filters and the PDF link are
+    //both built from this field's value.
+    $('#mushak_6_2_date_range').val(
+        moment().startOf('month').format(moment_date_format)
+        + ' ~ ' + moment().endOf('month').format(moment_date_format)
     );
     $('#mushak_6_2_date_range').on('cancel.daterangepicker', function() {
         $('#mushak_6_2_date_range').val('');

@@ -102,7 +102,10 @@
             <col style="width: 3.6%"><col style="width: 4.4%">
             <col style="width: 3.6%"><col style="width: 4.4%">
             <col style="width: 3.6%"><col style="width: 4.4%">
-            <col style="width: 3%">
+            {{-- Widths must total exactly 100%: with table-layout:fixed any
+                 shortfall is absorbed by the last column, pushing its right
+                 border outside the table box. --}}
+            <col style="width: 7%">
         </colgroup>
         <thead>
             <tr>
