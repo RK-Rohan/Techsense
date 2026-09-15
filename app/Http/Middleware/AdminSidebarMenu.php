@@ -328,6 +328,22 @@ class AdminSidebarMenu
                             );
                         }
 
+                        if (auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\MushakRegisterController::class, 'purchaseBook']),
+                                __('lang_v1.mushak_6_1'),
+                                ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'mushak-6-1']
+                            );
+                        }
+
+                        if (auth()->user()->can('sell.view') || auth()->user()->can('view_own_sell_only')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\MushakRegisterController::class, 'salesBook']),
+                                __('lang_v1.mushak_6_2'),
+                                ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'mushak-6-2']
+                            );
+                        }
+
 
                         if (auth()->user()->can('access_sell_return') || auth()->user()->can('access_own_sell_return')) {
                             $sub->url(
