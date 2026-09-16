@@ -83,7 +83,7 @@
                 @endif
             </td>
             <td class="heading">
-                <h1>Government of Peoples' Republic of Bangladesh</h1>
+                <h1>Government of the People's Republic of Bangladesh</h1>
                 <h2>National Board of Revenue</h2>
                 <h2 class="vat-title">VAT Invoice</h2>
                 <p>As per Para (Ga) and Para (Cha) of Subrule 1 of Rule 40</p>
