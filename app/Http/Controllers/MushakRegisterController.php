@@ -8,15 +8,7 @@ use App\Utils\Util;
 use Illuminate\Http\Request;
 use PDF;
 
-/**
- * Mushak 6.1 (Purchase Account Book) and Mushak 6.2 (Sales Account Book).
- *
- * Unlike the Mushak 6.3, which is one VAT invoice per sale, these two are
- * period registers: every purchase (6.1) or sale (6.2) in a date range is
- * listed as a row, carrying a running stock balance down the page. They are
- * therefore derived live from the transactions rather than stored and edited,
- * so the books can never drift from the underlying purchase/sale data.
- */
+/** Shared register rendering and legacy transaction calculations. */
 class MushakRegisterController extends Controller
 {
     protected $commonUtil;
@@ -26,54 +18,15 @@ class MushakRegisterController extends Controller
         $this->commonUtil = $commonUtil;
     }
 
-    /**
-     * Mushak 6.1 - Purchase Account Book.
-     */
     public function purchaseBook(Request $request)
     {
-        abort_unless(auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase'), 403, 'Unauthorized action.');
-
-        $business_id = $request->session()->get('user.business_id');
-
-        if ($request->ajax() || $request->has('pdf')) {
-            $data = $this->buildPurchaseBook($business_id, $request);
-
-            if ($request->has('pdf')) {
-                return $this->streamPdf('mushak.pdf.mushak_6_1', $data, 'Mushak_6.1');
-            }
-
-            return view('mushak.partials.mushak_6_1_rows', $data);
-        }
-
-        $business_locations = BusinessLocation::forDropdown($business_id, true);
-
-        return view('mushak.mushak_6_1', compact('business_locations'));
+        return app(MushakBookController::class)->index($request, '6-1');
     }
 
-    /**
-     * Mushak 6.2 - Sales Account Book.
-     */
     public function salesBook(Request $request)
     {
-        abort_unless(auth()->user()->can('sell.view') || auth()->user()->can('view_own_sell_only'), 403, 'Unauthorized action.');
-
-        $business_id = $request->session()->get('user.business_id');
-
-        if ($request->ajax() || $request->has('pdf')) {
-            $data = $this->buildSalesBook($business_id, $request);
-
-            if ($request->has('pdf')) {
-                return $this->streamPdf('mushak.pdf.mushak_6_2', $data, 'Mushak_6.2');
-            }
-
-            return view('mushak.partials.mushak_6_2_rows', $data);
-        }
-
-        $business_locations = BusinessLocation::forDropdown($business_id, true);
-
-        return view('mushak.mushak_6_2', compact('business_locations'));
+        return app(MushakBookController::class)->index($request, '6-2');
     }
-
     /**
      * Builds the Mushak 6.1 rows.
      *
@@ -365,7 +318,7 @@ class MushakRegisterController extends Controller
     /**
      * Registered person details printed in both book headers.
      */
-    private function headerData($business_id, $location_id)
+    protected function headerData($business_id, $location_id)
     {
         $business = \App\Business::find($business_id);
 
@@ -450,7 +403,7 @@ class MushakRegisterController extends Controller
     /**
      * Streams a book as a landscape A4 PDF, matching the NBR layout.
      */
-    private function streamPdf($view, array $data, $prefix)
+    protected function streamPdf($view, array $data, $prefix)
     {
         $pdf = PDF::loadView($view, $data)->setPaper('a4', 'landscape');
 

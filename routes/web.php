@@ -143,6 +143,14 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('mushak-6-2', [\App\Http\Controllers\MushakRegisterController::class, 'salesBook'])
         ->name('mushak.salesBook');
 
+    Route::prefix('mushak-books/{type}')->where(['type' => '6-1|6-2'])->group(function () {
+        Route::get('create', [\App\Http\Controllers\MushakBookController::class, 'create'])->name('mushak.books.create');
+        Route::post('/', [\App\Http\Controllers\MushakBookController::class, 'store'])->name('mushak.books.store');
+        Route::get('{id}/edit', [\App\Http\Controllers\MushakBookController::class, 'edit'])->name('mushak.books.edit');
+        Route::put('{id}', [\App\Http\Controllers\MushakBookController::class, 'update'])->name('mushak.books.update');
+        Route::get('{id}/pdf', [\App\Http\Controllers\MushakBookController::class, 'pdf'])->name('mushak.books.pdf');
+        Route::delete('{id}', [\App\Http\Controllers\MushakBookController::class, 'destroy'])->name('mushak.books.destroy');
+    });
     Route::get('mushak/get-transactions', [\App\Http\Controllers\MushakInvoiceController::class, 'getTransactions']);
     Route::get('mushak/transaction-defaults/{transaction_id}', [\App\Http\Controllers\MushakInvoiceController::class, 'getTransactionDefaults']);
     Route::resource('mushak', \App\Http\Controllers\MushakInvoiceController::class)->except(['show']);
