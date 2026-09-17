@@ -5,33 +5,34 @@
     <style>
         @page { margin: 8mm 7mm; }
         * { box-sizing: border-box; }
-        body { color: #000; font-family: DejaVu Sans, sans-serif; font-size: 8px; line-height: 1.2; }
+        body { color: #000; font-family: Helvetica, sans-serif; font-size: 8px; line-height: 1.2; }
         table { border-collapse: collapse; width: 100%; }
-        .header td { vertical-align: top; }
-        .seal-cell { width: 10%; text-align: left; }
+        .document-header { border: 0.6pt solid #000; border-bottom: 0; position: relative; height: 82px; }
+        .seal-cell { position: absolute; left: 4px; top: 3px; width: 10%; text-align: left; }
         .seal { height: 40px; width: 40px; }
-        .heading { text-align: center; width: 80%; }
+        .heading { position: absolute; top: 3px; left: 17%; text-align: center; width: 66%; }
         .heading h1, .heading h2, .heading p { margin: 0; }
-        .heading h1 { font-size: 11px; }
+        .heading h1 { font-family: Times, serif; font-size: 11px; }
         .heading h2 { font-size: 10px; margin-top: 1px; }
         .heading .sub { font-size: 9px; font-weight: bold; margin-top: 2px; }
         .heading p { font-size: 8px; margin-top: 1px; }
-        .form-number { border: 1px solid #000; color: #009a36; font-size: 9px; font-weight: bold;
-            padding: 2px 4px; text-align: center; width: 10%; }
-        .registered { margin: 4px 0 6px; }
-        .registered td { font-size: 8.5px; padding: 1px 2px; vertical-align: top; }
-        .registered .label { font-weight: bold; white-space: nowrap; width: 15%; }
-        .registered .colon { width: 2%; }
-        .period { font-size: 8.5px; margin: 0 0 4px; text-align: right; }
-        .book-title { font-size: 9px; font-weight: bold; margin: 2px 0; text-align: center; }
+        .form-number { position: absolute; right: 12px; top: 10px; border: 1px solid #00b050; color: #009a36; font-size: 9px; font-weight: bold;
+            padding: 4px 8px; text-align: center; white-space: nowrap; }
+        .registered { position: absolute; top: 42px; left: 3px; width: 49%; margin: 0; }
+        .registered td { font-size: 8px; padding: 0.5px 1px; vertical-align: top; }
+        .registered .label { font-weight: bold; white-space: nowrap; width: 126px; }
+        .registered .colon { width: 6px; }
+        .period { position: absolute; bottom: 2px; right: 4px; font-size: 7px; margin: 0; text-align: right; }
+        .book-title { border-left: 0.6pt solid #000; border-right: 0.6pt solid #000; font-size: 9px; font-weight: bold; margin: 0; padding: 3px 0; text-align: center; }
         .items { table-layout: fixed; page-break-inside: auto; }
         .items thead { display: table-header-group; }
         .items tr { page-break-inside: avoid; }
-        .items th, .items td { border: 1px solid #000; padding: 1.5px 1px; vertical-align: middle;
+        .items th, .items td { border: 0.6pt solid #000; padding: 3px 2px; vertical-align: middle;
             word-wrap: break-word; }
-        .items th { font-size: 6.5px; font-weight: normal; text-align: center; }
-        .items td { font-size: 6.5px; }
-        .items .number { text-align: right; }
+        .items th { font-size: 8px; font-weight: normal; text-align: center; }
+        .items td { font-size: 7px; }
+        .items .group { font-weight: bold; }
+        .items .number { text-align: right; font-size: 6px; white-space: nowrap; }
         .items .centered { text-align: center; }
         .items tfoot td { font-weight: bold; }
         .notes { font-size: 7px; margin: 8px 0 0; }
@@ -51,92 +52,78 @@
         };
     @endphp
 
-    <table class="header">
-        <tr>
-            <td class="seal-cell">
-                @if ($government_seal)
-                    <img class="seal" src="data:image/png;base64,{{ $government_seal }}" alt="Government of Bangladesh seal">
-                @endif
-            </td>
-            <td class="heading">
-                <h1>Government of the People's Republic of Bangladesh</h1>
-                <h2>National Board of Revenue</h2>
-                <p class="sub">Purchase Account Book</p>
-                <p>(Applicable to a registered or enlisted person engaged in processing of goods or services)</p>
-                <p>[See Rule 40(1)(a) and Rule 41(a)]</p>
-            </td>
-            <td class="form-number">Mushak - 6.1</td>
-        </tr>
-    </table>
+    <div class="document-header">
+        <div class="seal-cell">
+            @if ($government_seal)
+                <img class="seal" src="data:image/png;base64,{{ $government_seal }}" alt="Government of Bangladesh seal">
+            @endif
+        </div>
+        <div class="heading">
+            <h1>Government of the People's Republic of Bangladesh</h1>
+            <h2>National Board of Revenue</h2>
+            <p class="sub">Purchase Account Book</p>
+            <p>(Applicable to a registered or enlisted person engaged in processing of goods or services)</p>
+            <p>[See Rule 40(1)(a) and Rule 41(a)]</p>
+        </div>
+        <div class="form-number">Mushak - 6.1</div>
 
-    <table class="registered">
-        <tr>
-            <td class="label">Name of the Registered Person</td>
-            <td class="colon">:</td>
-            <td>{{ optional($business)->name }}</td>
-        </tr>
-        <tr>
-            <td class="label">Address</td>
-            <td class="colon">:</td>
-            <td>{{ $seller_address }}</td>
-        </tr>
-        <tr>
-            <td class="label">BIN</td>
-            <td class="colon">:</td>
-            <td>{{ $seller_bin }}</td>
-        </tr>
-    </table>
+        <table class="registered">
+            <tr>
+                <td class="label">Name of the Registered Person</td>
+                <td class="colon">:</td>
+                <td>{{ optional($business)->name }}</td>
+            </tr>
+            <tr>
+                <td class="label">Address</td>
+                <td class="colon">:</td>
+                <td>{{ $seller_address }}</td>
+            </tr>
+            <tr>
+                <td class="label">BIN</td>
+                <td class="colon">:</td>
+                <td>{{ $seller_bin }}</td>
+            </tr>
+        </table>
 
-    <p class="period">Period: {{ $date($start_date) }} to {{ $date($end_date) }}</p>
+        <p class="period">Period: {{ $date($start_date) }} to {{ $date($end_date) }}</p>
 
+    </div>
     <p class="book-title">Purchase of Goods/Services Inputs</p>
 
     <table class="items">
-        <colgroup>
-            <col style="width: 2.4%"><col style="width: 4.2%">
-            <col style="width: 3.6%"><col style="width: 4.4%">
-            <col style="width: 4.4%"><col style="width: 4%">
-            <col style="width: 7.5%"><col style="width: 8.5%"><col style="width: 5.5%">
-            <col style="width: 8.5%"><col style="width: 3.4%"><col style="width: 4.6%">
-            <col style="width: 3.8%"><col style="width: 4.2%">
-            <col style="width: 3.6%"><col style="width: 4.4%">
-            <col style="width: 3.6%"><col style="width: 4.4%">
-            <col style="width: 3.6%"><col style="width: 4.4%">
-            {{-- Widths must total exactly 100%: with table-layout:fixed any
-                 shortfall is absorbed by the last column, pushing its right
-                 border outside the table box. --}}
-            <col style="width: 7%">
-        </colgroup>
+        @php
+            // Dompdf ignores colgroup widths. Set widths on the unmerged number cells.
+            $columnWidths = [2.9, 4.1, 3.6, 4.6, 4.8, 4.1, 8.2, 9.8, 6, 7.1, 3.6, 4.6, 3.5, 3.6, 3.6, 4.6, 4.1, 4.6, 3.6, 4.6, 4.4];
+        @endphp
         <thead>
-            {{-- Three header bands: group titles, sub-headings, column
-                 numbers. The full-height cells span exactly two bands so the
-                 header closes flush against the numbers row. --}}
             <tr>
-                <th rowspan="2">Serial<br>No.</th>
-                <th rowspan="2">Date</th>
+                <th rowspan="3">Serial<br>No.</th>
+                <th rowspan="3">Date</th>
                 <th colspan="2">Opening Balance of<br>Stock Inputs</th>
+                <th colspan="14" class="group">Purchased Inputs</th>
+                <th colspan="2">Closing Balance of<br>Inputs</th>
+                <th rowspan="3">Remarks</th>
+            </tr>
+            <tr>
+                <th rowspan="2">Quantity<br>(Unit)</th>
+                <th rowspan="2">Value<br>(Excluding<br>All Taxes)</th>
                 <th rowspan="2">Challan/Bill<br>of Entry<br>No.</th>
                 <th rowspan="2">Date</th>
                 <th colspan="3">Seller/Supplier</th>
-                <th colspan="5">Purchased Inputs</th>
+                <th rowspan="2">Description</th>
+                <th rowspan="2">Quantity</th>
+                <th rowspan="2">Value<br>(Excluding<br>All Taxes)</th>
+                <th rowspan="2">Supple-<br>mentary<br>Duty<br>(if any)</th>
+                <th rowspan="2">VAT</th>
                 <th colspan="2">Total Quantity of<br>Inputs</th>
                 <th colspan="2">Use of Inputs in<br>Production/Processing<br>of Goods</th>
-                <th colspan="2">Closing Balance of<br>Inputs</th>
-                <th rowspan="2">Remarks</th>
+                <th rowspan="2">Quantity<br>(Unit)</th>
+                <th rowspan="2">Value<br>(Excluding<br>All Taxes)</th>
             </tr>
             <tr>
-                <th>Quantity<br>(Unit)</th>
-                <th>Value<br>(Excluding<br>All Taxes)</th>
                 <th>Name</th>
                 <th>Address</th>
                 <th>Registration /<br>Enlistment /<br>National ID No.</th>
-                <th>Description</th>
-                <th>Quantity</th>
-                <th>Value<br>(Excluding<br>All Taxes)</th>
-                <th>Supple-<br>mentary<br>Duty<br>(if any)</th>
-                <th>VAT</th>
-                <th>Quantity<br>(Unit)</th>
-                <th>Value<br>(Excluding<br>All Taxes)</th>
                 <th>Quantity<br>(Unit)</th>
                 <th>Value<br>(Excluding<br>All Taxes)</th>
                 <th>Quantity<br>(Unit)</th>
@@ -144,7 +131,7 @@
             </tr>
             <tr>
                 @for ($column = 1; $column <= 21; $column++)
-                    <th>
+                    <th style="width: {{ $columnWidths[$column - 1] }}%">
                         ({{ $column }})
                         @if ($column == 15)
                             <br>=(3+11)
