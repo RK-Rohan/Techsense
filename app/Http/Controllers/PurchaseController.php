@@ -7,8 +7,10 @@ use App\Business;
 use App\BusinessLocation;
 use App\Contact;
 use App\CustomerGroup;
+use App\Models\Investor;
 use App\Product;
 use App\PurchaseLine;
+use App\ShippingLine;
 use App\TaxRate;
 use App\Transaction;
 use App\User;
@@ -295,8 +297,14 @@ class PurchaseController extends Controller
 
         $common_settings = ! empty(session('business.common_settings')) ? session('business.common_settings') : [];
 
+        //Extra shipping and sourcing details captured on the purchase form.
+        $quotations = $this->quotationsDropdown($business_id);
+        $shipping_statuses = $this->transactionUtil->shipping_statuses();
+        $shipping_lines = ShippingLine::forDropdown($business_id);
+        $investors = Investor::orderBy('name')->pluck('name', 'id');
+
         return view('purchase.create')
-            ->with(compact('taxes', 'orderStatuses', 'business_locations', 'currency_details', 'default_purchase_status', 'customer_groups', 'types', 'shortcuts', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'common_settings'));
+            ->with(compact('taxes', 'orderStatuses', 'business_locations', 'currency_details', 'default_purchase_status', 'customer_groups', 'types', 'shortcuts', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'common_settings', 'quotations', 'shipping_statuses', 'shipping_lines', 'investors'));
     }
 
     /**
@@ -381,6 +389,12 @@ class PurchaseController extends Controller
             $transaction_data['shipping_custom_field_3'] = $request->input('shipping_custom_field_3', null);
             $transaction_data['shipping_custom_field_4'] = $request->input('shipping_custom_field_4', null);
             $transaction_data['shipping_custom_field_5'] = $request->input('shipping_custom_field_5', null);
+
+            //Shipping and sourcing details captured on the purchase form.
+            $transaction_data['shipping_status'] = $request->input('shipping_status', null);
+            $transaction_data['tracking_number'] = $request->input('tracking_number', null);
+            $transaction_data['shipping_line_id'] = $request->input('shipping_line_id') ?: null;
+            $transaction_data['investor_id'] = $request->input('investor_id') ?: null;
 
             if ($request->input('additional_expense_value_1') != '') {
                 $transaction_data['additional_expense_key_1'] = $request->input('additional_expense_key_1');
@@ -1279,6 +1293,111 @@ class PurchaseController extends Controller
         return [
             'html' => $html,
             'po' => $purchase_order,
+        ];
+    }
+
+    /**
+     * Open sell quotations, labelled for the purchase form's dropdown.
+     *
+     * @param  int  $business_id
+     * @return array
+     */
+    private function quotationsDropdown($business_id)
+    {
+        $query = Transaction::leftJoin('contacts as c', 'transactions.contact_id', '=', 'c.id')
+            ->where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->where('transactions.status', 'draft')
+            ->where('transactions.sub_status', 'quotation');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if (! auth()->user()->can('quotation.view_all') && auth()->user()->can('quotation.view_own')) {
+            $query->where('transactions.created_by', auth()->id());
+        }
+
+        return $query->select(
+            'transactions.id',
+            'transactions.invoice_no',
+            'transactions.transaction_date',
+            DB::raw("COALESCE(NULLIF(TRIM(c.supplier_business_name), ''), c.name) as contact_name")
+        )
+            ->orderBy('transactions.transaction_date', 'desc')
+            ->limit(500)
+            ->get()
+            ->mapWithKeys(function ($quotation) {
+                $label = $quotation->invoice_no;
+                if (! empty($quotation->contact_name)) {
+                    $label .= ' - '.$quotation->contact_name;
+                }
+
+                return [$quotation->id => $label];
+            })
+            ->toArray();
+    }
+
+    /**
+     * Builds purchase entry rows from the line items of a sell quotation, so a
+     * purchase can be raised for the stock a customer quote needs.
+     *
+     * @param  int  $quotation_id
+     * @return array
+     */
+    public function getQuotationLines($quotation_id)
+    {
+        if (! auth()->user()->can('purchase.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+
+        $quotation = Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('sub_status', 'quotation')
+            ->with([
+                'sell_lines',
+                'sell_lines.product',
+                'sell_lines.product.unit',
+                'sell_lines.variations',
+                'sell_lines.variations.product_variation',
+            ])
+            ->findOrFail($quotation_id);
+
+        $taxes = TaxRate::where('business_id', $business_id)
+            ->ExcludeForTaxGroup()
+            ->get();
+
+        // A quotation may reference a product whose unit was since removed, so
+        // only lines that still resolve to a product are offered.
+        $sell_lines = $quotation->sell_lines->filter(function ($line) {
+            return ! empty($line->product) && ! empty($line->product->unit) && ! empty($line->variations);
+        });
+
+        $sub_units_array = [];
+        foreach ($sell_lines as $line) {
+            $sub_units_array[$line->id] = $this->productUtil->getSubUnits($business_id, $line->product->unit->id, false, $line->product_id);
+        }
+
+        $hide_tax = request()->session()->get('business.enable_inline_tax') == 1 ? '' : 'hide';
+        $currency_details = $this->transactionUtil->purchaseCurrencyDetails($business_id);
+        $row_count = request()->input('row_count', 0);
+
+        $html = view('purchase.partials.quotation_lines')
+            ->with(compact(
+                'sell_lines',
+                'taxes',
+                'hide_tax',
+                'currency_details',
+                'row_count',
+                'sub_units_array'
+            ))->render();
+
+        return [
+            'html' => $html,
+            'quotation' => $quotation,
         ];
     }
 

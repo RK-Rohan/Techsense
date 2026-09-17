@@ -130,6 +130,44 @@
             </div>
 		</div>
 		<div class="row">
+			<div class="col-sm-3">
+				<div class="form-group">
+					{!! Form::label('quotation_id', __('lang_v1.quotation') . ':') !!}
+					@show_tooltip(__('lang_v1.quotation_purchase_help'))
+					{!! Form::select('quotation_id', $quotations, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'id' => 'quotation_id']); !!}
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<div class="form-group">
+					{!! Form::label('tracking_number', __('lang_v1.tracking_number') . ':') !!}
+					{!! Form::text('tracking_number', null, ['class' => 'form-control', 'placeholder' => __('lang_v1.tracking_number')]); !!}
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<div class="form-group">
+					{!! Form::label('shipping_status', __('lang_v1.shipping_status') . ':') !!}
+					{!! Form::select('shipping_status', $shipping_statuses, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<div class="form-group">
+					{!! Form::label('shipping_line_id', __('lang_v1.shipping_line') . ':') !!}
+					<div class="input-group">
+						{!! Form::select('shipping_line_id', $shipping_lines, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'id' => 'shipping_line_id', 'style' => 'width:100%']); !!}
+						<span class="input-group-btn">
+							<button type="button" class="btn btn-default bg-white btn-flat" id="add_shipping_line" title="@lang('lang_v1.add_shipping_line')"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+						</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<div class="form-group">
+					{!! Form::label('investor_id', __('lang_v1.investor_name') . ':') !!}
+					{!! Form::select('investor_id', $investors, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
+				</div>
+			</div>
+		</div>
+		<div class="row">
 			@php
 		    $custom_field_1_label = !empty($custom_labels['purchase']['custom_field_1']) ? $custom_labels['purchase']['custom_field_1'] : '';
 
@@ -587,6 +625,65 @@
 	<script src="{{ asset('js/purchase.js?v=' . $asset_v) }}"></script>
 	<script src="{{ asset('js/product.js?v=' . $asset_v) }}"></script>
 	<script type="text/javascript">
+		//Pulls the line items of the chosen quotation into the purchase table.
+		$(document).on('change', '#quotation_id', function() {
+			var quotation_id = $(this).val();
+
+			//Clear rows carried over from a previously selected quotation.
+			$('#purchase_entry_table tbody').find('tr[data-quotation_id]').remove();
+			update_table_total();
+			update_grand_total();
+			update_table_sr_number();
+
+			if (!quotation_id) {
+				return;
+			}
+
+			var row_count = $('#row_count').val();
+			$.ajax({
+				url: '/get-quotation-lines/' + quotation_id + '?row_count=' + row_count,
+				dataType: 'json',
+				success: function(data) {
+					if (!$.trim(data.html)) {
+						toastr.warning("{{ __('lang_v1.no_quotation_items') }}");
+						return;
+					}
+					append_purchase_lines(data.html, row_count);
+				},
+			});
+		});
+
+		//Adds a shipping line without leaving the purchase form.
+		$(document).on('click', '#add_shipping_line', function() {
+			var name = window.prompt("{{ __('lang_v1.shipping_line_name') }}");
+			if (name === null) {
+				return;
+			}
+			name = $.trim(name);
+			if (!name) {
+				return;
+			}
+
+			$.ajax({
+				method: 'POST',
+				url: '/shipping-lines',
+				data: { name: name },
+				dataType: 'json',
+				success: function(result) {
+					if (result.success) {
+						var select = $('#shipping_line_id');
+						if (!select.find('option[value="' + result.id + '"]').length) {
+							select.append(new Option(result.name, result.id, false, false));
+						}
+						select.val(result.id).trigger('change');
+						toastr.success(result.msg);
+					} else {
+						toastr.error(result.msg);
+					}
+				},
+			});
+		});
+
 		$(document).ready( function(){
       		__page_leave_confirmation('#add_purchase_form');
       		$('.paid_on').datetimepicker({
