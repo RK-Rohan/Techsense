@@ -2,6 +2,7 @@
     base_path = "{{url('/')}}";
     //used for push notification
     APP = {};
+    APP.BUSINESS_ID = @json(session('user.business_id'));
     APP.PUSHER_APP_KEY = '{{config('broadcasting.connections.pusher.key')}}';
     APP.PUSHER_APP_CLUSTER = '{{config('broadcasting.connections.pusher.options.cluster')}}';
     APP.INVOICE_SCHEME_SEPARATOR = '{{config('constants.invoice_scheme_separator')}}';
@@ -22,6 +23,7 @@
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js?v=$asset_v"></script>
 <![endif]-->
 <script src="{{ asset('js/vendor.js?v=' . $asset_v) }}"></script>
+<script src="{{ asset('js/list-sort.js?v=1') }}"></script>
 
 @if(file_exists(public_path('js/lang/' . session()->get('user.language', config('app.locale')) . '.js')))
     <script src="{{ asset('js/lang/' . session()->get('user.language', config('app.locale') ) . '.js?v=' . $asset_v) }}"></script>
