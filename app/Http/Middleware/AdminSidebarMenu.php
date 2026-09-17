@@ -729,6 +729,26 @@ class AdminSidebarMenu
                 )->order(55);
             }
 
+            //New Report dropdown - statutory financial statements
+            if (auth()->user()->can('account.access') || auth()->user()->can('profit_loss_report.view')) {
+                $menu->dropdown(
+                    __('lang_v1.new_report'),
+                    function ($sub) {
+                        foreach (\App\Http\Controllers\FinancialReportController::REPORTS as $key => $report) {
+                            $sub->url(
+                                action([\App\Http\Controllers\FinancialReportController::class, 'show'], ['report' => $key]),
+                                $report['title'],
+                                [
+                                    'icon' => 'fa fas fa-file-invoice-dollar',
+                                    'active' => request()->segment(1) == 'financial-report' && request()->segment(2) == $key,
+                                ]
+                            );
+                        }
+                    },
+                    ['icon' => 'fa fas fa-book']
+                )->order(57);
+            }
+
             //Backup menu
             if (auth()->user()->can('backup')) {
                 $menu->url(action([\App\Http\Controllers\BackUpController::class, 'index']), __('lang_v1.backup'), ['icon' => 'fa fas fa-hdd', 'active' => request()->segment(1) == 'backup'])->order(60);

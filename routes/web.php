@@ -478,6 +478,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     Route::resource('account-types', AccountTypeController::class);
 
+    //Statutory financial statements
+    Route::get('/financial-report/{report}', [\App\Http\Controllers\FinancialReportController::class, 'show'])
+        ->name('financial-report.show');
+
     //Restaurant module
     Route::prefix('modules')->group(function () {
         Route::resource('tables', Restaurant\TableController::class);

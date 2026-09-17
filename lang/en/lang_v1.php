@@ -327,6 +327,7 @@ return [
     'all_category' => 'All Categories',
     'all_brands' => 'All Brands',
     'backup' => 'Administer Backup',
+    'new_report' => 'New Report',
     'download_complete_backup' => 'Download complete backup',
     'backup_doesnt_exist' => "Backup Doesn't exist",
     'lot_report' => 'Lot Report',
