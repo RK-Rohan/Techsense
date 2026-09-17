@@ -76,4 +76,17 @@ $(function () {
         });
     });
     sync();
+
+    // A default or browser-restored category does not emit a change event.
+    // Keep server-rendered selections on edit and validation-error reloads.
+    function loadInitialSubcategories() {
+        var hasOptions = selected.find('option').filter(function () {
+            return this.value !== '';
+        }).length > 0;
+        if ($('#expense_category_id').val() && !hasOptions) {
+            get_expense_sub_categories();
+        }
+    }
+    setTimeout(loadInitialSubcategories, 0);
+    $(window).on('pageshow', loadInitialSubcategories);
 });
