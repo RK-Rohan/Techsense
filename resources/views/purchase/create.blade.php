@@ -1,6 +1,16 @@
 @extends('layouts.app')
 @section('title', __('purchase.add_purchase'))
 
+@section('css')
+<style type="text/css">
+	/* Keep the purchase header compact so the item table stays in view. */
+	#add_purchase_form .form-group { margin-bottom: 10px; }
+	#add_purchase_form .box-body { padding-top: 10px; padding-bottom: 5px; }
+	#add_purchase_form label { margin-bottom: 3px; }
+	#supplier_address_wrapper { margin-top: 5px; font-size: 12px; line-height: 1.4; }
+</style>
+@endsection
+
 @section('content')
 
 @php
@@ -38,10 +48,10 @@
 						</span>
 					</div>
 				</div>
-				<strong>
-					@lang('business.address'):
-				</strong>
-				<div id="supplier_address_div"></div>
+				<div id="supplier_address_wrapper" class="hide">
+					<strong>@lang('business.address'):</strong>
+					<div id="supplier_address_div"></div>
+				</div>
 			</div>
 			<div class="@if(!empty($default_purchase_status)) col-sm-4 @else col-sm-3 @endif">
 				<div class="form-group">
@@ -166,8 +176,6 @@
 					{!! Form::select('investor_id', $investors, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
 				</div>
 			</div>
-		</div>
-		<div class="row">
 			@php
 		    $custom_field_1_label = !empty($custom_labels['purchase']['custom_field_1']) ? $custom_labels['purchase']['custom_field_1'] : '';
 
@@ -193,7 +201,7 @@
 				}
 			@endphp
 
-			<div class="col-md-4">
+			<div class="col-sm-3">
 		        <div class="form-group">
 		            {!! Form::label('custom_field_1', $label_1 ) !!}
 		            {!! Form::text('custom_field_1', null, ['class' => 'form-control','placeholder' => $custom_field_1_label, 'required' => $is_custom_field_1_required]); !!}
@@ -208,7 +216,7 @@
 				}
 			@endphp
 
-			<div class="col-md-4">
+			<div class="col-sm-3">
 		        <div class="form-group">
 		            {!! Form::label('custom_field_2', $label_2 ) !!}
 		            {!! Form::text('custom_field_2', null, ['class' => 'form-control','placeholder' => $custom_field_2_label, 'required' => $is_custom_field_2_required]); !!}
@@ -223,7 +231,7 @@
 				}
 			@endphp
 
-			<div class="col-md-4">
+			<div class="col-sm-3">
 		        <div class="form-group">
 		            {!! Form::label('custom_field_3', $label_3 ) !!}
 		            {!! Form::text('custom_field_3', null, ['class' => 'form-control','placeholder' => $custom_field_3_label, 'required' => $is_custom_field_3_required]); !!}
@@ -238,7 +246,7 @@
 				}
 			@endphp
 
-			<div class="col-md-4">
+			<div class="col-sm-3">
 		        <div class="form-group">
 		            {!! Form::label('custom_field_4', $label_4 ) !!}
 		            {!! Form::text('custom_field_4', null, ['class' => 'form-control','placeholder' => $custom_field_4_label, 'required' => $is_custom_field_4_required]); !!}
@@ -625,6 +633,15 @@
 	<script src="{{ asset('js/purchase.js?v=' . $asset_v) }}"></script>
 	<script src="{{ asset('js/product.js?v=' . $asset_v) }}"></script>
 	<script type="text/javascript">
+		//The supplier address is blank until a supplier is chosen; keeping its
+		//wrapper hidden until then stops it reserving empty space in the form.
+		$(document).on("change", "#supplier_id", function() {
+			setTimeout(function() {
+				var has_address = $.trim($("#supplier_address_div").text()).length > 0;
+				$("#supplier_address_wrapper").toggleClass("hide", !has_address);
+			}, 0);
+		});
+
 		//Pulls the line items of the chosen quotation into the purchase table.
 		$(document).on('change', '#quotation_id', function() {
 			var quotation_id = $(this).val();
