@@ -311,6 +311,8 @@ class ExpenseController extends Controller
         $expense_categories = ExpenseCategory::where('business_id', $business_id)
                                 ->whereNull('parent_id')
                                 ->pluck('name', 'id');
+        $sub_categories = ExpenseCategory::where('business_id', $business_id)
+            ->where('parent_id', old('expense_category_id', 0))->pluck('name', 'id');
         $users = User::forDropdown($business_id, true, true);
 
         $taxes = TaxRate::forBusinessDropdown($business_id, true, true);
@@ -329,11 +331,11 @@ class ExpenseController extends Controller
 
         if (request()->ajax()) {
             return view('expense.add_expense_modal')
-                ->with(compact('expense_categories', 'business_locations', 'users', 'taxes', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'contacts'));
+                ->with(compact('expense_categories', 'business_locations', 'users', 'taxes', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'contacts', 'sub_categories'));
         }
 
         return view('expense.create')
-            ->with(compact('expense_categories', 'business_locations', 'users', 'taxes', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'contacts'));
+            ->with(compact('expense_categories', 'business_locations', 'users', 'taxes', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'contacts', 'sub_categories'));
     }
 
     /**
@@ -381,6 +383,9 @@ class ExpenseController extends Controller
             $output = ['success' => 1,
                 'msg' => __('expense.expense_add_success'),
             ];
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -483,16 +488,22 @@ class ExpenseController extends Controller
                 return $this->moduleUtil->expiredResponse(action([\App\Http\Controllers\ExpenseController::class, 'index']));
             }
 
+            DB::beginTransaction();
             $expense = $this->transactionUtil->updateExpense($request, $id, $business_id);
 
             $this->transactionUtil->activityLog($expense, 'edited');
 
             event(new ExpenseCreatedOrModified($expense));
 
+            DB::commit();
             $output = ['success' => 1,
                 'msg' => __('expense.expense_update_success'),
             ];
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Exception $e) {
+            DB::rollBack();
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = ['success' => 0,

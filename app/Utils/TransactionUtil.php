@@ -6046,7 +6046,9 @@ class TransactionUtil extends Util
             $transaction_data['expense_sub_category_ids'] = $sub_category_ids;
         }
 
-        $transaction_data['total_before_tax'] = $transaction_data['final_total'];
+        $transaction_data = array_merge($transaction_data, ExpenseItems::fromRequest($request, $business_id));
+        $final_total = $transaction_data['final_total'];
+        $transaction_data['total_before_tax'] = $final_total;
         if (!empty($transaction_data['tax_id'])) {
             $tax_details = TaxRate::find($transaction_data['tax_id']);
             $transaction_data['total_before_tax'] = $this->calc_percentage_base($transaction_data['final_total'], $tax_details->amount);
@@ -6074,6 +6076,21 @@ class TransactionUtil extends Util
             $transaction_data['document'] = $document_name;
         }
 
+        if ($request->has('expense_items_json')) {
+            $paymentCheck = [];
+            foreach ((array) $request->input('payment', []) as $payment) {
+                $payment['amount'] = $this->num_uf($payment['amount'] ?? 0);
+                $paymentCheck[] = $payment;
+            }
+            \Validator::make(['payment' => $paymentCheck], [
+                'payment' => 'array', 'payment.*.amount' => 'required|numeric|min:0',
+                'payment.*.method' => ['required', \Illuminate\Validation\Rule::in(array_keys($this->payment_types(null, false, $business_id)))],
+                'payment.*.account_id' => ['nullable', \Illuminate\Validation\Rule::exists('accounts', 'id')->where('business_id', $business_id)],
+            ])->validate();
+            if (round(array_sum(array_column($paymentCheck, 'amount')), 4) > round($transaction_data['final_total'], 4)) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['payment' => 'Total payments cannot exceed the expense total.']);
+            }
+        }
         $transaction = Transaction::create($transaction_data);
 
         $payments = !empty($request->input('payment')) ? $request->input('payment') : [];
@@ -6128,7 +6145,9 @@ class TransactionUtil extends Util
             $final_total = $transaction_data['final_total'];
         }
 
-        $transaction_data['total_before_tax'] = $transaction_data['final_total'];
+        $transaction_data = array_merge($transaction_data, ExpenseItems::fromRequest($request, $business_id));
+        $final_total = $transaction_data['final_total'];
+        $transaction_data['total_before_tax'] = $final_total;
         $tax_id = !empty($request->input('tax_id')) ? $request->input('tax_id') : $transaction->tax_id;
         if (!empty($tax_id)) {
             $transaction_data['tax_id'] = $tax_id;

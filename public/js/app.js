@@ -2973,8 +2973,8 @@ function get_expense_sub_categories() {
         dataType: 'html',
         data: { cat_id: cat },
         success: function (result) {
-            if (result) {
-                $('#expense_sub_category_id').html(result);
+            if (String($('#expense_category_id').val()) === String(cat)) {
+                $('#expense_sub_category_id').html(result || '').trigger('change');
             }
         },
     });

@@ -38,7 +38,7 @@
 				<div class="col-md-4">
 					<div class="form-group">
 			            {!! Form::label('expense_sub_category_id', __('product.sub_category') . ':') !!}
-			              {!! Form::select('expense_sub_category_id[]', [], null, ['class' => 'form-control select2', 'multiple' => 'multiple', 'id' => 'expense_sub_category_id', 'data-placeholder' => __('messages.please_select'), 'style' => 'width:100%']); !!}
+			              {!! Form::select('expense_sub_category_id[]', $sub_categories, old('expense_sub_category_id'), ['class' => 'form-control select2', 'multiple' => 'multiple', 'id' => 'expense_sub_category_id', 'data-placeholder' => __('messages.please_select'), 'style' => 'width:100%']); !!}
 			          </div>
 				</div>
 				<div class="col-sm-4">
@@ -119,28 +119,37 @@
 			</div>
 		</div>
 	</div> <!--box end-->
-	@include('expense.recur_expense_form_part')
+	@include('expense.items')
 	@component('components.widget', ['class' => 'box-solid', 'id' => "payment_rows_div", 'title' => __('purchase.add_payment')])
-	<div class="payment_row">
-		@include('sale_pos.partials.payment_row_form', ['row_index' => 0, 'show_date' => true])
-		<hr>
-		<div class="row">
-			<div class="col-sm-12">
-				<div class="pull-right">
-					<strong>@lang('purchase.payment_due'):</strong>
-					<span id="payment_due">{{@num_format(0)}}</span>
-				</div>
-			</div>
-		</div>
-	</div>
+	<div id="expense_payment_rows">
+    @foreach (array_values(old('payment', [$payment_line])) as $payment_index => $saved_payment)
+    <div class="payment_row">
+		@include('sale_pos.partials.payment_row_form', ['row_index' => $payment_index, 'payment_line' => array_merge($payment_line, $saved_payment), 'show_date' => true])
+        <button type="button" class="btn btn-danger btn-xs remove-expense-payment">Remove Payment</button>
+    </div>
+    @endforeach
+    </div>
+    <button type="button" class="btn btn-primary" id="add_expense_payment">+ Add Payment</button>
+    <div class="well" style="margin-top:15px">
+        <strong>Total Expense:</strong> <span id="expense_summary_total"></span> &nbsp;
+        <strong>Total Payment:</strong> <span id="expense_summary_paid"></span> &nbsp;
+        <strong>Remaining Balance:</strong> <span id="payment_due"></span>
+    </div>
+    <template id="expense_payment_template"><div class="payment_row">
+        @include('sale_pos.partials.payment_row_form', ['row_index' => '__PAYMENT_INDEX__', 'show_date' => true])
+        <button type="button" class="btn btn-danger btn-xs remove-expense-payment">Remove Payment</button>
+    </div></template>
 	@endcomponent
+	@include('expense.recur_expense_form_part')
 	<div class="col-sm-12 text-center">
 		<button type="submit" class="btn btn-primary btn-big">@lang('messages.save')</button>
+        <a class="btn btn-default" href="{{ action([\App\Http\Controllers\ExpenseController::class, 'index']) }}">@lang('messages.cancel')</a>
 	</div>
 {!! Form::close() !!}
 </section>
 @endsection
 @section('javascript')
+<script src="{{ asset('js/expense-items.js?v=1') }}"></script>
 <script type="text/javascript">
 	$(document).ready( function(){
 		$('.paid_on').datetimepicker({
@@ -150,17 +159,6 @@
 	});
 	
 	__page_leave_confirmation('#add_expense_form');
-	$(document).on('change', 'input#final_total, input.payment-amount', function() {
-		calculateExpensePaymentDue();
-	});
-
-	function calculateExpensePaymentDue() {
-		var final_total = __read_number($('input#final_total'));
-		var payment_amount = __read_number($('input.payment-amount'));
-		var payment_due = final_total - payment_amount;
-		$('#payment_due').text(__currency_trans_from_en(payment_due, true, false));
-	}
-
 	$(document).on('change', '#recur_interval_type', function() {
 	    if ($(this).val() == 'months') {
 	        $('.recur_repeat_on_div').removeClass('hide');
@@ -176,25 +174,5 @@
 		$('#recur_expense_div').removeClass('hide');
 	});
 
-	$(document).on('change', '.payment_types_dropdown, #location_id', function(e) {
-	    var default_accounts = $('select#location_id').length ? 
-	                $('select#location_id')
-	                .find(':selected')
-	                .data('default_payment_accounts') : [];
-	    var payment_types_dropdown = $('.payment_types_dropdown');
-	    var payment_type = payment_types_dropdown.val();
-	    if (payment_type) {
-	        var default_account = default_accounts && default_accounts[payment_type]['account'] ? 
-	            default_accounts[payment_type]['account'] : '';
-	        var payment_row = payment_types_dropdown.closest('.payment_row');
-	        var row_index = payment_row.find('.payment_row_index').val();
-
-	        var account_dropdown = payment_row.find('select#account_' + row_index);
-	        if (account_dropdown.length && default_accounts) {
-	            account_dropdown.val(default_account);
-	            account_dropdown.change();
-	        }
-	    }
-	});
 </script>
 @endsection
