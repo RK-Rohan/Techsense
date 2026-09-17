@@ -1,5 +1,4 @@
 <div class="book-row well" data-index="{{ $index }}">
-    <div class="clearfix"><button type="button" class="btn btn-danger btn-xs pull-right remove-book-row">Remove Row</button></div>
     <div class="row">
         @foreach (\App\MushakBook::fields($type) as $field => $kind)
             @php

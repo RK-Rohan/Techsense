@@ -46,7 +46,7 @@ class MushakBookController extends MushakRegisterController
         $book = new MushakBook([
             'issued_at' => date('Y-m-d'), 'start_date' => date('Y-m-01'), 'end_date' => date('Y-m-t'),
             'registered_name' => optional($header['business'])->name,
-            'seller_address' => $header['seller_address'], 'seller_bin' => $header['seller_bin'], 'rows' => [[]],
+            'seller_address' => $header['seller_address'], 'seller_bin' => $header['seller_bin'], 'rows' => [],
         ]);
         return view('mushak.books.form', compact('book', 'type'));
     }
@@ -71,7 +71,7 @@ class MushakBookController extends MushakRegisterController
 
     private function saveBook(Request $request, $type, MushakBook $book)
     {
-        if ($request->has('rows_json')) {
+        if ($book->exists && $request->has('rows_json')) {
             $request->validate(['rows_json' => 'required|json']);
             $request->merge(['rows' => json_decode($request->input('rows_json'), true)]);
         }
@@ -79,15 +79,29 @@ class MushakBookController extends MushakRegisterController
             'document_no' => 'required|string|max:191', 'issued_at' => 'required|date_format:Y-m-d',
             'start_date' => 'required|date_format:Y-m-d', 'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
             'registered_name' => 'required|string|max:191', 'seller_address' => 'nullable|string|max:5000',
-            'seller_bin' => 'nullable|string|max:191', 'rows' => 'required|array|min:1|max:200', 'rows.*' => 'required|array',
+            'seller_bin' => 'nullable|string|max:191',
         ];
-        foreach (MushakBook::fields($type) as $field => $kind) {
-            $rules['rows.*.'.$field] = $kind === 'number' ? 'nullable|numeric|between:-999999999999,999999999999'
-                : ($kind === 'date' ? 'required|date_format:Y-m-d' : 'nullable|string|max:5000');
-        }
-        $rules['rows.*.date'] .= '|after_or_equal:start_date|before_or_equal:end_date';
-        $rules['rows.*.description'] = 'required|string|max:5000';
         $data = $request->validate($rules);
+        if (! $book->exists) {
+            $report = $type === '6-1'
+                ? $this->buildPurchaseBook($book->business_id, $request)
+                : $this->buildSalesBook($book->business_id, $request);
+            $data['rows'] = $report['rows']->map(function ($row) {
+                foreach (['date', 'challan_date'] as $field) {
+                    $row[$field] = \Carbon\Carbon::parse($row[$field])->format('Y-m-d');
+                }
+                return $row;
+            })->all();
+        } else {
+            $rules = ['rows' => 'present|array|size:'.count($book->rows), 'rows.*' => 'required|array'];
+            foreach (MushakBook::fields($type) as $field => $kind) {
+                $rules['rows.*.'.$field] = $kind === 'number' ? 'nullable|numeric|between:-999999999999,999999999999'
+                    : ($kind === 'date' ? 'required|date_format:Y-m-d' : 'nullable|string|max:5000');
+            }
+            $rules['rows.*.date'] .= '|after_or_equal:start_date|before_or_equal:end_date';
+            $rules['rows.*.description'] = 'required|string|max:5000';
+            $data = array_merge($data, $request->validate($rules));
+        }
         $data['rows'] = MushakBook::calculateRows($type, $data['rows']);
         $data['total_amount'] = collect($data['rows'])->sum($type === '6-1' ? 'value' : 'taxable_value');
         $data['tax_amount'] = collect($data['rows'])->sum('vat');

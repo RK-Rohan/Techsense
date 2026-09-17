@@ -19,34 +19,31 @@
                 @endforeach
             </div>
         @endcomponent
-        @component('components.widget', ['class' => 'box-primary', 'title' => 'Custom entries'])
-            <p>Enter the details for this account book. Each row has its own opening balance; total and closing balances are calculated when saved.</p>
+        @if ($book->exists)
+        @component('components.widget', ['class' => 'box-primary', 'title' => 'Saved report entries'])
+            <p>Changes apply only to this saved report. Purchase and sales data remain unchanged. Total and closing balances are calculated when saved.</p>
             <div id="book_rows">
-                @foreach (old('rows', $book->rows) as $index => $row)
+                @forelse (old('rows', $book->rows) as $index => $row)
                     @include('mushak.books.row', ['index' => $index, 'row' => $row])
-                @endforeach
+                @empty
+                    <p>No transactions were found in the selected date range.</p>
+                @endforelse
             </div>
-            <button class="btn btn-default" type="button" id="add_book_row"><i class="fa fa-plus"></i> Add Row</button>
         @endcomponent
+        @else
+            <p>Generate and save a report from transactions in the selected date range.</p>
+        @endif
         <button class="btn btn-primary" type="submit">{{ $book->exists ? 'Save Changes' : 'Generate Mushak '.str_replace('-', '.', $type) }}</button>
         <a class="btn btn-default" href="{{ route($type === '6-1' ? 'mushak.purchaseBook' : 'mushak.salesBook') }}">Cancel</a>
     </form>
-    <template id="book_row_template">@include('mushak.books.row', ['index' => '__INDEX__', 'row' => []])</template>
 </section>
 @endsection
 @section('javascript')
 <script>
 $(function() {
-    var nextIndex = Math.max.apply(null, $('#book_rows .book-row').map(function() { return Number($(this).data('index')); }).get()) + 1;
-    $('#add_book_row').on('click', function() {
-        $('#book_rows').append($('#book_row_template').html().replace(/__INDEX__/g, nextIndex++));
-    });
-    $('#book_rows').on('click', '.remove-book-row', function() {
-        if ($('#book_rows .book-row').length > 1) $(this).closest('.book-row').remove();
-        else toastr.error('Keep at least one entry.');
-    });
     // Send rows as JSON to avoid PHP max_input_vars truncating larger books.
     $('#book_form').on('submit', function() {
+        if (!$('#book_rows').length) return;
         var rows = [];
         $('#book_rows .book-row').each(function() {
             var row = {};

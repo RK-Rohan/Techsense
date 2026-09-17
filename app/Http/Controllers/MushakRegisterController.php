@@ -36,7 +36,7 @@ class MushakRegisterController extends Controller
      * inputs in production - stay blank for a trading business, so the closing
      * balance is simply opening + purchased.
      */
-    private function buildPurchaseBook($business_id, Request $request)
+    protected function buildPurchaseBook($business_id, Request $request)
     {
         [$start_date, $end_date] = $this->dateRange($request);
         $location_id = $request->input('location_id');
@@ -63,6 +63,7 @@ class MushakRegisterController extends Controller
             $query->where('transactions.location_id', $location_id);
         }
 
+        $this->scopeSourceTransactions($query, 'purchase');
         $transactions = $query->orderBy('transactions.transaction_date')
             ->orderBy('transactions.id')
             ->get();
@@ -150,7 +151,7 @@ class MushakRegisterController extends Controller
      * zero; (7)=(3+5) and (8)=(4+6) therefore carry the opening through, and
      * the closing balance (19)=(7-11) / (20)=(8-16) falls by what was sold.
      */
-    private function buildSalesBook($business_id, Request $request)
+    protected function buildSalesBook($business_id, Request $request)
     {
         [$start_date, $end_date] = $this->dateRange($request);
         $location_id = $request->input('location_id');
@@ -182,6 +183,7 @@ class MushakRegisterController extends Controller
             $query->where('transactions.location_id', $location_id);
         }
 
+        $this->scopeSourceTransactions($query, 'sell');
         $transactions = $query->orderBy('transactions.transaction_date')
             ->orderBy('transactions.id')
             ->get();
@@ -289,6 +291,7 @@ class MushakRegisterController extends Controller
             $purchased->where('transactions.location_id', $location_id);
         }
 
+        $this->scopeSourceTransactions($purchased, 'purchase');
         $purchased = $purchased->selectRaw('SUM(pl.quantity) as qty, SUM(pl.quantity * pl.purchase_price) as value')->first();
 
         $sold = Transaction::join('transaction_sell_lines as sl', 'sl.transaction_id', '=', 'transactions.id')
@@ -302,6 +305,7 @@ class MushakRegisterController extends Controller
             $sold->where('transactions.location_id', $location_id);
         }
 
+        $this->scopeSourceTransactions($sold, 'sell');
         $sold = $sold->selectRaw('SUM(sl.quantity) as qty, SUM(sl.quantity * sl.unit_price) as value')->first();
 
         //The purchase book tracks inputs received; the sales book tracks goods
@@ -316,8 +320,20 @@ class MushakRegisterController extends Controller
     }
 
     /**
-     * Registered person details printed in both book headers.
+     * Limit source rows and opening balances to accessible transactions.
      */
+    protected function scopeSourceTransactions($query, $type)
+    {
+        $locations = auth()->user()->permitted_locations();
+        if ($locations !== 'all') {
+            $query->whereIn('transactions.location_id', $locations);
+        }
+        if (! auth()->user()->can($type === 'purchase' ? 'purchase.view' : 'sell.view')) {
+            $query->where('transactions.created_by', auth()->id());
+        }
+    }
+
+    /** Registered person details printed in both book headers. */
     protected function headerData($business_id, $location_id)
     {
         $business = \App\Business::find($business_id);
