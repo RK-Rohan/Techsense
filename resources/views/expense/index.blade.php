@@ -12,7 +12,7 @@
 <section class="content">
     <div class="row">
         <div class="col-md-12">
-            @component('components.filters', ['title' => __('report.filters')])
+            @component('components.filters', ['title' => __('report.filters'), 'class' => 'box-solid expense-list-filters'])
                 @if(auth()->user()->can('all_expense.access'))
                     <div class="col-md-3">
                         <div class="form-group">

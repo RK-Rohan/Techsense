@@ -2,6 +2,7 @@
 @section('title', __('expense.add_expense'))
 
 @section('content')
+@include('expense.compact_styles')
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
@@ -9,11 +10,11 @@
 </section>
 
 <!-- Main content -->
-<section class="content">
+<section class="content expense-compact">
 	{!! Form::open(['url' => action([\App\Http\Controllers\ExpenseController::class, 'store']), 'method' => 'post', 'id' => 'add_expense_form', 'files' => true ]) !!}
 	<div class="box box-solid">
 		<div class="box-body">
-			<div class="row">
+			<div class="row expense-header-fields">
 
 				@if(count($business_locations) == 1)
 					@php 
@@ -107,7 +108,7 @@
 				<div class="col-sm-4">
 					<div class="form-group">
 						{!! Form::label('additional_notes', __('expense.expense_note') . ':') !!}
-								{!! Form::textarea('additional_notes', null, ['class' => 'form-control', 'rows' => 3]); !!}
+								{!! Form::textarea('additional_notes', null, ['class' => 'form-control', 'rows' => 1]); !!}
 					</div>
 				</div>
 				<div class="col-md-4 col-sm-6">

@@ -1,4 +1,7 @@
-function __restore_list_filters(storageKey, selectors) {
+function __restore_list_filters(storageKey, selectors, filterContainer) {
+    // Persistence is opt-in for a list's filter panel, never global field IDs.
+    var filters = filterContainer ? $(filterContainer) : $();
+    if (!filters.length) return;
     var saved;
     try {
         saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
@@ -7,10 +10,10 @@ function __restore_list_filters(storageKey, selectors) {
     }
 
     selectors.forEach(function (selector) {
-        if (!Object.prototype.hasOwnProperty.call(saved, selector) || !$(selector).length) {
+        if (!Object.prototype.hasOwnProperty.call(saved, selector) || !filters.find(selector).length) {
             return;
         }
-        var element = $(selector);
+        var element = filters.find(selector);
         element.val(saved[selector]).trigger('change.select2');
 
         if (element.data('daterangepicker') && saved[selector]) {
@@ -23,18 +26,20 @@ function __restore_list_filters(storageKey, selectors) {
     });
 }
 
-function __remember_list_filters(storageKey, selectors) {
+function __remember_list_filters(storageKey, selectors, filterContainer) {
+    var filters = filterContainer ? $(filterContainer) : $();
+    if (!filters.length) return;
     var save = function () {
         var values = {};
         selectors.forEach(function (selector) {
-            if ($(selector).length) {
-                values[selector] = $(selector).val();
+            if (filters.find(selector).length) {
+                values[selector] = filters.find(selector).val();
             }
         });
         localStorage.setItem(storageKey, JSON.stringify(values));
     };
 
-    $(document).on('change apply.daterangepicker cancel.daterangepicker', selectors.join(','), save);
+    filters.on('change apply.daterangepicker cancel.daterangepicker', selectors.join(','), save);
 }
 
 $(document).ready(function () {
@@ -1578,11 +1583,11 @@ $(document).ready(function () {
     __restore_list_filters('expense_list_filters', [
         '#location_id', '#expense_for', '#expense_contact_filter', '#expense_category_id',
         '#expense_sub_category_id_filter', '#expense_payment_status', '#expense_date_range'
-    ]);
+    ], '.expense-list-filters');
     __remember_list_filters('expense_list_filters', [
         '#location_id', '#expense_for', '#expense_contact_filter', '#expense_category_id',
         '#expense_sub_category_id_filter', '#expense_payment_status', '#expense_date_range'
-    ]);
+    ], '.expense-list-filters');
 
     expense_table = $('#expense_table').DataTable({
         processing: true,

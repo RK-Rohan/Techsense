@@ -98,7 +98,7 @@
 
 <script src="{{ asset('js/functions.js?v=' . $asset_v) }}"></script>
 <script src="{{ asset('js/common.js?v=' . $asset_v) }}"></script>
-<script src="{{ asset('js/app.js?v=' . $asset_v) }}"></script>
+<script src="{{ asset('js/app.js?v=' . $asset_v . '-list-filters-2') }}"></script>
 <script src="{{ asset('js/help-tour.js?v=' . $asset_v) }}"></script>
 <script src="{{ asset('js/documents_and_note.js?v=' . $asset_v) }}"></script>
 
