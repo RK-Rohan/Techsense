@@ -137,8 +137,8 @@ class ModulesController extends Controller
                 throw new \RuntimeException("The {$module->getName()} module does not provide an installer.");
             }
 
-            // Disabled modules do not register their routes. Enable the module and
-            // begin a new request so its service provider can load those routes.
+            // Enable the module so its config, migrations and other services are
+            // available to the installer.
             if (! $module->isEnabled()) {
                 $module->enable();
 
@@ -147,13 +147,54 @@ class ModulesController extends Controller
                 ]);
             }
 
-            // Use the module's normal route once it has been registered. Its
-            // installer view may generate links to additional controller actions.
-            return redirect()->action($controller.'@index');
+            // Render the shared installer from an application-owned route. Some
+            // legacy modules do not register their RouteServiceProvider on newer
+            // Laravel versions, so their index action cannot generate its POST URL.
+            return view('install.install-module', [
+                'action_url' => route('manage-modules.run-installer', [
+                    'module_name' => $module->getName(),
+                ]),
+                'intruction_type' => 'uf',
+                'action_type' => 'install',
+                'module_display_name' => $module->getName(),
+            ]);
         } catch (\Throwable $e) {
             report($e);
 
             return redirect()->back()->with('status', [
+                'success' => false,
+                'msg' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Submit to a module installer without relying on module-owned routes.
+     */
+    public function runInstaller($module_name)
+    {
+        if (! auth()->user()->can('manage_modules')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $notAllowed = $this->moduleUtil->notAllowedInDemo();
+        if (! empty($notAllowed)) {
+            return $notAllowed;
+        }
+
+        try {
+            $module = Module::findOrFail($module_name);
+            $controller = '\\Modules\\'.$module->getName().'\\Http\\Controllers\\InstallController';
+
+            if (! class_exists($controller) || ! method_exists($controller, 'install')) {
+                throw new \RuntimeException("The {$module->getName()} module does not provide an installer.");
+            }
+
+            return app()->call([app($controller), 'install']);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()->withInput()->with('status', [
                 'success' => false,
                 'msg' => $e->getMessage(),
             ]);

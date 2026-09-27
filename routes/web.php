@@ -520,6 +520,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('upload-module', [Install\ModulesController::class, 'uploadModule']);
     Route::get('manage-modules/install/{module_name}', [Install\ModulesController::class, 'install'])
         ->name('manage-modules.install');
+    Route::post('manage-modules/install/{module_name}', [Install\ModulesController::class, 'runInstaller'])
+        ->name('manage-modules.run-installer');
     Route::delete('manage-modules/destroy/{module_name}', [Install\ModulesController::class, 'destroy']);
     Route::resource('manage-modules', Install\ModulesController::class)
         ->only(['index', 'update']);
