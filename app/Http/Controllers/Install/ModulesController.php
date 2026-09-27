@@ -137,7 +137,19 @@ class ModulesController extends Controller
                 throw new \RuntimeException("The {$module->getName()} module does not provide an installer.");
             }
 
-            return app()->call([app($controller), 'index']);
+            // Disabled modules do not register their routes. Enable the module and
+            // begin a new request so its service provider can load those routes.
+            if (! $module->isEnabled()) {
+                $module->enable();
+
+                return redirect()->route('manage-modules.install', [
+                    'module_name' => $module->getName(),
+                ]);
+            }
+
+            // Use the module's normal route once it has been registered. Its
+            // installer view may generate links to additional controller actions.
+            return redirect()->action($controller.'@index');
         } catch (\Throwable $e) {
             report($e);
 
