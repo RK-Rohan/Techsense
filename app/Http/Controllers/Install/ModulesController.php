@@ -51,12 +51,13 @@ class ModulesController extends Controller
                 $modules[$module]['version'] = $this->moduleUtil->getModuleVersionInfo($details['name']);
             }
 
-            //Install Link.
-            try {
-                $modules[$module]['install_link'] = action('\Modules\\'.$details['name'].'\Http\Controllers\InstallController@index');
-            } catch (\Exception $e) {
-                $modules[$module]['install_link'] = '#';
-            }
+            // Always point at a registered application route. A newly uploaded or
+            // disabled module may not have registered its own routes yet, which
+            // previously caused action() to fail and left the button pointing to #.
+            $modules[$module]['install_link'] = action(
+                [self::class, 'install'],
+                ['module_name' => $details['name']]
+            );
 
             //Update Link.
             try {
@@ -112,6 +113,39 @@ class ModulesController extends Controller
         }
 
         return redirect()->back()->with('status', $output);
+    }
+
+    /**
+     * Run a module installer even when the module has not registered its routes yet.
+     */
+    public function install($module_name)
+    {
+        if (! auth()->user()->can('manage_modules')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $notAllowed = $this->moduleUtil->notAllowedInDemo();
+        if (! empty($notAllowed)) {
+            return $notAllowed;
+        }
+
+        try {
+            $module = Module::findOrFail($module_name);
+            $controller = '\\Modules\\'.$module->getName().'\\Http\\Controllers\\InstallController';
+
+            if (! class_exists($controller) || ! method_exists($controller, 'index')) {
+                throw new \RuntimeException("The {$module->getName()} module does not provide an installer.");
+            }
+
+            return app()->call([app($controller), 'index']);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()->with('status', [
+                'success' => false,
+                'msg' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
