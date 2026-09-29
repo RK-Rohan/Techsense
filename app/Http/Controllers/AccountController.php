@@ -105,6 +105,7 @@ class AccountController extends Controller
                                 'action',
                                 '<button data-href="{{action(\'App\Http\Controllers\AccountController@edit\',[$id])}}" data-container=".account_model" class="btn btn-xs btn-primary btn-modal"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</button>
                                 <a href="{{action(\'App\Http\Controllers\AccountController@show\',[$id])}}" class="btn btn-warning btn-xs"><i class="fa fa-book"></i> @lang("account.account_book")</a>&nbsp;
+                                <a href="{{action(\'App\Http\Controllers\AccountController@ledger\', [\'account_id\' => $id])}}" class="btn btn-default btn-xs"><i class="fa fa-book-open"></i> Ledger</a>&nbsp;
                                 @if($is_closed == 0)
                                 <button data-href="{{action(\'App\Http\Controllers\AccountController@getFundTransfer\',[$id])}}" class="btn btn-xs btn-info btn-modal" data-container=".view_modal"><i class="fa fa-exchange"></i> @lang("account.fund_transfer")</button>
 
@@ -846,6 +847,145 @@ class AccountController extends Controller
      *
      * @return Response
      */
+    /**
+     * Ledger of one payment account for a date range, laid out like a Tally
+     * ledger: money in is Debit, money out is Credit, balance runs Dr/Cr.
+     */
+    public function ledger(Request $request)
+    {
+        if (! auth()->user()->can('account.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = $request->session()->get('user.business_id');
+        $accounts = Account::forDropdown($business_id, false);
+
+        $start_date = $request->input('start_date') ?: \Carbon::now()->startOfMonth()->format('Y-m-d');
+        $end_date = $request->input('end_date') ?: \Carbon::now()->format('Y-m-d');
+        $request->merge(['start_date' => $start_date, 'end_date' => $end_date]);
+        $request->validate([
+            'account_id' => 'nullable|integer',
+            'start_date' => 'date_format:Y-m-d',
+            'end_date' => 'date_format:Y-m-d|after_or_equal:start_date',
+        ]);
+
+        $account = null;
+        $rows = [];
+        $opening = 0;
+        if ($request->filled('account_id')) {
+            $account = Account::where('business_id', $business_id)->findOrFail($request->input('account_id'));
+
+            //Account balance convention: credit adds to the account, debit takes out.
+            $opening = (float) AccountTransaction::where('account_id', $account->id)
+                ->whereNull('deleted_at')
+                ->whereDate('operation_date', '<', $start_date)
+                ->sum(DB::raw("IF(type = 'credit', amount, -1 * amount)"));
+
+            $entries = AccountTransaction::leftJoin('transaction_payments as tp', 'account_transactions.transaction_payment_id', '=', 'tp.id')
+                ->leftJoin('transactions as t', 'account_transactions.transaction_id', '=', 't.id')
+                ->leftJoin('contacts as tc', 't.contact_id', '=', 'tc.id')
+                ->leftJoin('contacts as pc', 'tp.payment_for', '=', 'pc.id')
+                ->leftJoin('expense_categories as ec', 't.expense_category_id', '=', 'ec.id')
+                ->leftJoin('account_transactions as tat', 'account_transactions.transfer_transaction_id', '=', 'tat.id')
+                ->leftJoin('accounts as ta', 'tat.account_id', '=', 'ta.id')
+                ->where('account_transactions.account_id', $account->id)
+                ->whereNull('account_transactions.deleted_at')
+                ->whereDate('account_transactions.operation_date', '>=', $start_date)
+                ->whereDate('account_transactions.operation_date', '<=', $end_date)
+                ->orderBy('account_transactions.operation_date')
+                ->orderBy('account_transactions.id')
+                ->select([
+                    'account_transactions.id',
+                    'account_transactions.type',
+                    'account_transactions.sub_type',
+                    'account_transactions.amount',
+                    'account_transactions.operation_date',
+                    'account_transactions.note',
+                    'tp.id as payment_id',
+                    'tp.payment_ref_no',
+                    't.id as transaction_id',
+                    't.type as transaction_type',
+                    't.ref_no',
+                    't.invoice_no',
+                    'ec.name as expense_category',
+                    'ta.name as transfer_account',
+                    DB::raw("COALESCE(NULLIF(TRIM(tc.supplier_business_name), ''), tc.name, NULLIF(TRIM(pc.supplier_business_name), ''), pc.name) as contact_name"),
+                ])
+                ->get();
+
+            $balance = $opening;
+            foreach ($entries as $entry) {
+                $amount = (float) $entry->amount;
+                $is_in = $entry->type == 'credit';
+                $balance += $is_in ? $amount : -$amount;
+
+                $rows[] = [
+                    'date' => substr($entry->operation_date, 0, 10),
+                    'particulars' => $this->ledgerParticulars($entry),
+                    'vch_type' => $this->ledgerVoucherType($entry),
+                    'vch_no' => $entry->payment_ref_no ?: ($entry->transaction_type == 'sell' ? $entry->invoice_no : $entry->ref_no),
+                    'debit' => $is_in ? $amount : null,
+                    'credit' => $is_in ? null : $amount,
+                    'balance' => $balance,
+                    'link' => $this->ledgerLink($entry),
+                ];
+            }
+        }
+
+        $business = \App\Business::find($business_id);
+        $location = BusinessLocation::where('business_id', $business_id)->first();
+        $address = collect([optional($location)->landmark, optional($location)->city, optional($location)->state, optional($location)->zip_code])
+            ->filter()->implode(', ');
+
+        return view('account.ledger')->with(compact(
+            'accounts', 'account', 'rows', 'opening', 'start_date', 'end_date', 'business', 'address'
+        ));
+    }
+
+    /** The other side of a ledger entry: party, expense head or account. */
+    private function ledgerParticulars($entry)
+    {
+        if (in_array($entry->sub_type, ['fund_transfer', 'deposit'])) {
+            return $entry->transfer_account ?: ($entry->note ?: __('account.'.$entry->sub_type));
+        }
+        if ($entry->sub_type == 'opening_balance') {
+            return __('account.opening_balance');
+        }
+        if ($entry->transaction_type == 'expense') {
+            return $entry->expense_category ?: ($entry->contact_name ?: __('lang_v1.expense'));
+        }
+
+        return $entry->contact_name ?: ($entry->note ?: '-');
+    }
+
+    private function ledgerVoucherType($entry)
+    {
+        if ($entry->sub_type == 'fund_transfer') {
+            return 'Contra';
+        }
+        if ($entry->sub_type == 'opening_balance') {
+            return 'Opening';
+        }
+
+        return $entry->type == 'credit' ? 'Receipt' : 'Payment';
+    }
+
+    /** Where clicking a ledger row leads: the payment, or else its transaction. */
+    private function ledgerLink($entry)
+    {
+        if (! empty($entry->payment_id)) {
+            return action([\App\Http\Controllers\TransactionPaymentController::class, 'viewPayment'], [$entry->payment_id]);
+        }
+        if ($entry->transaction_type == 'sell') {
+            return action([\App\Http\Controllers\SellController::class, 'show'], [$entry->transaction_id]);
+        }
+        if ($entry->transaction_type == 'purchase') {
+            return action([\App\Http\Controllers\PurchaseController::class, 'show'], [$entry->transaction_id]);
+        }
+
+        return null;
+    }
+
     public function cashFlow()
     {
         if (! auth()->user()->can('account.access')) {

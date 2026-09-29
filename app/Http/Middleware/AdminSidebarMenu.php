@@ -489,6 +489,11 @@ class AdminSidebarMenu
                             ['icon' => 'fa fas fa-list', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'account']
                         );
                         $sub->url(
+                            action([\App\Http\Controllers\AccountController::class, 'ledger']),
+                            'Ledger',
+                            ['icon' => 'fa fas fa-book-open', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'ledger']
+                        );
+                        $sub->url(
                             action([\App\Http\Controllers\AccountReportsController::class, 'balanceSheet']),
                             __('account.balance_sheet'),
                             ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'balance-sheet']

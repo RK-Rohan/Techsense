@@ -475,6 +475,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         Route::get('/link-account/{id}', [AccountReportsController::class, 'getLinkAccount']);
         Route::post('/link-account', [AccountReportsController::class, 'postLinkAccount']);
         Route::get('/cash-flow', [AccountController::class, 'cashFlow']);
+        Route::get('/ledger', [AccountController::class, 'ledger']);
     });
 
     Route::resource('account-types', AccountTypeController::class);
