@@ -574,6 +574,11 @@ $(document).ready(function() {
             { data: 'final_total', name: 'final_total' },
             { data: 'payment_due', name: 'transactions.final_total', searchable: false },
             { data: 'added_by', name: 'u.first_name' },
+            { data: 'investor_name', name: 'investor_name', orderable: false, searchable: false },
+            { data: 'investor_amount', name: 'investor_amount', orderable: false, searchable: false },
+            { data: 'shipping_line', name: 'shipping_line', orderable: false, searchable: false },
+            { data: 'tracking_number', name: 'transactions.tracking_number' },
+            { data: 'shipping_status', name: 'transactions.shipping_status' },
         ],
         fnDrawCallback: function(oSettings) {
             __currency_convert_recursively($('#purchase_table'));

@@ -18,6 +18,11 @@
             <th>@lang('purchase.grand_total')</th>
             <th>@lang('purchase.payment_due') &nbsp;&nbsp;<i class="fa fa-info-circle text-info no-print" data-toggle="tooltip" data-placement="bottom" data-html="true" data-original-title="{{ __('messages.purchase_due_tooltip')}}" aria-hidden="true"></i></th>
             <th>@lang('lang_v1.added_by')</th>
+            <th>@lang('lang_v1.investor_name')</th>
+            <th>Investor Amount</th>
+            <th>@lang('lang_v1.shipping_line')</th>
+            <th>@lang('lang_v1.tracking_number')</th>
+            <th>@lang('lang_v1.shipping_status')</th>
         </tr>
     </thead>
     <tfoot>
@@ -30,6 +35,7 @@
             @lang('lang_v1.purchase_return') - <span class="footer_total_purchase_return_due"></span>
             </small></td>
             <td></td>
+            <td colspan="5"></td>
         </tr>
     </tfoot>
 </table>

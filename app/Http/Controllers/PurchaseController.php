@@ -115,6 +115,8 @@ class PurchaseController extends Controller
                 $purchases->where('transactions.created_by', request()->session()->get('user.id'));
             }
 
+            $shipping_statuses = $this->transactionUtil->shipping_statuses();
+
             return Datatables::of($purchases)
                 ->addColumn('action', function ($row) {
                     $html = '<div class="btn-group">
@@ -221,6 +223,29 @@ class PurchaseController extends Controller
 
                     return $due_html;
                 })
+                ->addColumn('investor_name', function ($row) {
+                    if ($row->investor_names === null) {
+                        return e($row->legacy_investor_name);
+                    }
+
+                    return collect(explode('||', $row->investor_names))->map(function ($name) {
+                        return e($name);
+                    })->implode('<br>');
+                })
+                ->addColumn('investor_amount', function ($row) {
+                    if ($row->investor_amounts === null) {
+                        return '';
+                    }
+
+                    return collect(explode('||', $row->investor_amounts))->map(function ($amount) {
+                        return $this->transactionUtil->num_f($amount, true);
+                    })->implode('<br>');
+                })
+                ->editColumn('shipping_line', '{{$shipping_line}}')
+                ->editColumn('tracking_number', '{{$tracking_number}}')
+                ->editColumn('shipping_status', function ($row) use ($shipping_statuses) {
+                    return e($shipping_statuses[$row->shipping_status] ?? $row->shipping_status);
+                })
                 ->setRowAttr([
                     'data-href' => function ($row) {
                         if (auth()->user()->can('purchase.view')) {
@@ -229,7 +254,7 @@ class PurchaseController extends Controller
                             return '';
                         }
                     }, ])
-                ->rawColumns(['final_total', 'action', 'payment_due', 'payment_status', 'status', 'ref_no', 'name'])
+                ->rawColumns(['final_total', 'action', 'payment_due', 'payment_status', 'status', 'ref_no', 'name', 'investor_name', 'investor_amount'])
                 ->make(true);
         }
 

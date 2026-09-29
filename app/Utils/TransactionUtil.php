@@ -5079,7 +5079,17 @@ class TransactionUtil extends Util
                         TP2.transaction_id=PR.id ) as return_paid'),
                 DB::raw('COUNT(PR.id) as return_exists'),
                 DB::raw('COALESCE(PR.final_total, 0) as amount_return'),
-                DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by")
+                DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by"),
+                'transactions.tracking_number',
+                'transactions.shipping_status',
+                //Subqueries, not joins, so the payment sums above are not multiplied.
+                DB::raw('(SELECT SL.name FROM shipping_lines AS SL WHERE SL.id = transactions.shipping_line_id) as shipping_line'),
+                DB::raw("(SELECT GROUP_CONCAT(COALESCE(I.name, '') ORDER BY PI.id SEPARATOR '||') FROM purchase_investors AS PI
+                        LEFT JOIN investors AS I ON I.id = PI.investor_id WHERE PI.transaction_id = transactions.id) as investor_names"),
+                DB::raw("(SELECT GROUP_CONCAT(PI.amount ORDER BY PI.id SEPARATOR '||') FROM purchase_investors AS PI
+                        WHERE PI.transaction_id = transactions.id) as investor_amounts"),
+                //Purchases saved before multiple investors had only this one.
+                DB::raw('(SELECT I.name FROM investors AS I WHERE I.id = transactions.investor_id) as legacy_investor_name')
             )
             ->groupBy('transactions.id');
 
