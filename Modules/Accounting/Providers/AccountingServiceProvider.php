@@ -79,9 +79,13 @@ class AccountingServiceProvider extends ServiceProvider
             $sourcePath => $viewPath,
         ], 'views');
 
-        $this->loadViewsFrom(array_merge(array_map(function ($path) {
+        // Only include published override paths that actually exist, otherwise
+        // `php artisan view:cache` fails with DirectoryNotFoundException.
+        $overridePaths = array_filter(array_map(function ($path) {
             return $path.'/modules/accounting';
-        }, config('view.paths')), [$sourcePath]), 'accounting');
+        }, config('view.paths')), 'is_dir');
+
+        $this->loadViewsFrom(array_merge($overridePaths, [$sourcePath]), 'accounting');
     }
 
     /**
