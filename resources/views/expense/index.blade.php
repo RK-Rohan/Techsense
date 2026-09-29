@@ -4,12 +4,12 @@
 @section('content')
 
 <!-- Content Header (Page header) -->
-<section class="content-header">
+<section class="content-header no-print">
     <h1>@lang('expense.expenses')</h1>
 </section>
 
 <!-- Main content -->
-<section class="content">
+<section class="content no-print">
     <div class="row">
         <div class="col-md-12">
             @component('components.filters', ['title' => __('report.filters'), 'class' => 'box-solid expense-list-filters'])
