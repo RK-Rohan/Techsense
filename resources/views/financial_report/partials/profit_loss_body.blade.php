@@ -22,7 +22,7 @@
             <td class="num">@include('financial_report.partials.amount', ['value' => $prev['revenue']])</td>
         </tr>
         <tr>
-            <td>Less: Cost of Sold**</td>
+            <td>Less: Cost of Sold</td>
             <td class="notes-col">12</td>
             <td class="num">@include('financial_report.partials.amount', ['value' => $cur['cost_of_sales']])</td>
             <td class="num">@include('financial_report.partials.amount', ['value' => $prev['cost_of_sales']])</td>
@@ -62,36 +62,6 @@
             <td class="notes-col"></td>
             <td class="num">@include('financial_report.partials.amount', ['value' => $cur['profit_before_tax']])</td>
             <td class="num">@include('financial_report.partials.amount', ['value' => $prev['profit_before_tax']])</td>
-        </tr>
-    </tbody>
-</table>
-
-<br>
-<p><strong>** Cost of Goods Sold</strong></p>
-<p style="color:#2a6099;">Beginning Inventory + Purchases &minus; Ending Inventory</p>
-<p>Carriage inward</p>
-
-<table class="statement" style="max-width:520px;">
-    <tbody>
-        <tr>
-            <td class="indent">Opening Stock</td>
-            <td class="num">@include('financial_report.partials.amount', ['value' => $cur['opening_stock']])</td>
-        </tr>
-        <tr>
-            <td class="indent">Add: Net Purchase</td>
-            <td class="num">@include('financial_report.partials.amount', ['value' => $cur['net_purchase']])</td>
-        </tr>
-        <tr>
-            <td class="indent">Add: Carriage Inward</td>
-            <td class="num">@include('financial_report.partials.amount', ['value' => $cur['carriage_inward']])</td>
-        </tr>
-        <tr>
-            <td class="indent">Less: Closing Stock</td>
-            <td class="num">@include('financial_report.partials.amount', ['value' => $cur['closing_stock']])</td>
-        </tr>
-        <tr class="total">
-            <td>Cost of Goods Sold</td>
-            <td class="num">@include('financial_report.partials.amount', ['value' => $cur['cost_of_sales']])</td>
         </tr>
     </tbody>
 </table>
