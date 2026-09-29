@@ -88,7 +88,7 @@
         <p class="period">Period: {{ $date($start_date) }} to {{ $date($end_date) }}</p>
 
     </div>
-    <p class="book-title">Purchase of Goods/Services Inputs</p>
+    <p class="book-title">Purchase of Goods/Services Inputs{{ ! empty($product_names) ? ' - '.$product_names : '' }}</p>
 
     <table class="items">
         @php

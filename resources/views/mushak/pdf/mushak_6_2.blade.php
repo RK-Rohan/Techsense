@@ -83,7 +83,7 @@
             <p>[See Rule 40, Sub-rule (1), Clause (b) and Rule 41, Clause (a)]</p>
         </div>
     </div>
-    <div class="book-title">Sale of Goods/Services
+    <div class="book-title">Sale of Goods/Services{{ ! empty($product_names) ? ' - '.$product_names : '' }}
         <span class="period">Period: {{ $date($start_date) }} to {{ $date($end_date) }}</span>
     </div>
 

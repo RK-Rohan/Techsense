@@ -40,6 +40,7 @@ class MushakRegisterController extends Controller
     {
         [$start_date, $end_date] = $this->dateRange($request);
         $location_id = $request->input('location_id');
+        $product_ids = $this->productFilter($request);
 
         $query = Transaction::where('transactions.business_id', $business_id)
             ->where('transactions.type', 'purchase')
@@ -63,13 +64,19 @@ class MushakRegisterController extends Controller
             $query->where('transactions.location_id', $location_id);
         }
 
+        if (! empty($product_ids)) {
+            $query->whereHas('purchase_lines', function ($q) use ($product_ids) {
+                $q->whereIn('product_id', $product_ids);
+            });
+        }
+
         $this->scopeSourceTransactions($query, 'purchase');
         $transactions = $query->orderBy('transactions.transaction_date')
             ->orderBy('transactions.id')
             ->get();
 
         //Stock on hand before the range opens the book.
-        $opening = $this->openingStock($business_id, 'purchase', $start_date, $location_id);
+        $opening = $this->openingStock($business_id, 'purchase', $start_date, $location_id, $product_ids);
         $running_qty = $opening['quantity'];
         $running_value = $opening['value'];
 
@@ -82,13 +89,27 @@ class MushakRegisterController extends Controller
                 ? collect($contact->contact_address_array)->filter()->implode(', ')
                 : '';
 
+            //Purchase level VAT is spread across all lines of the purchase, so
+            //each row carries its share even when only some products are shown.
+            $has_order_vat = (float) $transaction->tax_amount !== 0.0;
+            $line_base_total = $transaction->purchase_lines->sum(function ($line) {
+                return (float) $line->purchase_price * (float) $line->quantity;
+            });
+
             foreach ($transaction->purchase_lines as $line) {
+                if (! empty($product_ids) && ! in_array((int) $line->product_id, $product_ids, true)) {
+                    continue;
+                }
+
                 $serial++;
 
                 $quantity = (float) $line->quantity;
                 $unit_price = (float) $line->purchase_price;
                 $value = $quantity * $unit_price;
-                $vat = (float) $line->item_tax * $quantity;
+                $allocated_order_vat = $has_order_vat && $line_base_total > 0
+                    ? ((float) $transaction->tax_amount * ($value / $line_base_total))
+                    : 0;
+                $vat = (float) $line->item_tax * $quantity + $allocated_order_vat;
 
                 $opening_qty = $running_qty;
                 $opening_value = $running_value;
@@ -155,6 +176,7 @@ class MushakRegisterController extends Controller
     {
         [$start_date, $end_date] = $this->dateRange($request);
         $location_id = $request->input('location_id');
+        $product_ids = $this->productFilter($request);
 
         $query = Transaction::where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
@@ -183,12 +205,18 @@ class MushakRegisterController extends Controller
             $query->where('transactions.location_id', $location_id);
         }
 
+        if (! empty($product_ids)) {
+            $query->whereHas('sell_lines', function ($q) use ($product_ids) {
+                $q->whereNull('parent_sell_line_id')->whereIn('product_id', $product_ids);
+            });
+        }
+
         $this->scopeSourceTransactions($query, 'sell');
         $transactions = $query->orderBy('transactions.transaction_date')
             ->orderBy('transactions.id')
             ->get();
 
-        $opening = $this->openingStock($business_id, 'sell', $start_date, $location_id);
+        $opening = $this->openingStock($business_id, 'sell', $start_date, $location_id, $product_ids);
         $running_qty = $opening['quantity'];
         $running_value = $opening['value'];
 
@@ -210,6 +238,10 @@ class MushakRegisterController extends Controller
             });
 
             foreach ($transaction->sell_lines as $line) {
+                if (! empty($product_ids) && ! in_array((int) $line->product_id, $product_ids, true)) {
+                    continue;
+                }
+
                 $quantity = (float) $line->quantity;
                 $unit_price = (float) ($has_order_vat ? $line->unit_price_inc_tax : $line->unit_price);
                 $value = $quantity * $unit_price;
@@ -275,7 +307,7 @@ class MushakRegisterController extends Controller
      * Quantity and value on hand immediately before the book opens, so the
      * first row's opening balance continues from the previous period.
      */
-    private function openingStock($business_id, $type, $start_date, $location_id)
+    private function openingStock($business_id, $type, $start_date, $location_id, array $product_ids = [])
     {
         if (empty($start_date)) {
             return ['quantity' => 0, 'value' => 0];
@@ -289,6 +321,10 @@ class MushakRegisterController extends Controller
 
         if (! empty($location_id)) {
             $purchased->where('transactions.location_id', $location_id);
+        }
+
+        if (! empty($product_ids)) {
+            $purchased->whereIn('pl.product_id', $product_ids);
         }
 
         $this->scopeSourceTransactions($purchased, 'purchase');
@@ -305,18 +341,39 @@ class MushakRegisterController extends Controller
             $sold->where('transactions.location_id', $location_id);
         }
 
+        if (! empty($product_ids)) {
+            $sold->whereIn('sl.product_id', $product_ids);
+        }
+
         $this->scopeSourceTransactions($sold, 'sell');
-        $sold = $sold->selectRaw('SUM(sl.quantity) as qty, SUM(sl.quantity * sl.unit_price) as value')->first();
+        $sold = $sold->selectRaw('SUM(sl.quantity) as qty')->first();
 
         //The purchase book tracks inputs received; the sales book tracks goods
-        //available to supply. Both net off what has already left stock.
-        $quantity = (float) optional($purchased)->qty - (float) optional($sold)->qty;
-        $value = (float) optional($purchased)->value - (float) optional($sold)->value;
+        //available to supply. Both net off what has already left stock. Stock
+        //is valued at average purchase cost, since netting sales at selling
+        //price drove the opening value negative.
+        $purchased_qty = (float) optional($purchased)->qty;
+        $average_cost = $purchased_qty > 0 ? (float) optional($purchased)->value / $purchased_qty : 0;
+        $quantity = max(0, $purchased_qty - (float) optional($sold)->qty);
+        $value = $quantity * $average_cost;
 
         return [
             'quantity' => $quantity,
             'value' => $value,
         ];
+    }
+
+    /**
+     * Products chosen on the generate form; empty means every product.
+     */
+    protected function productFilter(Request $request)
+    {
+        return collect((array) $request->input('product_ids', []))
+            ->filter(function ($id) {
+                return is_numeric($id);
+            })->map(function ($id) {
+                return (int) $id;
+            })->unique()->values()->all();
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\MushakBook;
+use App\Product;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -48,7 +49,9 @@ class MushakBookController extends MushakRegisterController
             'registered_name' => optional($header['business'])->name,
             'seller_address' => $header['seller_address'], 'seller_bin' => $header['seller_bin'], 'rows' => [],
         ]);
-        return view('mushak.books.form', compact('book', 'type'));
+        $selected_products = Product::where('business_id', $request->session()->get('user.business_id'))
+            ->whereIn('id', (array) old('product_ids', []))->get(['id', 'name']);
+        return view('mushak.books.form', compact('book', 'type', 'selected_products'));
     }
 
     public function edit(Request $request, $type, $id)
@@ -81,8 +84,15 @@ class MushakBookController extends MushakRegisterController
             'registered_name' => 'required|string|max:191', 'seller_address' => 'nullable|string|max:5000',
             'seller_bin' => 'nullable|string|max:191',
         ];
-        $data = $request->validate($rules);
         if (! $book->exists) {
+            $rules += ['product_ids' => 'nullable|array', 'product_ids.*' => 'integer'];
+        }
+        $data = $request->validate($rules);
+        unset($data['product_ids']);
+        if (! $book->exists) {
+            $product_ids = $this->productFilter($request);
+            $data['product_names'] = empty($product_ids) ? null : Product::where('business_id', $book->business_id)
+                ->whereIn('id', $product_ids)->orderBy('name')->pluck('name')->implode(', ');
             $report = $type === '6-1'
                 ? $this->buildPurchaseBook($book->business_id, $request)
                 : $this->buildSalesBook($book->business_id, $request);
@@ -115,7 +125,7 @@ class MushakBookController extends MushakRegisterController
         $book = $this->scope($request, $type)->findOrFail($id);
         $data = $this->headerData($book->business_id, null);
         $data['business'] = (object) ['name' => $book->registered_name];
-        foreach (['seller_address', 'seller_bin', 'start_date', 'end_date'] as $key) {
+        foreach (['seller_address', 'seller_bin', 'start_date', 'end_date', 'product_names'] as $key) {
             $data[$key] = $book->$key;
         }
         $data['rows'] = collect($book->rows);

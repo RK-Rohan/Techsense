@@ -17,6 +17,17 @@
                         <input class="form-control" id="{{ $field }}" name="{{ $field }}" type="{{ in_array($field, ['issued_at', 'start_date', 'end_date']) ? 'date' : 'text' }}" value="{{ old($field, $book->$field) }}" {{ in_array($field, ['seller_address', 'seller_bin']) ? '' : 'required' }}>
                     </div>
                 @endforeach
+                @unless ($book->exists)
+                    <div class="col-md-8 form-group">
+                        <label for="product_ids">Product Name</label>
+                        <select class="form-control" id="product_ids" name="product_ids[]" multiple style="width: 100%;">
+                            @foreach ($selected_products ?? [] as $product)
+                                <option value="{{ $product->id }}" selected>{{ $product->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="help-block">Leave empty to include all products.</p>
+                    </div>
+                @endunless
             </div>
         @endcomponent
         @if ($book->exists)
@@ -31,7 +42,7 @@
             </div>
         @endcomponent
         @else
-            <p>Generate and save a report from transactions in the selected date range.</p>
+            <p>Generate and save a report from transactions in the selected date range, limited to the selected products.</p>
         @endif
         <button class="btn btn-primary" type="submit">{{ $book->exists ? 'Save Changes' : 'Generate Mushak '.str_replace('-', '.', $type) }}</button>
         <a class="btn btn-default" href="{{ route($type === '6-1' ? 'mushak.purchaseBook' : 'mushak.salesBook') }}">Cancel</a>
@@ -41,6 +52,18 @@
 @section('javascript')
 <script>
 $(function() {
+    $('#product_ids').select2({
+        placeholder: 'All products',
+        minimumInputLength: 1,
+        ajax: {
+            url: '/products/list-no-variation',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) { return {term: params.term}; },
+            processResults: function(data) { return {results: data}; },
+        },
+    });
+
     // Send rows as JSON to avoid PHP max_input_vars truncating larger books.
     $('#book_form').on('submit', function() {
         if (!$('#book_rows').length) return;
