@@ -177,6 +177,8 @@ class ExpenseController extends Controller
                                 </span>
                         </button>
                     <ul class="dropdown-menu dropdown-menu-left" role="menu">
+                        <li><a href="#" data-href="{{action([\App\Http\Controllers\ExpenseController::class, \'show\'], [$id])}}" class="btn-modal" data-container=".view_modal"><i class="fas fa-eye" aria-hidden="true"></i> @lang("messages.view")</a></li>
+                        <li><a href="#" class="print-invoice" data-href="{{action([\App\Http\Controllers\ExpenseController::class, \'show\'], [$id])}}?print=1"><i class="fas fa-print" aria-hidden="true"></i> @lang("messages.print")</a></li>
                     @if(auth()->user()->can("expense.edit"))
                         <li><a href="{{action(\'App\Http\Controllers\ExpenseController@edit\', [$id])}}"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</a></li>
                     @endif
@@ -411,7 +413,101 @@ class ExpenseController extends Controller
      */
     public function show($id)
     {
-        //
+        if (! auth()->user()->can('all_expense.access') && ! auth()->user()->can('view_own_expense')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+
+        $query = Transaction::where('business_id', $business_id)
+            ->whereIn('type', ['expense', 'expense_refund'])
+            ->with([
+                'location',
+                'contact',
+                'tax',
+                'transaction_for',
+                'sales_person',
+                'business',
+                'recurring_parent',
+                'payment_lines.payment_account',
+            ]);
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('location_id', $permitted_locations);
+        }
+
+        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
+        if (! $is_admin && ! auth()->user()->can('all_expense.access')) {
+            $user_id = auth()->user()->id;
+            $query->where(function ($q) use ($user_id) {
+                $q->where('created_by', $user_id)
+                    ->orWhere('expense_for', $user_id);
+            });
+        }
+
+        $expense = $query->findOrFail($id);
+
+        $expense_items = is_array($expense->expense_items) ? $expense->expense_items : [];
+        $sub_category_ids = is_array($expense->expense_sub_category_ids) ? $expense->expense_sub_category_ids : [];
+
+        $category_ids = array_filter(array_merge(
+            [$expense->expense_category_id, $expense->expense_sub_category_id],
+            $sub_category_ids,
+            array_column($expense_items, 'subcategory_id')
+        ));
+        $categories = ExpenseCategory::withTrashed()
+            ->where('business_id', $business_id)
+            ->whereIn('id', $category_ids)
+            ->pluck('name', 'id');
+
+        $items = [];
+        foreach ($expense_items as $item) {
+            $items[] = [
+                'name' => $categories[$item['subcategory_id'] ?? 0] ?? '',
+                'note' => $item['note'] ?? '',
+                'amount' => $item['amount'] ?? 0,
+            ];
+        }
+
+        $sub_category_names = collect($sub_category_ids)
+            ->push($expense->expense_sub_category_id)
+            ->filter()
+            ->unique()
+            ->map(function ($sub_id) use ($categories) {
+                return $categories[$sub_id] ?? null;
+            })
+            ->filter()
+            ->implode(', ');
+
+        //Same calculation as the expense list so the due amount matches.
+        $amount_paid = $expense->payment_lines->sum('amount');
+        $payment_due = $expense->final_total - $amount_paid;
+        if ($expense->type == 'expense_refund') {
+            $payment_due = -1 * $payment_due;
+        }
+
+        $data = [
+            'expense' => $expense,
+            'category_name' => $categories[$expense->expense_category_id] ?? '',
+            'sub_category_names' => $sub_category_names,
+            'items' => $items,
+            'amount_paid' => $amount_paid,
+            'payment_due' => $payment_due,
+            'payment_types' => $this->transactionUtil->payment_types(null, false, $business_id),
+        ];
+
+        if (request()->input('print')) {
+            return [
+                'success' => 1,
+                'receipt' => [
+                    'html_content' => view('expense.partials.expense_details', array_merge($data, ['for_print' => true]))->render(),
+                    'print_title' => $expense->ref_no,
+                ],
+            ];
+        }
+
+        return view('expense.show', $data);
     }
 
     /**
