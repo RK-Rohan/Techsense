@@ -137,7 +137,7 @@ class MushakRegisterController extends Controller
                         : '',
                     'supplier_address' => $supplier_address,
                     'supplier_bin' => optional($contact)->tax_number,
-                    'description' => $this->lineDescription($line),
+                    'description' => $this->lineDescription($line, count($product_ids) !== 1),
                     'quantity' => $quantity,
                     'value' => $value,
                     'sd_amount' => 0,
@@ -280,7 +280,7 @@ class MushakRegisterController extends Controller
                     'buyer_bin' => optional($contact)->tax_number,
                     'challan_no' => $transaction->custom_field_3 ?: $transaction->invoice_no,
                     'challan_date' => $transaction->transaction_date,
-                    'description' => $this->lineDescription($line),
+                    'description' => $this->lineDescription($line, count($product_ids) !== 1),
                     'quantity' => $quantity,
                     'taxable_value' => $value,
                     'sd_amount' => 0,
@@ -434,20 +434,30 @@ class MushakRegisterController extends Controller
 
     /**
      * Product description including brand and sub-sku, matching the 6.3.
+     * A book for a single product already names it in the heading, so its
+     * rows carry only the brand and sub-sku.
      */
-    private function lineDescription($line)
+    private function lineDescription($line, $with_name = true)
     {
-        $description = $line->product ? $line->product->name : '';
+        $parts = [];
+        $brand = $line->product && $line->product->brand ? $line->product->brand->name : '';
 
-        if ($line->product && $line->product->brand) {
-            $description .= ' (' . $line->product->brand->name . ')';
+        if ($with_name) {
+            $name = $line->product ? $line->product->name : '';
+            $parts[] = $brand !== '' ? $name . ' (' . $brand . ')' : $name;
+        } elseif ($brand !== '') {
+            $parts[] = $brand;
         }
 
         if ($line->variations && ! empty($line->variations->sub_sku)) {
-            $description .= "\n" . $line->variations->sub_sku;
+            $parts[] = $line->variations->sub_sku;
         }
 
-        return $description;
+        if (empty($parts) && $line->product) {
+            $parts[] = $line->product->name;
+        }
+
+        return implode("\n", $parts);
     }
 
     private function lineUnit($line)
