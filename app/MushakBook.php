@@ -40,8 +40,10 @@ class MushakBook extends Model
             $clean['serial'] = $index + 1;
             $clean['total_qty'] = $clean['opening_qty'] + $clean[$purchase ? 'quantity' : 'produced_qty'];
             $clean['total_value'] = $clean['opening_value'] + $clean[$purchase ? 'value' : 'produced_value'];
-            $clean['closing_qty'] = $clean['total_qty'] - $clean[$purchase ? 'used_qty' : 'quantity'];
-            $clean['closing_value'] = $clean['total_value'] - $clean[$purchase ? 'used_value' : 'taxable_value'];
+            //A balance cannot fall below zero; sales valued above cost would
+            //otherwise drive the closing value negative.
+            $clean['closing_qty'] = max(0.0, $clean['total_qty'] - $clean[$purchase ? 'used_qty' : 'quantity']);
+            $clean['closing_value'] = max(0.0, $clean['total_value'] - $clean[$purchase ? 'used_value' : 'taxable_value']);
             $result[] = $clean;
         }
         return $result;

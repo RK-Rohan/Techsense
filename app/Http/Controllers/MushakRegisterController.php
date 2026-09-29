@@ -262,8 +262,8 @@ class MushakRegisterController extends Controller
                 $total_value = $opening_value + $produced_value;
 
                 //(19) = (7-11) and (20) = (8-16)
-                $running_qty = $total_qty - $quantity;
-                $running_value = $total_value - $value;
+                $running_qty = max(0, $total_qty - $quantity);
+                $running_value = max(0, $total_value - $value);
 
                 $rows[] = [
                     'date' => $transaction->transaction_date,

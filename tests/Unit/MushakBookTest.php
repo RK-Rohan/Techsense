@@ -34,6 +34,12 @@ class MushakBookTest extends TestCase
         $this->assertSame(30.0, $rows[1]['opening_qty']);
         $this->assertSame(2, $rows[1]['serial']);
         $this->assertSame('Custom buyer', $rows[0]['buyer_name']);
+
+        $rows = MushakBook::calculateRows('6-2', [[
+            'opening_qty' => 2, 'opening_value' => 100, 'quantity' => 3, 'taxable_value' => 500,
+        ]]);
+        $this->assertSame(0.0, $rows[0]['closing_qty']);
+        $this->assertSame(0.0, $rows[0]['closing_value']);
         $this->assertArrayNotHasKey('supplier_name', $rows[0]);
     }
 }
