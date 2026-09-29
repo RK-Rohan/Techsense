@@ -56,6 +56,10 @@ class InvestorPortalController extends Controller
             $returned = (float) $inv->return_amount;
             $due = $returned < $amount ? $amount - $returned : 0;
 
+            // Profit and ROI only mean something once a payout has been made.
+            $profit = $returned > 0 ? max($returned - $amount, 0) : null;
+            $roi = $profit !== null && $amount > 0 ? $profit / $amount * 100 : null;
+
             // Days the money has been out: to the return date once repaid,
             // otherwise up to today.
             $loan_days = null;
@@ -75,6 +79,8 @@ class InvestorPortalController extends Controller
                 'amount' => $amount,
                 'received_account_name' => optional($inv->receivedAccount)->name,
                 'return_amount' => $returned,
+                'profit' => $profit,
+                'roi' => $roi,
                 'return_date' => $inv->return_date,
                 'status' => $returned > 0 ? ($due > 0 ? 'partial' : 'paid') : 'due',
                 'remarks' => $inv->remarks,
@@ -119,6 +125,8 @@ class InvestorPortalController extends Controller
             'total_paid_with_profit' => $total_paid_with_profit,
             'total_profit' => $total_profit,
             'total_due' => $total_due,
+            // Return on the capital already paid back, since only that has earned.
+            'roi' => $total_principal_paid > 0 ? $total_profit / $total_principal_paid * 100 : 0,
             'count' => $investments->count(),
         ];
     }

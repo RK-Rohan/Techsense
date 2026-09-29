@@ -33,6 +33,7 @@
                                     <th class="text-center">Total Paid<br>with Profit</th>
                                     <th class="text-center">Total Profit</th>
                                     <th class="text-center">Total Invest Due</th>
+                                    <th class="text-center">ROI %</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -42,6 +43,7 @@
                                     <td class="text-center summary-value cell-paid">@format_currency($summary['total_paid_with_profit'])</td>
                                     <td class="text-center summary-value cell-profit">@format_currency($summary['total_profit'])</td>
                                     <td class="text-center summary-value cell-due">@format_currency($summary['total_due'])</td>
+                                    <td class="text-center summary-value cell-roi">{{ number_format($summary['roi'], 2) }}%</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -67,6 +69,8 @@
                                     <th>Amount</th>
                                     <th>Received Account</th>
                                     <th>Return Amount</th>
+                                    <th>Profit</th>
+                                    <th>ROI %</th>
                                     <th>Return Date</th>
                                     <th>Payment Status</th>
                                     <th>Remarks</th>
@@ -99,6 +103,7 @@
     .cell-paid      { background: #e2efdb; }
     .cell-profit    { background: #fdf2d8; }
     .cell-due       { background: #f9dcdc; }
+    .cell-roi       { background: #e0f2f1; }
     .list-heading { font-weight: 700; margin: 0 0 15px; }
     #investor_portal_table { font-size: 12px; }
     @media print {
@@ -139,6 +144,8 @@ $(document).ready(function(){
             { data: 'amount', render: money },
             { data: 'received_account_name', defaultContent: '' },
             { data: 'return_amount', render: function(d){ return d ? money.display(d) : ''; } },
+            { data: 'profit', render: function(d){ return d === null || d === undefined ? '' : money.display(d); } },
+            { data: 'roi', render: function(d){ return d === null || d === undefined ? '' : parseFloat(d).toFixed(2) + '%'; } },
             { data: 'return_date', defaultContent: '' },
             { data: 'status', render: function(d){
                 var cls  = { paid: 'label-success', partial: 'label-warning', due: 'label-danger' };
