@@ -34,6 +34,11 @@ class Investor extends Model
         return $this->hasMany(\App\Models\Investment::class);
     }
 
+    public function purchaseInvestments()
+    {
+        return $this->hasMany(\App\Models\PurchaseInvestor::class);
+    }
+
     /**
      * Portal login account for this investor, if one has been created.
      */

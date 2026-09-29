@@ -48,6 +48,14 @@ class Transaction extends Model
         return $this->hasMany(\App\PurchaseLine::class);
     }
 
+    /**
+     * Investors funding a purchase and the amount each contributed.
+     */
+    public function purchase_investors()
+    {
+        return $this->hasMany(\App\Models\PurchaseInvestor::class);
+    }
+
     public function sell_lines()
     {
         return $this->hasMany(\App\TransactionSellLine::class);

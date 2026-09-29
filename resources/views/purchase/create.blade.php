@@ -170,12 +170,6 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-sm-3">
-				<div class="form-group">
-					{!! Form::label('investor_id', __('lang_v1.investor_name') . ':') !!}
-					{!! Form::select('investor_id', $investors, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
-				</div>
-			</div>
 			@php
 		    $custom_field_1_label = !empty($custom_labels['purchase']['custom_field_1']) ? $custom_labels['purchase']['custom_field_1'] : '';
 
@@ -253,6 +247,42 @@
 		        </div>
 		    </div>
 		@endif
+		</div>
+		<div class="row">
+			<div class="col-sm-6">
+				<table class="table table-condensed" id="purchase_investors_table">
+					<thead>
+						<tr>
+							<th>{{ __('lang_v1.investor_name') }}</th>
+							<th style="width: 35%;">Investor Amount</th>
+							<th style="width: 40px;"></th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+					<tfoot>
+						<tr>
+							<td>
+								<button type="button" class="btn btn-default btn-xs" id="add_purchase_investor"><i class="fa fa-plus"></i> Add investor</button>
+							</td>
+							<td><strong>Total: <span id="purchase_investors_total">0.00</span></strong></td>
+							<td></td>
+						</tr>
+					</tfoot>
+				</table>
+				<script type="text/template" id="purchase_investor_row_template">
+					<tr>
+						<td>
+							{!! Form::select('investors[__index__][investor_id]', $investors, null, ['class' => 'form-control investor-select', 'placeholder' => __('messages.please_select'), 'style' => 'width:100%']); !!}
+						</td>
+						<td>
+							{!! Form::text('investors[__index__][amount]', 0, ['class' => 'form-control input_number investor-amount']); !!}
+						</td>
+						<td>
+							<button type="button" class="btn btn-link text-danger remove-purchase-investor"><i class="fa fa-times"></i></button>
+						</td>
+					</tr>
+				</script>
+			</div>
 		</div>
 		@if(!empty($common_settings['enable_purchase_order']))
 		<div class="row">
@@ -642,6 +672,41 @@
 			}, 0);
 		});
 
+		//Several investors can fund one purchase, each with their own amount.
+		var investor_index = 0;
+		function add_purchase_investor_row() {
+			var html = $('#purchase_investor_row_template').html().replace(/__index__/g, investor_index++);
+			var row = $(html).appendTo('#purchase_investors_table tbody');
+			row.find('.investor-select').select2();
+		}
+		function update_purchase_investors_total() {
+			var total = 0;
+			$('#purchase_investors_table .investor-amount').each(function() {
+				total += __read_number($(this));
+			});
+			$('#purchase_investors_total').text(__number_f(total));
+		}
+		add_purchase_investor_row();
+		$(document).on('click', '#add_purchase_investor', add_purchase_investor_row);
+		$(document).on('click', '.remove-purchase-investor', function() {
+			$(this).closest('tr').remove();
+			if (!$('#purchase_investors_table tbody tr').length) {
+				add_purchase_investor_row();
+			}
+			update_purchase_investors_total();
+		});
+		$(document).on('change keyup', '.investor-amount', update_purchase_investors_total);
+
+		//The purchase custom field labelled "Company Name" is filled from the
+		//customer of the chosen quotation.
+		@php
+			$purchase_labels = json_decode(session('business.custom_labels'), true)['purchase'] ?? [];
+			$company_name_field = collect([1, 2, 3, 4])->first(function ($n) use ($purchase_labels) {
+				return stripos($purchase_labels['custom_field_'.$n] ?? '', 'company') !== false;
+			});
+		@endphp
+		var company_name_input = $('input[name="{{ $company_name_field ? 'custom_field_'.$company_name_field : '' }}"]');
+
 		//Pulls the line items of the chosen quotation into the purchase table.
 		$(document).on('change', '#quotation_id', function() {
 			var quotation_id = $(this).val();
@@ -661,6 +726,9 @@
 				url: '/get-quotation-lines/' + quotation_id + '?row_count=' + row_count,
 				dataType: 'json',
 				success: function(data) {
+					if (company_name_input.length && data.company_name) {
+						company_name_input.val(data.company_name);
+					}
 					if (!$.trim(data.html)) {
 						toastr.warning("{{ __('lang_v1.no_quotation_items') }}");
 						return;

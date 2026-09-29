@@ -344,6 +344,9 @@ class PurchaseController extends Controller
                 'location_id' => 'required',
                 'final_total' => 'required',
                 'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
+                'investors' => 'nullable|array',
+                'investors.*.investor_id' => 'nullable|integer|exists:investors,id',
+                'investors.*.amount' => 'nullable|string|max:50',
             ]);
 
             $user_id = $request->session()->get('user.id');
@@ -394,7 +397,9 @@ class PurchaseController extends Controller
             $transaction_data['shipping_status'] = $request->input('shipping_status', null);
             $transaction_data['tracking_number'] = $request->input('tracking_number', null);
             $transaction_data['shipping_line_id'] = $request->input('shipping_line_id') ?: null;
-            $transaction_data['investor_id'] = $request->input('investor_id') ?: null;
+            $purchase_investors = $this->purchaseInvestorRows($request, $currency_details);
+            //Kept for older reports that read a single investor per purchase.
+            $transaction_data['investor_id'] = $purchase_investors[0]['investor_id'] ?? null;
 
             if ($request->input('additional_expense_value_1') != '') {
                 $transaction_data['additional_expense_key_1'] = $request->input('additional_expense_key_1');
@@ -426,6 +431,10 @@ class PurchaseController extends Controller
             }
 
             $transaction = Transaction::create($transaction_data);
+
+            foreach ($purchase_investors as $row) {
+                $transaction->purchase_investors()->create($row + ['business_id' => $business_id]);
+            }
 
             $purchase_lines = [];
             $purchases = $request->input('purchases');
@@ -1297,6 +1306,27 @@ class PurchaseController extends Controller
     }
 
     /**
+     * Investor rows from the purchase form, skipping rows with no investor.
+     *
+     * @return array
+     */
+    private function purchaseInvestorRows(Request $request, $currency_details)
+    {
+        return collect($request->input('investors', []))
+            ->filter(function ($row) {
+                return ! empty($row['investor_id']);
+            })
+            ->map(function ($row) use ($currency_details) {
+                return [
+                    'investor_id' => (int) $row['investor_id'],
+                    'amount' => $this->productUtil->num_uf($row['amount'] ?? 0, $currency_details),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
      * Open sell quotations, labelled for the purchase form's dropdown.
      *
      * @param  int  $business_id
@@ -1395,9 +1425,13 @@ class PurchaseController extends Controller
                 'sub_units_array'
             ))->render();
 
+        $contact = $quotation->contact;
+        $company_name = $contact ? (trim((string) $contact->supplier_business_name) ?: $contact->name) : '';
+
         return [
             'html' => $html,
             'quotation' => $quotation,
+            'company_name' => $company_name,
         ];
     }
 
