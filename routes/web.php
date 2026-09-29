@@ -269,6 +269,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells/drafts', [SellController::class, 'getDrafts']);
     Route::get('/sells/convert-to-draft/{id}', [SellPosController::class, 'convertToInvoice']);
     Route::get('/sells/convert-to-proforma/{id}', [SellPosController::class, 'convertToProforma']);
+    Route::get('/sells/convert-quotation-to-draft/{id}', [SellPosController::class, 'convertQuotationToDraft']);
     Route::get('/sells/quotations', [SellController::class, 'getQuotations']);
     Route::get('/sells/draft-dt', [SellController::class, 'getDraftDatables']);
     Route::resource('sells', SellController::class)->except(['show']);

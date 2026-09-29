@@ -1349,6 +1349,12 @@ class SellController extends Controller
                     $sells->where('transactions.created_by', request()->session()->get('user.id'));
                 }
             } else {
+                //Quotations are drafts with a sub status; they have their own list.
+                $sells->where(function ($query) {
+                    $query->whereNull('transactions.sub_status')
+                        ->orWhere('transactions.sub_status', '!=', 'quotation');
+                });
+
                 if (!auth()->user()->can('draft.view_all') && auth()->user()->can('draft.view_own')) {
                     $sells->where('transactions.created_by', request()->session()->get('user.id'));
                 }
@@ -1436,13 +1442,20 @@ class SellController extends Controller
                                     </li>';
                         }
 
-                        if ((auth()->user()->can('sell.create') || auth()->user()->can('direct_sell.access')) && config('constants.enable_convert_draft_to_invoice')) {
+                        //Quotation -> draft -> sale: a quotation first becomes a draft.
+                        if ($row->sub_status == 'quotation') {
+                            if (auth()->user()->can('sell.create') || auth()->user()->can('direct_sell.access')) {
+                                $html .= '<li>
+                                        <a href="' . action([\App\Http\Controllers\SellPosController::class, 'convertQuotationToDraft'], [$row->id]) . '" class="convert-quotation-to-draft"><i class="fas fa-sync-alt"></i>' . __('lang_v1.convert_to_draft') . '</a>
+                                    </li>';
+                            }
+                        } elseif ((auth()->user()->can('sell.create') || auth()->user()->can('direct_sell.access')) && config('constants.enable_convert_draft_to_invoice')) {
                             $html .= '<li>
                                         <a href="' . action([\App\Http\Controllers\SellPosController::class, 'convertToInvoice'], [$row->id]) . '" class="convert-draft"><i class="fas fa-sync-alt"></i>' . __('lang_v1.convert_to_invoice') . '</a>
                                     </li>';
                         }
 
-                        if ($row->sub_status != 'proforma') {
+                        if ($row->sub_status != 'proforma' && $row->sub_status != 'quotation') {
                             $html .= '<li>
                                         <a href="' . action([\App\Http\Controllers\SellPosController::class, 'convertToProforma'], [$row->id]) . '" class="convert-to-proforma"><i class="fas fa-sync-alt"></i>' . __('lang_v1.convert_to_proforma') . '</a>
                                     </li>';

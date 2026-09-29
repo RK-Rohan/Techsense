@@ -258,7 +258,9 @@
 							<th style="width: 40px;"></th>
 						</tr>
 					</thead>
-					<tbody></tbody>
+					<tbody>
+						@include('purchase.partials.investor_row', ['index' => 0])
+					</tbody>
 					<tfoot>
 						<tr>
 							<td>
@@ -270,17 +272,7 @@
 					</tfoot>
 				</table>
 				<script type="text/template" id="purchase_investor_row_template">
-					<tr>
-						<td>
-							{!! Form::select('investors[__index__][investor_id]', $investors, null, ['class' => 'form-control investor-select', 'placeholder' => __('messages.please_select'), 'style' => 'width:100%']); !!}
-						</td>
-						<td>
-							{!! Form::text('investors[__index__][amount]', 0, ['class' => 'form-control input_number investor-amount']); !!}
-						</td>
-						<td>
-							<button type="button" class="btn btn-link text-danger remove-purchase-investor"><i class="fa fa-times"></i></button>
-						</td>
-					</tr>
+					@include('purchase.partials.investor_row', ['index' => '__index__'])
 				</script>
 			</div>
 		</div>
@@ -673,11 +665,12 @@
 		});
 
 		//Several investors can fund one purchase, each with their own amount.
-		var investor_index = 0;
+		//The first row is rendered with the page; later rows come from the template.
+		var investor_index = 1;
 		function add_purchase_investor_row() {
-			var html = $('#purchase_investor_row_template').html().replace(/__index__/g, investor_index++);
+			var html = $.trim($('#purchase_investor_row_template').html()).replace(/__index__/g, investor_index++);
 			var row = $(html).appendTo('#purchase_investors_table tbody');
-			row.find('.investor-select').select2();
+			row.find('.investor-select').select2({width: '100%'});
 		}
 		function update_purchase_investors_total() {
 			var total = 0;
@@ -686,7 +679,9 @@
 			});
 			$('#purchase_investors_total').text(__number_f(total));
 		}
-		add_purchase_investor_row();
+		$(function() {
+			$('#purchase_investors_table tbody .investor-select').select2({width: '100%'});
+		});
 		$(document).on('click', '#add_purchase_investor', add_purchase_investor_row);
 		$(document).on('click', '.remove-purchase-investor', function() {
 			$(this).closest('tr').remove();

@@ -3072,6 +3072,46 @@ class SellPosController extends Controller
     }
 
     /**
+     * Moves a quotation on to the drafts list, the step between a quotation
+     * and a final sale.
+     */
+    public function convertQuotationToDraft($id)
+    {
+        if (!auth()->user()->can('sell.create') && !auth()->user()->can('direct_sell.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $business_id = request()->session()->get('user.business_id');
+
+            $transaction = Transaction::where('business_id', $business_id)
+                ->where('type', 'sell')
+                ->where('status', 'draft')
+                ->where('sub_status', 'quotation')
+                ->findOrFail($id);
+
+            $transaction_before = $transaction->replicate();
+
+            $transaction->sub_status = null;
+            $transaction->is_quotation = 0;
+            $transaction->save();
+
+            $this->transactionUtil->activityLog($transaction, 'edited', $transaction_before);
+
+            $output = ['success' => 1, 'msg' => __('lang_v1.converted_to_draft_successfully')];
+        } catch (Exception $e) {
+            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
+
+            $output = [
+                'success' => 0,
+                'msg' => trans('messages.something_went_wrong'),
+            ];
+        }
+
+        return $output;
+    }
+
+    /**
      * Copy quotation
      *
      */

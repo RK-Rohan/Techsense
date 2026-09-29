@@ -132,6 +132,33 @@ $(document).ready( function(){
         sell_table.ajax.reload();
     });
 
+    $(document).on('click', 'a.convert-quotation-to-draft', function(e){
+        e.preventDefault();
+        swal({
+            title: LANG.sure,
+            icon: 'warning',
+            buttons: true,
+            dangerMode: true,
+        }).then(confirm => {
+            if (confirm) {
+                var url = $(this).attr('href');
+                $.ajax({
+                    method: 'GET',
+                    url: url,
+                    dataType: 'json',
+                    success: function(result) {
+                        if (result.success == true) {
+                            toastr.success(result.msg);
+                            sell_table.ajax.reload();
+                        } else {
+                            toastr.error(result.msg);
+                        }
+                    },
+                });
+            }
+        });
+    });
+
     $(document).on('click', 'a.convert-to-proforma', function(e){
         e.preventDefault();
         swal({

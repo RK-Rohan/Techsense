@@ -1234,6 +1234,8 @@ return [
     'proforma_invoice' => 'Proforma invoice',
     'convert_to_proforma' => 'Convert to Proforma Invoice',
     'converted_to_proforma_successfully' => 'Converted to Proforma Invoice',
+    'convert_to_draft' => 'Convert to Draft',
+    'converted_to_draft_successfully' => 'Quotation converted to draft',
     'billing_address' => 'Billing Address',
     'delete_sell' => 'Delete Sell',
     'product_brochure' => 'Product brochure',
