@@ -260,6 +260,7 @@ class AppServiceProvider extends ServiceProvider
             public_path('mix-manifest.json'),
             public_path('js/vendor.js'),
             public_path('js/app.js'),
+            public_path('js/functions.js'),
             public_path('js/product.js'),
             public_path('css/vendor.css'),
             public_path('css/app.css'),

@@ -30,7 +30,7 @@
 
 <div class="expense-voucher">
     <div class="ev-head">
-        @if($for_print && !empty($business->logo))
+        @if($for_print && !empty($business->logo) && file_exists(public_path('uploads/business_logos/' . $business->logo)))
             <img src="{{ asset('uploads/business_logos/' . $business->logo) }}" alt="Logo"><br>
         @endif
         <h3>{{ $business->name ?? '' }}</h3>

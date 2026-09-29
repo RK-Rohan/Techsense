@@ -394,7 +394,13 @@ function __print_receipt(section_id = null) {
         img_counter = 0;
 
         [].forEach.call( imgs, function( img ) {
-            img.addEventListener( 'load', incrementImageCounter, false );
+            //Count broken or already-loaded images too, otherwise print never opens.
+            if (img.complete) {
+                incrementImageCounter();
+            } else {
+                img.addEventListener( 'load', incrementImageCounter, false );
+                img.addEventListener( 'error', incrementImageCounter, false );
+            }
         } );
     } else {
         setTimeout(function() {
