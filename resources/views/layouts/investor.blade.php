@@ -39,6 +39,11 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li class="user-footer">
+                                    <div class="pull-left">
+                                        <a href="{{ route('investor.portal.password') }}" class="btn btn-default btn-flat">
+                                            <i class="fa fa-key"></i> Change Password
+                                        </a>
+                                    </div>
                                     <div class="pull-right">
                                         <a href="{{ url('/logout') }}" class="btn btn-default btn-flat">
                                             <i class="fa fa-sign-out-alt"></i> @lang('lang_v1.sign_out')

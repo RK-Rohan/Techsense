@@ -10,6 +10,11 @@
                 <div class="box-body">
                     <h4 class="text-center company-name">{{ Session::get('business.name') }}</h4>
                     <div class="dashboard-banner">Investor Dashboard</div>
+                    <div class="text-right no-print" style="margin:-10px 0 10px;">
+                        <button type="button" class="btn btn-primary btn-sm" id="print_investor_summary">
+                            <i class="fa fa-print"></i> Print
+                        </button>
+                    </div>
 
                     <div class="row profile-block">
                         <div class="col-sm-6">
@@ -108,7 +113,10 @@
     #investor_portal_table { font-size: 12px; }
     @media print {
         .main-header, .main-footer, .dataTables_filter, .dataTables_length,
-        .dataTables_paginate, .dataTables_info, .dt-buttons { display: none !important; }
+        .dataTables_paginate, .dataTables_info, .dt-buttons, .no-print { display: none !important; }
+        /* Keep the coloured summary tiles when printed. */
+        .summary-table td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .dashboard-banner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .content-wrapper { margin: 0 !important; }
         .box { border: none !important; box-shadow: none !important; }
     }
@@ -123,6 +131,15 @@
 <script>
 $(document).ready(function(){
     var money = $.fn.dataTable.render.number(',', '.', 2);
+
+    //Print every investment, not only the page on screen, then restore paging.
+    $('#print_investor_summary').on('click', function() {
+        var table = $('#investor_portal_table').DataTable();
+        var page_length = table.page.len();
+        table.page.len(-1).draw(false);
+        window.print();
+        table.page.len(page_length).draw(false);
+    });
 
     $('#investor_portal_table').DataTable({
         processing: true,

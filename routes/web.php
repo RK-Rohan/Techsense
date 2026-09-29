@@ -579,6 +579,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     ->prefix('investor-portal')->group(function () {
         Route::get('/', [\App\Http\Controllers\InvestorPortalController::class, 'index'])->name('investor.portal');
         Route::get('/data', [\App\Http\Controllers\InvestorPortalController::class, 'data']);
+        Route::get('/change-password', [\App\Http\Controllers\InvestorPortalController::class, 'editPassword'])->name('investor.portal.password');
+        Route::post('/change-password', [\App\Http\Controllers\InvestorPortalController::class, 'updatePassword']);
     });
 
 Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])->group(function () {

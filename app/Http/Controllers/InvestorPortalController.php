@@ -91,6 +91,33 @@ class InvestorPortalController extends Controller
         return response()->json(['data' => $rows]);
     }
 
+    public function editPassword()
+    {
+        return view('investor_portal.change_password');
+    }
+
+    /**
+     * Lets an investor change their own portal password.
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:6|confirmed|different:current_password',
+        ]);
+
+        $user = auth()->user();
+        if (! \Hash::check($request->input('current_password'), $user->password)) {
+            return back()->withErrors(['current_password' => __('lang_v1.u_have_entered_wrong_password')]);
+        }
+
+        $user->password = \Hash::make($request->input('new_password'));
+        $user->save();
+
+        return redirect()->route('investor.portal.password')
+            ->with('password_status', __('lang_v1.password_updated_successfully'));
+    }
+
     /**
      * Dashboard totals for one investor.
      */
