@@ -199,6 +199,9 @@ class PurchaseController extends Controller
                     return \Carbon\Carbon::parse($row->transaction_date)->format('h:i A');
                 })
                 ->editColumn('name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$name}}')
+                ->editColumn('supplier_note', function ($row) {
+                    return nl2br(e($row->supplier_note));
+                })
                 ->editColumn(
                     'status',
                     '<a href="#" @if(auth()->user()->can("purchase.update") || auth()->user()->can("purchase.update_status")) class="update_status no-print" data-purchase_id="{{$id}}" data-status="{{$status}}" @endif><span class="label @transaction_status($status) status-label" data-status-name="{{__(\'lang_v1.\' . $status)}}" data-orig-value="{{$status}}">{{__(\'lang_v1.\' . $status)}}
@@ -254,7 +257,7 @@ class PurchaseController extends Controller
                             return '';
                         }
                     }, ])
-                ->rawColumns(['final_total', 'action', 'payment_due', 'payment_status', 'status', 'ref_no', 'name', 'investor_name', 'investor_amount'])
+                ->rawColumns(['final_total', 'action', 'payment_due', 'payment_status', 'status', 'ref_no', 'name', 'supplier_note', 'investor_name', 'investor_amount'])
                 ->make(true);
         }
 
@@ -422,6 +425,8 @@ class PurchaseController extends Controller
             $transaction_data['shipping_status'] = $request->input('shipping_status', null);
             $transaction_data['tracking_number'] = $request->input('tracking_number', null);
             $transaction_data['shipping_line_id'] = $request->input('shipping_line_id') ?: null;
+            $transaction_data['quotation_id'] = $request->input('quotation_id') ?: null;
+            $transaction_data['supplier_note'] = $request->input('supplier_note', null);
             $purchase_investors = $this->purchaseInvestorRows($request, $currency_details);
             //Kept for older reports that read a single investor per purchase.
             $transaction_data['investor_id'] = $purchase_investors[0]['investor_id'] ?? null;
@@ -681,7 +686,7 @@ class PurchaseController extends Controller
                                         ->pluck('ref_no', 'id');
         }
 
-        $quotations = $this->quotationsDropdown($business_id);
+        $quotations = $this->quotationsDropdown($business_id, $purchase->quotation_id);
         $shipping_statuses = $this->transactionUtil->shipping_statuses();
         $shipping_lines = ShippingLine::forDropdown($business_id);
         $investors = Investor::orderBy('name')->pluck('name', 'id');
@@ -795,6 +800,8 @@ class PurchaseController extends Controller
             $update_data['shipping_status'] = $request->input('shipping_status', null);
             $update_data['tracking_number'] = $request->input('tracking_number', null);
             $update_data['shipping_line_id'] = $request->input('shipping_line_id') ?: null;
+            $update_data['quotation_id'] = $request->input('quotation_id') ?: null;
+            $update_data['supplier_note'] = $request->input('supplier_note', null);
             $purchase_investors = $this->purchaseInvestorRows($request, $currency_details);
             //Kept for older reports that read a single investor per purchase.
             $update_data['investor_id'] = $purchase_investors[0]['investor_id'] ?? null;
@@ -1387,27 +1394,42 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Open sell quotations, labelled for the purchase form's dropdown.
+     * Sell drafts (the same set as the Drafts list), labelled for the purchase
+     * form's dropdown. The draft a purchase was saved with stays selectable on
+     * edit even after it has been converted to a sale.
      *
      * @param  int  $business_id
+     * @param  int|null  $selected_id
      * @return array
      */
-    private function quotationsDropdown($business_id)
+    private function quotationsDropdown($business_id, $selected_id = null)
     {
         $query = Transaction::leftJoin('contacts as c', 'transactions.contact_id', '=', 'c.id')
             ->where('transactions.business_id', $business_id)
-            ->where('transactions.type', 'sell')
-            ->where('transactions.status', 'draft')
-            ->where('transactions.sub_status', 'quotation');
+            ->where('transactions.type', 'sell');
 
-        $permitted_locations = auth()->user()->permitted_locations();
-        if ($permitted_locations != 'all') {
-            $query->whereIn('transactions.location_id', $permitted_locations);
-        }
+        $query->where(function ($q) use ($selected_id) {
+            $q->where(function ($drafts) {
+                $drafts->where('transactions.status', 'draft')
+                    ->where(function ($sub) {
+                        $sub->whereNull('transactions.sub_status')
+                            ->orWhere('transactions.sub_status', '!=', 'quotation');
+                    });
 
-        if (! auth()->user()->can('quotation.view_all') && auth()->user()->can('quotation.view_own')) {
-            $query->where('transactions.created_by', auth()->id());
-        }
+                $permitted_locations = auth()->user()->permitted_locations();
+                if ($permitted_locations != 'all') {
+                    $drafts->whereIn('transactions.location_id', $permitted_locations);
+                }
+
+                if (! auth()->user()->can('draft.view_all') && auth()->user()->can('draft.view_own')) {
+                    $drafts->where('transactions.created_by', auth()->id());
+                }
+            });
+
+            if (! empty($selected_id)) {
+                $q->orWhere('transactions.id', $selected_id);
+            }
+        });
 
         return $query->select(
             'transactions.id',
@@ -1416,7 +1438,6 @@ class PurchaseController extends Controller
             DB::raw("COALESCE(NULLIF(TRIM(c.supplier_business_name), ''), c.name) as contact_name")
         )
             ->orderBy('transactions.transaction_date', 'desc')
-            ->limit(500)
             ->get()
             ->mapWithKeys(function ($quotation) {
                 $label = $quotation->invoice_no;
@@ -1446,7 +1467,6 @@ class PurchaseController extends Controller
 
         $quotation = Transaction::where('business_id', $business_id)
             ->where('type', 'sell')
-            ->where('sub_status', 'quotation')
             ->with([
                 'sell_lines',
                 'sell_lines.product',
@@ -1488,10 +1508,17 @@ class PurchaseController extends Controller
         $contact = $quotation->contact;
         $company_name = $contact ? (trim((string) $contact->supplier_business_name) ?: $contact->name) : '';
 
+        //The sell custom field labelled "PO" carries the client's PO number.
+        $sell_labels = json_decode(session('business.custom_labels'), true)['sell'] ?? [];
+        $po_field = collect([1, 2, 3, 4, 5, 6])->first(function ($n) use ($sell_labels) {
+            return preg_match('/\bp\.?\s?o\b/i', $sell_labels['custom_field_'.$n] ?? '');
+        });
+
         return [
             'html' => $html,
             'quotation' => $quotation,
             'company_name' => $company_name,
+            'client_po' => $po_field ? (string) $quotation->{'custom_field_'.$po_field} : '',
         ];
     }
 

@@ -275,6 +275,12 @@
 					@include('purchase.partials.investor_row', ['index' => '__index__'])
 				</script>
 			</div>
+			<div class="col-sm-6">
+				<div class="form-group">
+					{!! Form::label('supplier_note', __('lang_v1.supplier_note') . ':') !!}
+					{!! Form::textarea('supplier_note', null, ['class' => 'form-control', 'rows' => 3, 'placeholder' => __('lang_v1.supplier_note')]); !!}
+				</div>
+			</div>
 		</div>
 		@if(!empty($common_settings['enable_purchase_order']))
 		<div class="row">
@@ -692,15 +698,19 @@
 		});
 		$(document).on('change keyup', '.investor-amount', update_purchase_investors_total);
 
-		//The purchase custom field labelled "Company Name" is filled from the
-		//customer of the chosen quotation.
+		//The purchase custom fields labelled "Company Name" and "PO" are filled
+		//from the customer and PO of the chosen draft.
 		@php
 			$purchase_labels = json_decode(session('business.custom_labels'), true)['purchase'] ?? [];
 			$company_name_field = collect([1, 2, 3, 4])->first(function ($n) use ($purchase_labels) {
 				return stripos($purchase_labels['custom_field_'.$n] ?? '', 'company') !== false;
 			});
+			$client_po_field = collect([1, 2, 3, 4])->first(function ($n) use ($purchase_labels) {
+				return preg_match('/\bp\.?\s?o\b/i', $purchase_labels['custom_field_'.$n] ?? '');
+			});
 		@endphp
 		var company_name_input = $('input[name="{{ $company_name_field ? 'custom_field_'.$company_name_field : '' }}"]');
+		var client_po_input = $('input[name="{{ $client_po_field ? 'custom_field_'.$client_po_field : '' }}"]');
 
 		//Pulls the line items of the chosen quotation into the purchase table.
 		$(document).on('change', '#quotation_id', function() {
@@ -723,6 +733,9 @@
 				success: function(data) {
 					if (company_name_input.length && data.company_name) {
 						company_name_input.val(data.company_name);
+					}
+					if (client_po_input.length && data.client_po) {
+						client_po_input.val(data.client_po);
 					}
 					if (!$.trim(data.html)) {
 						toastr.warning("{{ __('lang_v1.no_quotation_items') }}");

@@ -405,6 +405,16 @@
           --
         @endif
       </p>
+      @if($purchase->type == 'purchase')
+      <strong>@lang('lang_v1.supplier_note'):</strong><br>
+      <p class="well well-sm no-shadow bg-gray">
+        @if($purchase->supplier_note)
+          {!! nl2br(e($purchase->supplier_note)) !!}
+        @else
+          --
+        @endif
+      </p>
+      @endif
     </div>
   </div>
   @if(!empty($activities))

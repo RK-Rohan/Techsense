@@ -13,6 +13,7 @@
             <th>{{ $custom_field_1_label }}</th>
             <th>{{ $custom_field_2_label }}</th>
             <th>@lang('purchase.supplier')</th>
+            <th>@lang('lang_v1.supplier_note')</th>
             <th>@lang('purchase.purchase_status')</th>
             <th>@lang('purchase.payment_status')</th>
             <th>@lang('purchase.grand_total')</th>
@@ -27,7 +28,7 @@
     </thead>
     <tfoot>
         <tr class="bg-gray font-17 text-center footer-total">
-            <td colspan="7"><strong>@lang('sale.total'):</strong></td>
+            <td colspan="8"><strong>@lang('sale.total'):</strong></td>
             <td class="footer_status_count"></td>
             <td class="footer_payment_status_count"></td>
             <td class="footer_purchase_total"></td>
