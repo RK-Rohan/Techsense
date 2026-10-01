@@ -110,12 +110,10 @@
         </div>
 
         @php
-        $default_location = null;
-        if(count($business_locations) == 1){
-        $default_location = array_key_first($business_locations->toArray());
-        }
+        //The location field is hidden; new products are available at every location.
+        $default_location = array_keys($business_locations->toArray());
         @endphp
-        <div class="col-sm-4">
+        <div class="col-sm-4 hide">
             <div class="form-group">
                 {!! Form::label('product_locations', __('business.business_locations') . ':') !!} @show_tooltip(__('lang_v1.product_location_help'))
                 {!! Form::select('product_locations[]', $business_locations, $default_location, ['class' => 'form-control select2', 'multiple', 'id' => 'product_locations']); !!}

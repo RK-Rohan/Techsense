@@ -120,7 +120,7 @@ $is_image_required = !empty($common_settings['is_product_image_required']) && em
       </div>
     </div>
 
-    <div class="col-sm-4">
+    <div class="col-sm-4 hide">
       <div class="form-group">
         {!! Form::label('product_locations', __('business.business_locations') . ':') !!} @show_tooltip(__('lang_v1.product_location_help'))
         {!! Form::select('product_locations[]', $business_locations, $product->product_locations->pluck('id'), ['class' => 'form-control select2', 'multiple', 'id' => 'product_locations']); !!}

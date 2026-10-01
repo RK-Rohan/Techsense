@@ -48,6 +48,8 @@
                                 <th>Amount</th>
                                 <th>Received Account</th>
                                 <th>Return Amount</th>
+                                <th>Profit</th>
+                                <th>ROI %</th>
                                 <th>Return Date</th>
                                 <th>Payment Status</th>
                                 <th>Remarks</th>
@@ -116,6 +118,8 @@ $(document).ready(function(){
             { data: 'amount', render: $.fn.dataTable.render.number(',', '.', 2) },
             { data: 'received_account_name' },
             { data: 'return_amount', render: function(data){ return data ? $.fn.dataTable.render.number(',', '.', 2).display(data) : ''; } },
+            { data: 'profit', render: function(data){ return data === null ? '' : $.fn.dataTable.render.number(',', '.', 2).display(data); } },
+            { data: 'roi', render: function(data){ return data === null ? '' : $.fn.dataTable.render.number(',', '.', 2).display(data) + '%'; } },
             { data: 'return_date' },
             { data: 'payment_status', render: function(data, type, row){
                 var amt = row.return_amount ? parseFloat(row.return_amount) : 0;

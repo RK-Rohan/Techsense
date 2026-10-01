@@ -49,6 +49,13 @@ class InvestmentController extends Controller
                 $loan_days = $end_date->diffInDays($received_date);
             }
 
+            // Same rule as the investor portal: profit and ROI only mean
+            // something once a payout has been made.
+            $amount = (float) $inv->amount;
+            $returned = (float) $inv->return_amount;
+            $profit = $returned > 0 ? max($returned - $amount, 0) : null;
+            $roi = $profit !== null && $amount > 0 ? $profit / $amount * 100 : null;
+
             return [
                 'id' => $inv->id,
                 'investor_id' => $inv->investor_id,
@@ -60,6 +67,8 @@ class InvestmentController extends Controller
                 'received_account_id' => $inv->received_account_id,
                 'received_account_name' => optional($inv->receivedAccount)->name,
                 'return_amount' => $inv->return_amount,
+                'profit' => $profit,
+                'roi' => $roi,
                 'return_date' => $inv->return_date,
                 'return_account_id' => $inv->return_account_id,
                 'remarks' => $inv->remarks,
