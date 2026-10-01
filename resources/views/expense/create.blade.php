@@ -150,7 +150,7 @@
 </section>
 @endsection
 @section('javascript')
-<script src="{{ asset('js/expense-items.js?v=2') }}"></script>
+<script src="{{ asset('js/expense-items.js?v=3') }}"></script>
 <script type="text/javascript">
 	$(document).ready( function(){
 		$('.paid_on').datetimepicker({

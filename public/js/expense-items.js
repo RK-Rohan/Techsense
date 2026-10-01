@@ -3,20 +3,17 @@ $(function () {
     if (!form.length) return;
     var selected = $('#expense_sub_category_id');
     var initial = JSON.parse($('#expense_items_initial').text() || '[]');
-    var cache = {};
-    initial.forEach(function (item) { cache[String(item.subcategory_id)] = item; });
     var legacyTotal = __read_number($('#final_total')) || 0;
-    var legacy = initial.length === 0;
     var nextPayment = $('#expense_payment_rows .payment_row').length;
     var itemized = initial.length > 0;
 
+    // Each row carries its own sub category, so the same one can be added
+    // more than once. The sub category dropdown above only picks the next row.
     function readRows() {
         var items = [];
         $('#expense_items_rows tr').each(function () {
             var row = $(this);
-            var item = {subcategory_id: Number(row.attr('data-id')), note: row.find('.expense-item-note').val(), amount: Number(row.find('.expense-item-amount').val()) || 0};
-            cache[String(item.subcategory_id)] = item;
-            items.push(item);
+            items.push({subcategory_id: Number(row.attr('data-id')), note: row.find('.expense-item-note').val(), amount: Number(row.find('.expense-item-amount').val()) || 0});
         });
         return items;
     }
@@ -35,27 +32,78 @@ $(function () {
         $('#expense_summary_paid').text(__currency_trans_from_en(paid, true, false));
         $('#payment_due').text(__currency_trans_from_en(total - paid, true, false));
     }
-    function sync() {
-        readRows();
-        var body = $('#expense_items_rows').empty();
-        (selected.val() || []).forEach(function (id, index) {
-            var item = cache[id] || {amount: legacy && index === 0 ? legacyTotal : 0, note: ''};
-            var row = $('<tr>').attr('data-id', id);
-            $('<td>').text(index + 1).appendTo(row);
-            $('<td>').text(selected.find('option').filter(function () { return this.value === String(id); }).text()).appendTo(row);
-            $('<td>').append($('<input>', {type:'text', 'class':'form-control expense-item-note', maxlength:5000}).val(item.note)).appendTo(row);
-            $('<td>').append($('<input>', {type:'number', 'class':'form-control expense-item-amount', min:'0.01', max:999999999, step:'0.0001', required:true}).val(item.amount)).appendTo(row);
-            $('<td>').append($('<button>', {type:'button', 'class':'btn btn-danger btn-xs remove-expense-item', text:'Remove'})).appendTo(row);
-            body.append(row);
+    function subcategoryOptions() {
+        return selected.find('option').filter(function () { return this.value !== ''; });
+    }
+    function fillSubcategorySelect(dropdown, id) {
+        dropdown.empty();
+        subcategoryOptions().each(function () {
+            dropdown.append(new Option($(this).text(), this.value));
         });
-        legacy = false;
+        // Keep a value whose options have not loaded yet.
+        if (!dropdown.find('option').filter(function () { return this.value === String(id); }).length) {
+            dropdown.append(new Option('', id));
+        }
+        dropdown.val(String(id));
+    }
+    function renumber() {
+        $('#expense_items_rows tr').each(function (index) {
+            $(this).find('.expense-item-sl').text(index + 1);
+        });
+    }
+    function addRow(item) {
+        var row = $('<tr>').attr('data-id', item.subcategory_id);
+        $('<td class="expense-item-sl">').appendTo(row);
+        var dropdown = $('<select>', {'class': 'form-control expense-item-subcategory'});
+        fillSubcategorySelect(dropdown, item.subcategory_id);
+        $('<td>').append(dropdown).appendTo(row);
+        $('<td>').append($('<input>', {type:'text', 'class':'form-control expense-item-note', maxlength:5000}).val(item.note || '')).appendTo(row);
+        $('<td>').append($('<input>', {type:'number', 'class':'form-control expense-item-amount', min:'0.01', max:999999999, step:'0.0001', required:true}).val(item.amount || 0)).appendTo(row);
+        $('<td>').append($('<button>', {type:'button', 'class':'btn btn-danger btn-xs remove-expense-item', text:'Remove'})).appendTo(row);
+        $('#expense_items_rows').append(row);
+        renumber();
+    }
+    // A new category reloads the sub categories; rows from the old one go.
+    function refreshRows() {
+        var ids = subcategoryOptions().map(function () { return this.value; }).get();
+        $('#expense_items_rows tr').each(function () {
+            var row = $(this), id = row.attr('data-id');
+            if (ids.indexOf(id) === -1) row.remove();
+            else fillSubcategorySelect(row.find('.expense-item-subcategory'), id);
+        });
+        renumber();
+    }
+    function pickSubcategories() {
+        var picked = (selected.val() || []).filter(function (id) { return id !== ''; });
+        if (picked.length) {
+            picked.forEach(function (id) { addRow({subcategory_id: id, note: '', amount: 0}); });
+            // Cleared without a change event, so the same item can be picked again.
+            selected.val(null).trigger('change.select2');
+        } else {
+            refreshRows();
+        }
         totals();
     }
-    selected.on('change', sync);
+
+    if (initial.length) {
+        initial.forEach(addRow);
+    } else {
+        // Expenses saved before itemizing keep their sub categories as rows.
+        (selected.val() || []).filter(function (id) { return id !== ''; }).forEach(function (id, index) {
+            addRow({subcategory_id: id, note: '', amount: index === 0 ? legacyTotal : 0});
+        });
+    }
+    selected.val(null).trigger('change.select2');
+    selected.on('change', pickSubcategories);
     $('#add_expense_item').on('click', function () { selected.select2('open'); });
     form.on('click', '.remove-expense-item', function () {
-        var id = $(this).closest('tr').attr('data-id');
-        selected.val((selected.val() || []).filter(function (value) { return value !== id; })).trigger('change');
+        $(this).closest('tr').remove();
+        renumber();
+        totals();
+    });
+    form.on('change', '.expense-item-subcategory', function () {
+        $(this).closest('tr').attr('data-id', $(this).val());
+        totals();
     });
     form.on('input change', '.expense-item-amount, .expense-item-note, .payment-amount, #final_total', totals);
     form.on('submit', totals);
@@ -75,7 +123,7 @@ $(function () {
             row.find('select[name$="[account_id]"]').val(defaults[method] ? defaults[method].account : '').trigger('change');
         });
     });
-    sync();
+    totals();
 
     // A default or browser-restored category does not emit a change event.
     // Keep server-rendered selections on edit and validation-error reloads.

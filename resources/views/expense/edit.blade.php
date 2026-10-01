@@ -115,7 +115,7 @@
 </section>
 @stop
 @section('javascript')
-<script src="{{ asset('js/expense-items.js?v=2') }}"></script>
+<script src="{{ asset('js/expense-items.js?v=3') }}"></script>
 <script type="text/javascript">
   __page_leave_confirmation('#add_expense_form');
 </script>
