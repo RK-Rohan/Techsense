@@ -181,11 +181,12 @@ class MushakInvoiceController extends Controller
                 }
 
                 $defaults = $this->defaultsForTransaction($transaction);
-                $defaults['issued_at'] = empty($defaults['issued_at'])
-                    ? ''
-                    : $this->commonUtil->format_date($defaults['issued_at'], true);
             }
         }
+
+        //A new Mushak is issued now, whatever the sale's own date.
+        $defaults = $defaults ?? [];
+        $defaults['issued_at'] = $this->currentIssueTime();
 
         return view('mushak.create', compact('transaction', 'defaults'));
     }
@@ -358,14 +359,30 @@ class MushakInvoiceController extends Controller
             });
         }
 
-        $sells = $sells->orderBy('transactions.transaction_date', 'desc')->limit(30)->get();
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $sells->whereIn('transactions.location_id', $permitted_locations);
+        }
 
-        return $sells->map(function ($sell) {
-            return [
-                'id' => $sell->id,
-                'text' => $sell->invoice_no . ' - ' . ($sell->supplier_business_name ?: $sell->contact_name),
-            ];
-        });
+        //Paged so every sale can be reached by scrolling, not just the latest few.
+        $per_page = 50;
+        $page = max(1, (int) request()->input('page', 1));
+
+        $sells = $sells->orderBy('transactions.transaction_date', 'desc')
+            ->orderBy('transactions.id', 'desc')
+            ->skip(($page - 1) * $per_page)
+            ->take($per_page + 1)
+            ->get();
+
+        return [
+            'results' => $sells->take($per_page)->map(function ($sell) {
+                return [
+                    'id' => $sell->id,
+                    'text' => $sell->invoice_no . ' - ' . ($sell->supplier_business_name ?: $sell->contact_name),
+                ];
+            })->values(),
+            'pagination' => ['more' => $sells->count() > $per_page],
+        ];
     }
 
     /**
@@ -385,14 +402,21 @@ class MushakInvoiceController extends Controller
             ->first();
 
         $defaults = $this->defaultsForTransaction($transaction);
-        $defaults['issued_at'] = empty($defaults['issued_at'])
-            ? ''
-            : $this->commonUtil->format_date($defaults['issued_at'], true);
+        $defaults['issued_at'] = $this->currentIssueTime();
 
         return [
             'defaults' => $defaults,
             'existing_id' => optional($existing)->id,
         ];
+    }
+
+    /**
+     * Current date and time in the business' format, the default issue time
+     * of a new Mushak.
+     */
+    private function currentIssueTime()
+    {
+        return $this->commonUtil->format_date(\Carbon\Carbon::now()->toDateTimeString(), true);
     }
 
     /**

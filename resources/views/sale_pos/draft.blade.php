@@ -45,6 +45,9 @@
                 <i class="fa fa-plus"></i> @lang('lang_v1.add_draft')</a>
             </div>
         @endslot
+        @php
+            $custom_labels = json_decode(session('business.custom_labels'), true);
+        @endphp
         <div class="table-responsive">
             <table class="table table-bordered table-striped ajax_view" id="sell_table">
                 <thead>
@@ -52,8 +55,9 @@
                         <th>@lang('messages.date')</th>
                         <th>@lang('purchase.ref_no')</th>
                         <th>@lang('sale.customer_name')</th>
-                        <th>@lang('lang_v1.contact_no')</th>
-                        <th>@lang('sale.location')</th>
+                        <th>{{ $custom_labels['sell']['custom_field_2'] ?? 'Contract To' }}</th>
+                        <th>{{ $custom_labels['sell']['custom_field_1'] ?? 'PO' }}</th>
+                        <th>@lang('sale.amount')</th>
                         <th>@lang('lang_v1.total_items')</th>
                         <th>@lang('lang_v1.added_by')</th>
                         <th>@lang('messages.action')</th>
@@ -104,7 +108,7 @@ $(document).ready( function(){
             }
         },
         columnDefs: [ {
-            "targets": 7,
+            "targets": 8,
             "orderable": false,
             "searchable": false
         } ],
@@ -112,14 +116,15 @@ $(document).ready( function(){
             { data: 'transaction_date', name: 'transaction_date'  },
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'conatct_name', name: 'conatct_name'},
-            { data: 'mobile', name: 'contacts.mobile'},
-            { data: 'business_location', name: 'bl.name'},
+            { data: 'custom_field_2', name: 'transactions.custom_field_2'},
+            { data: 'custom_field_1', name: 'transactions.custom_field_1'},
+            { data: 'amount', name: 'transactions.final_total', "searchable": false},
             { data: 'total_items', name: 'total_items', "searchable": false},
             { data: 'added_by', name: 'added_by'},
             { data: 'action', name: 'action'}
         ],
         "fnDrawCallback": function (oSettings) {
-            __currency_convert_recursively($('#purchase_table'));
+            __currency_convert_recursively($('#sell_table'));
         }
     });
     $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_customer_id, #created_by',  function() {

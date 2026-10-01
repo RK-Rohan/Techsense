@@ -1334,6 +1334,8 @@ class SellController extends Controller
                     'contacts.mobile',
                     'contacts.supplier_business_name',
                     'bl.name as business_location',
+                    'transactions.custom_field_1',
+                    'transactions.custom_field_2',
                     'is_direct_sale',
                     'sub_status',
                     DB::raw('COUNT( DISTINCT tsl.id) as total_items'),
@@ -1512,6 +1514,9 @@ class SellController extends Controller
                 ->editColumn('transaction_date', '{{@format_date($transaction_date)}}')
                 ->editColumn('total_items', '{{@format_quantity($total_items)}}')
                 ->editColumn('total_quantity', '{{@format_quantity($total_quantity)}}')
+                ->addColumn('amount', function ($row) {
+                    return '<span class="display_currency" data-currency_symbol="true">' . $row->final_total . '</span>';
+                })
                 ->editColumn('final_total', '{{@format_quantity($final_total)}}')
                 ->addColumn('conatct_name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br>@endif {{$name}}')
                 ->filterColumn('conatct_name', function ($query, $keyword) {
@@ -1532,7 +1537,7 @@ class SellController extends Controller
                         }
                     },
                 ])
-                ->rawColumns(['action', 'invoice_no', 'transaction_date', 'conatct_name'])
+                ->rawColumns(['action', 'invoice_no', 'transaction_date', 'conatct_name', 'amount'])
                 ->make(true);
         }
     }
