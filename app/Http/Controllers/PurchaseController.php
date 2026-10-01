@@ -628,7 +628,8 @@ class PurchaseController extends Controller
                         'purchase_lines.variations.product_variation',
                         'location',
                         'purchase_lines.sub_unit',
-                        'purchase_lines.purchase_order_line'
+                        'purchase_lines.purchase_order_line',
+                        'purchase_investors'
                     )
                     ->first();
 
@@ -680,6 +681,19 @@ class PurchaseController extends Controller
                                         ->pluck('ref_no', 'id');
         }
 
+        $quotations = $this->quotationsDropdown($business_id);
+        $shipping_statuses = $this->transactionUtil->shipping_statuses();
+        $shipping_lines = ShippingLine::forDropdown($business_id);
+        $investors = Investor::orderBy('name')->pluck('name', 'id');
+
+        //Purchases saved before multiple investors were supported only carry investor_id.
+        $purchase_investors = $purchase->purchase_investors->map(function ($row) {
+            return (object) ['investor_id' => $row->investor_id, 'amount' => $this->transactionUtil->num_f($row->amount)];
+        });
+        if ($purchase_investors->isEmpty() && ! empty($purchase->investor_id)) {
+            $purchase_investors = collect([(object) ['investor_id' => $purchase->investor_id, 'amount' => 0]]);
+        }
+
         return view('purchase.edit')
             ->with(compact(
                 'taxes',
@@ -693,7 +707,12 @@ class PurchaseController extends Controller
                 'types',
                 'shortcuts',
                 'purchase_orders',
-                'common_settings'
+                'common_settings',
+                'quotations',
+                'shipping_statuses',
+                'shipping_lines',
+                'investors',
+                'purchase_investors'
             ));
     }
 
@@ -716,6 +735,9 @@ class PurchaseController extends Controller
             //Validate document size
             $request->validate([
                 'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
+                'investors' => 'nullable|array',
+                'investors.*.investor_id' => 'nullable|integer|exists:investors,id',
+                'investors.*.amount' => 'nullable|string|max:50',
             ]);
 
             $transaction = Transaction::findOrFail($id);
@@ -769,6 +791,14 @@ class PurchaseController extends Controller
             $update_data['shipping_custom_field_4'] = $request->input('shipping_custom_field_4', null);
             $update_data['shipping_custom_field_5'] = $request->input('shipping_custom_field_5', null);
 
+            //Shipping and sourcing details captured on the purchase form.
+            $update_data['shipping_status'] = $request->input('shipping_status', null);
+            $update_data['tracking_number'] = $request->input('tracking_number', null);
+            $update_data['shipping_line_id'] = $request->input('shipping_line_id') ?: null;
+            $purchase_investors = $this->purchaseInvestorRows($request, $currency_details);
+            //Kept for older reports that read a single investor per purchase.
+            $update_data['investor_id'] = $purchase_investors[0]['investor_id'] ?? null;
+
             //upload document
             $document_name = $this->transactionUtil->uploadFile($request, 'document', 'documents');
             if (! empty($document_name)) {
@@ -791,6 +821,11 @@ class PurchaseController extends Controller
 
             //update transaction
             $transaction->update($update_data);
+
+            $transaction->purchase_investors()->delete();
+            foreach ($purchase_investors as $row) {
+                $transaction->purchase_investors()->create($row + ['business_id' => $business_id]);
+            }
 
             //Update transaction payment status
             $payment_status = $this->transactionUtil->updatePaymentStatus($transaction->id);
@@ -1403,7 +1438,7 @@ class PurchaseController extends Controller
      */
     public function getQuotationLines($quotation_id)
     {
-        if (! auth()->user()->can('purchase.create')) {
+        if (! auth()->user()->can('purchase.create') && ! auth()->user()->can('purchase.update')) {
             abort(403, 'Unauthorized action.');
         }
 

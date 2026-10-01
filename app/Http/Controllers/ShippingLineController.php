@@ -16,7 +16,7 @@ class ShippingLineController extends Controller
      */
     public function store(Request $request)
     {
-        if (! auth()->user()->can('purchase.create')) {
+        if (! auth()->user()->can('purchase.create') && ! auth()->user()->can('purchase.update')) {
             abort(403, 'Unauthorized action.');
         }
 

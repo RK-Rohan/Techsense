@@ -1,6 +1,16 @@
 @extends('layouts.app')
 @section('title', __('purchase.edit_purchase'))
 
+@section('css')
+<style type="text/css">
+  /* Keep the purchase header compact so the item table stays in view. */
+  #add_purchase_form .form-group { margin-bottom: 10px; }
+  #add_purchase_form .box-body { padding-top: 10px; padding-bottom: 5px; }
+  #add_purchase_form label { margin-bottom: 3px; }
+  #supplier_address_div { margin-top: 5px; font-size: 12px; line-height: 1.4; }
+</style>
+@endsection
+
 @section('content')
 
 @php
@@ -131,6 +141,36 @@
             </div>
         </div>
         <div class="row">
+          <div class="col-sm-3">
+            <div class="form-group">
+              {!! Form::label('quotation_id', __('lang_v1.quotation') . ':') !!}
+              @show_tooltip(__('lang_v1.quotation_purchase_help'))
+              {!! Form::select('quotation_id', $quotations, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'id' => 'quotation_id']); !!}
+            </div>
+          </div>
+          <div class="col-sm-3">
+            <div class="form-group">
+              {!! Form::label('tracking_number', __('lang_v1.tracking_number') . ':') !!}
+              {!! Form::text('tracking_number', $purchase->tracking_number, ['class' => 'form-control', 'placeholder' => __('lang_v1.tracking_number')]); !!}
+            </div>
+          </div>
+          <div class="col-sm-3">
+            <div class="form-group">
+              {!! Form::label('shipping_status', __('lang_v1.shipping_status') . ':') !!}
+              {!! Form::select('shipping_status', $shipping_statuses, $purchase->shipping_status, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select')]); !!}
+            </div>
+          </div>
+          <div class="col-sm-3">
+            <div class="form-group">
+              {!! Form::label('shipping_line_id', __('lang_v1.shipping_line') . ':') !!}
+              <div class="input-group">
+                {!! Form::select('shipping_line_id', $shipping_lines, $purchase->shipping_line_id, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'id' => 'shipping_line_id', 'style' => 'width:100%']); !!}
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default bg-white btn-flat" id="add_shipping_line" title="@lang('lang_v1.add_shipping_line')"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
+                </span>
+              </div>
+            </div>
+          </div>
           @php
             $custom_field_1_label = !empty($custom_labels['purchase']['custom_field_1']) ? $custom_labels['purchase']['custom_field_1'] : '';
 
@@ -156,7 +196,7 @@
             }
           @endphp
 
-          <div class="col-md-4">
+          <div class="col-sm-3">
                 <div class="form-group">
                     {!! Form::label('custom_field_1', $label_1 ) !!}
                     {!! Form::text('custom_field_1', $purchase->custom_field_1, ['class' => 'form-control','placeholder' => $custom_field_1_label, 'required' => $is_custom_field_1_required]); !!}
@@ -171,7 +211,7 @@
             }
           @endphp
 
-          <div class="col-md-4">
+          <div class="col-sm-3">
                 <div class="form-group">
                     {!! Form::label('custom_field_2', $label_2 ) !!}
                     {!! Form::text('custom_field_2', $purchase->custom_field_2, ['class' => 'form-control','placeholder' => $custom_field_2_label, 'required' => $is_custom_field_2_required]); !!}
@@ -186,7 +226,7 @@
             }
           @endphp
 
-          <div class="col-md-4">
+          <div class="col-sm-3">
                 <div class="form-group">
                     {!! Form::label('custom_field_3', $label_3 ) !!}
                     {!! Form::text('custom_field_3', $purchase->custom_field_3, ['class' => 'form-control','placeholder' => $custom_field_3_label, 'required' => $is_custom_field_3_required]); !!}
@@ -201,13 +241,45 @@
             }
           @endphp
 
-          <div class="col-md-4">
+          <div class="col-sm-3">
                 <div class="form-group">
                     {!! Form::label('custom_field_4', $label_4 ) !!}
                     {!! Form::text('custom_field_4', $purchase->custom_field_4, ['class' => 'form-control','placeholder' => $custom_field_4_label, 'required' => $is_custom_field_4_required]); !!}
                 </div>
             </div>
         @endif
+        </div>
+        <div class="row">
+          <div class="col-sm-6">
+            <table class="table table-condensed" id="purchase_investors_table">
+              <thead>
+                <tr>
+                  <th>{{ __('lang_v1.investor_name') }}</th>
+                  <th style="width: 35%;">Investor Amount</th>
+                  <th style="width: 40px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @forelse($purchase_investors as $purchase_investor)
+                  @include('purchase.partials.investor_row', ['index' => $loop->index, 'investor_id' => $purchase_investor->investor_id, 'amount' => $purchase_investor->amount])
+                @empty
+                  @include('purchase.partials.investor_row', ['index' => 0])
+                @endforelse
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>
+                    <button type="button" class="btn btn-default btn-xs" id="add_purchase_investor"><i class="fa fa-plus"></i> Add investor</button>
+                  </td>
+                  <td><strong>Total: <span id="purchase_investors_total">0.00</span></strong></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+            <script type="text/template" id="purchase_investor_row_template">
+              @include('purchase.partials.investor_row', ['index' => '__index__'])
+            </script>
+          </div>
         </div>
         @if(!empty($common_settings['enable_purchase_order']))
         <div class="row">
@@ -539,6 +611,107 @@
   <script src="{{ asset('js/purchase.js?v=' . $asset_v) }}"></script>
   <script src="{{ asset('js/product.js?v=' . $asset_v) }}"></script>
   <script type="text/javascript">
+    //Several investors can fund one purchase, each with their own amount.
+    //Saved rows are rendered with the page; later rows come from the template.
+    var investor_index = $('#purchase_investors_table tbody tr').length;
+    function add_purchase_investor_row() {
+      var html = $.trim($('#purchase_investor_row_template').html()).replace(/__index__/g, investor_index++);
+      var row = $(html).appendTo('#purchase_investors_table tbody');
+      row.find('.investor-select').select2({width: '100%'});
+    }
+    function update_purchase_investors_total() {
+      var total = 0;
+      $('#purchase_investors_table .investor-amount').each(function() {
+        total += __read_number($(this));
+      });
+      $('#purchase_investors_total').text(__number_f(total));
+    }
+    $(function() {
+      $('#purchase_investors_table tbody .investor-select').select2({width: '100%'});
+      update_purchase_investors_total();
+    });
+    $(document).on('click', '#add_purchase_investor', add_purchase_investor_row);
+    $(document).on('click', '.remove-purchase-investor', function() {
+      $(this).closest('tr').remove();
+      if (!$('#purchase_investors_table tbody tr').length) {
+        add_purchase_investor_row();
+      }
+      update_purchase_investors_total();
+    });
+    $(document).on('change keyup', '.investor-amount', update_purchase_investors_total);
+
+    //The purchase custom field labelled "Company Name" is filled from the
+    //customer of the chosen quotation.
+    @php
+      $purchase_labels = json_decode(session('business.custom_labels'), true)['purchase'] ?? [];
+      $company_name_field = collect([1, 2, 3, 4])->first(function ($n) use ($purchase_labels) {
+        return stripos($purchase_labels['custom_field_'.$n] ?? '', 'company') !== false;
+      });
+    @endphp
+    var company_name_input = $('input[name="{{ $company_name_field ? 'custom_field_'.$company_name_field : '' }}"]');
+
+    //Pulls the line items of the chosen quotation into the purchase table.
+    $(document).on('change', '#quotation_id', function() {
+      var quotation_id = $(this).val();
+
+      //Clear rows carried over from a previously selected quotation.
+      $('#purchase_entry_table tbody').find('tr[data-quotation_id]').remove();
+      update_table_total();
+      update_grand_total();
+      update_table_sr_number();
+
+      if (!quotation_id) {
+        return;
+      }
+
+      var row_count = $('#row_count').val();
+      $.ajax({
+        url: '/get-quotation-lines/' + quotation_id + '?row_count=' + row_count,
+        dataType: 'json',
+        success: function(data) {
+          if (company_name_input.length && data.company_name) {
+            company_name_input.val(data.company_name);
+          }
+          if (!$.trim(data.html)) {
+            toastr.warning("{{ __('lang_v1.no_quotation_items') }}");
+            return;
+          }
+          append_purchase_lines(data.html, row_count);
+        },
+      });
+    });
+
+    //Adds a shipping line without leaving the purchase form.
+    $(document).on('click', '#add_shipping_line', function() {
+      var name = window.prompt("{{ __('lang_v1.shipping_line_name') }}");
+      if (name === null) {
+        return;
+      }
+      name = $.trim(name);
+      if (!name) {
+        return;
+      }
+
+      $.ajax({
+        method: 'POST',
+        url: '/shipping-lines',
+        data: { name: name },
+        dataType: 'json',
+        success: function(result) {
+          if (result.success) {
+            var select = $('#shipping_line_id');
+            if (!select.find('option[value="' + result.id + '"]').length) {
+              select.append(new Option(result.name, result.id, false, false));
+            }
+            select.val(result.id).trigger('change');
+            toastr.success(result.msg);
+          } else {
+            toastr.error(result.msg);
+          }
+        },
+      });
+    });
+
     $(document).ready( function(){
       update_table_total();
       update_grand_total();
