@@ -63,6 +63,13 @@
                         <th>@lang('messages.action')</th>
                     </tr>
                 </thead>
+                <tfoot>
+                    <tr class="bg-gray font-17 text-center">
+                        <th colspan="5" class="text-right">@lang('sale.total_amount') =</th>
+                        <th><span id="draft_total_amount" class="display_currency" data-currency_symbol="true">0</span></th>
+                        <th colspan="3"></th>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     @endcomponent
@@ -124,6 +131,7 @@ $(document).ready( function(){
             { data: 'action', name: 'action'}
         ],
         "fnDrawCallback": function (oSettings) {
+            $('#draft_total_amount').text(oSettings.json ? oSettings.json.total_amount : 0);
             __currency_convert_recursively($('#sell_table'));
         }
     });

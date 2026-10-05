@@ -36,7 +36,7 @@
         <h3>{{ $business->name ?? '' }}</h3>
         @if(!empty($location))
             <div class="ev-address">
-                {{ $location->name }}@if(!empty($location->location_address)), {!! strip_tags($location->location_address, '<br>') !!}@endif
+                @if(!empty($location->location_address)){!! strip_tags($location->location_address, '<br>') !!}@endif
                 @if(!empty($location->mobile)) <br>{{ $location->mobile }} @endif
             </div>
         @endif

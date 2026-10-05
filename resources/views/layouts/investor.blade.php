@@ -20,8 +20,11 @@
         <nav class="navbar navbar-static-top">
             <div class="container">
                 <div class="navbar-header">
-                    <span class="navbar-brand" style="font-weight:600;">
-                        @if(!empty(Session::get('business.logo')))
+                    <span class="navbar-brand" style="font-weight:600; padding-top:5px; padding-bottom:5px;">
+                        @if(file_exists(public_path('uploads/invoice_logos/TBL-Logo-PNG.png')))
+                            <img src="{{ asset('uploads/invoice_logos/TBL-Logo-PNG.png') }}"
+                                 alt="TBL Logo" style="height:40px; max-width:150px; object-fit:contain; display:inline-block; vertical-align:middle;">
+                        @elseif(!empty(Session::get('business.logo')))
                             <img src="{{ asset('uploads/business_logos/' . Session::get('business.logo')) }}"
                                  alt="Logo" style="height:30px; display:inline-block; vertical-align:middle;">
                         @else

@@ -1400,6 +1400,14 @@ class SellController extends Controller
             $sells->groupBy('transactions.id');
 
             return Datatables::of($sells)
+                ->withQuery('total_amount', function ($query) {
+                    // Sum one row per draft, across all filtered pages.
+                    $totals_query = (clone $query)->toBase()
+                        ->cloneWithout(['orders', 'limit', 'offset'])
+                        ->cloneWithoutBindings(['order']);
+
+                    return DB::query()->fromSub($totals_query, 'draft_totals')->sum('final_total');
+                })
                 ->addColumn(
                     'action',
                     function ($row) {
