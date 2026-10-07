@@ -11,8 +11,8 @@
             <th>@lang('messages.date')</th>
             <th>Time</th>
             <th>Supplier PO</th>
-            <th>{{ $custom_field_1_label }}</th>
             <th>{{ $sales_invoice_label }}</th>
+            <th>{{ $custom_field_1_label }}</th>
             <th>{{ $custom_field_2_label }}</th>
             <th>@lang('purchase.supplier')</th>
             <th>@lang('lang_v1.supplier_note')</th>
