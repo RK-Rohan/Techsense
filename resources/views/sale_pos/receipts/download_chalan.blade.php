@@ -32,9 +32,8 @@
                                     @if(!empty($receipt_details->phone_contact))
                                         {!! $receipt_details->phone_contact !!}<br>
                                     @endif
-                                    @if(!empty($receipt_details->email))Email: {{ $receipt_details->email }}@endif
-                                    @if(!empty($receipt_details->email) && !empty($receipt_details->website)), @endif
-                                    @if(!empty($receipt_details->website))Website: {{ $receipt_details->website }}@endif<br>
+                                    Email: sales@techsensebd.com, info@sensor-shopobd.com<br>
+                                    Website: www.techsensebd.com&nbsp;&nbsp;|&nbsp;&nbsp;Website: www.sensor-shopobd.com<br>
                                 </p>
                             </h5>
                         </td>
