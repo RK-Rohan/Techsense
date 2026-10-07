@@ -424,7 +424,9 @@ class PurchaseController extends Controller
             //Shipping and sourcing details captured on the purchase form.
             $transaction_data['shipping_status'] = $request->input('shipping_status', null);
             $transaction_data['tracking_number'] = $request->input('tracking_number', null);
-            $transaction_data['shipping_line_id'] = $request->input('shipping_line_id') ?: null;
+            $shipping_line_ids = array_values(array_unique(array_filter((array) $request->input('shipping_line_ids'), 'is_numeric')));
+            $transaction_data['shipping_line_ids'] = $shipping_line_ids ?: null;
+            $transaction_data['shipping_line_id'] = $shipping_line_ids[0] ?? ($request->input('shipping_line_id') ?: null);
             $transaction_data['quotation_id'] = $request->input('quotation_id') ?: null;
             $transaction_data['supplier_note'] = $request->input('supplier_note', null);
             $purchase_investors = $this->purchaseInvestorRows($request, $currency_details);
@@ -799,7 +801,9 @@ class PurchaseController extends Controller
             //Shipping and sourcing details captured on the purchase form.
             $update_data['shipping_status'] = $request->input('shipping_status', null);
             $update_data['tracking_number'] = $request->input('tracking_number', null);
-            $update_data['shipping_line_id'] = $request->input('shipping_line_id') ?: null;
+            $shipping_line_ids = array_values(array_unique(array_filter((array) $request->input('shipping_line_ids'), 'is_numeric')));
+            $update_data['shipping_line_ids'] = $shipping_line_ids ?: null;
+            $update_data['shipping_line_id'] = $shipping_line_ids[0] ?? ($request->input('shipping_line_id') ?: null);
             $update_data['quotation_id'] = $request->input('quotation_id') ?: null;
             $update_data['supplier_note'] = $request->input('supplier_note', null);
             $purchase_investors = $this->purchaseInvestorRows($request, $currency_details);

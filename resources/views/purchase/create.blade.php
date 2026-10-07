@@ -163,7 +163,7 @@
 				<div class="form-group">
 					{!! Form::label('shipping_line_id', __('lang_v1.shipping_line') . ':') !!}
 					<div class="input-group">
-						{!! Form::select('shipping_line_id', $shipping_lines, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'id' => 'shipping_line_id', 'style' => 'width:100%']); !!}
+						{!! Form::select('shipping_line_ids[]', $shipping_lines, null, ['class' => 'form-control select2', 'multiple' => true, 'id' => 'shipping_line_id', 'style' => 'width:100%']); !!}
 						<span class="input-group-btn">
 							<button type="button" class="btn btn-default bg-white btn-flat" id="add_shipping_line" title="@lang('lang_v1.add_shipping_line')"><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
 						</span>
@@ -179,7 +179,7 @@
 
 		    $is_custom_field_2_required = !empty($custom_labels['purchase']['is_custom_field_2_required']) && $custom_labels['purchase']['is_custom_field_2_required'] == 1 ? true : false;
 
-		    $custom_field_3_label = !empty($custom_labels['purchase']['custom_field_3']) ? $custom_labels['purchase']['custom_field_3'] : '';
+	    $custom_field_3_label = !empty($custom_labels['purchase']['custom_field_3']) ? $custom_labels['purchase']['custom_field_3'] : 'Sales Invoice';
 
 		    $is_custom_field_3_required = !empty($custom_labels['purchase']['is_custom_field_3_required']) && $custom_labels['purchase']['is_custom_field_3_required'] == 1 ? true : false;
 

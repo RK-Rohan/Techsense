@@ -1441,6 +1441,12 @@ class SellController extends Controller
                             }
                         }
 
+                        // Drafts can receive a deposit before they are converted to invoices.
+                        if ($row->sub_status != 'quotation' && $row->sub_status != 'proforma' &&
+                            (auth()->user()->can('sell.payments') || auth()->user()->can('edit_sell_payment'))) {
+                            $html .= '<li><a href="' . action([\App\Http\Controllers\TransactionPaymentController::class, 'addPayment'], [$row->id]) . '" class="add_payment_modal"><i class="fas fa-money-bill-alt"></i> ' . __('purchase.add_payment') . '</a></li>';
+                        }
+
                         $html .= '<li><a target="_blank" href="' . action([\App\Http\Controllers\SellPosController::class, 'downloadQuotationPdf'], [$row->id]) . '" ><i class="fas fa-print" aria-hidden="true"></i> ' . __('lang_v1.print_invoice') . '</a></li>';
 
                         if (config('constants.enable_download_pdf')) {

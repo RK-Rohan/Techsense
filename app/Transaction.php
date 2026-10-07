@@ -29,6 +29,7 @@ class Transaction extends Model
         'purchase_requisition_ids' => 'array',
         'expense_sub_category_ids' => 'array',
         'expense_items' => 'array',
+        'shipping_line_ids' => 'array',
     ];
 
     /**

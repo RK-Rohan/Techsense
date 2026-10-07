@@ -5065,6 +5065,7 @@ class TransactionUtil extends Util
                 'transactions.ref_no',
                 'transactions.custom_field_1',
                 'transactions.custom_field_2',
+                'transactions.custom_field_3',
                 'contacts.name',
                 'contacts.supplier_business_name',
                 'transactions.supplier_note',
@@ -5084,7 +5085,7 @@ class TransactionUtil extends Util
                 'transactions.tracking_number',
                 'transactions.shipping_status',
                 //Subqueries, not joins, so the payment sums above are not multiplied.
-                DB::raw('(SELECT SL.name FROM shipping_lines AS SL WHERE SL.id = transactions.shipping_line_id) as shipping_line'),
+                DB::raw("(SELECT GROUP_CONCAT(SL.name ORDER BY SL.name SEPARATOR ', ') FROM shipping_lines AS SL WHERE (FIND_IN_SET(SL.id, REPLACE(REPLACE(REPLACE(transactions.shipping_line_ids, '[', ''), ']', ''), ' ', '')) OR (transactions.shipping_line_ids IS NULL AND SL.id = transactions.shipping_line_id))) as shipping_line"),
                 DB::raw("(SELECT GROUP_CONCAT(COALESCE(I.name, '') ORDER BY PI.id SEPARATOR '||') FROM purchase_investors AS PI
                         LEFT JOIN investors AS I ON I.id = PI.investor_id WHERE PI.transaction_id = transactions.id) as investor_names"),
                 DB::raw("(SELECT GROUP_CONCAT(PI.amount ORDER BY PI.id SEPARATOR '||') FROM purchase_investors AS PI

@@ -2,6 +2,7 @@
     $custom_labels = json_decode(session('business.custom_labels'), true);
     $custom_field_1_label = $custom_labels['purchase']['custom_field_1'] ?? __('lang_v1.custom_field', ['number' => 1]);
     $custom_field_2_label = $custom_labels['purchase']['custom_field_2'] ?? __('lang_v1.custom_field', ['number' => 2]);
+    $sales_invoice_label = $custom_labels['purchase']['custom_field_3'] ?? 'Sales Invoice';
 @endphp
 <table class="table table-bordered table-striped ajax_view" id="purchase_table" style="width: 100%;">
     <thead>
@@ -11,6 +12,7 @@
             <th>Time</th>
             <th>Supplier PO</th>
             <th>{{ $custom_field_1_label }}</th>
+            <th>{{ $sales_invoice_label }}</th>
             <th>{{ $custom_field_2_label }}</th>
             <th>@lang('purchase.supplier')</th>
             <th>@lang('lang_v1.supplier_note')</th>
@@ -28,7 +30,7 @@
     </thead>
     <tfoot>
         <tr class="bg-gray font-17 text-center footer-total">
-            <td colspan="8"><strong>@lang('sale.total'):</strong></td>
+            <td colspan="9"><strong>@lang('sale.total'):</strong></td>
             <td class="footer_status_count"></td>
             <td class="footer_payment_status_count"></td>
             <td class="footer_purchase_total"></td>
