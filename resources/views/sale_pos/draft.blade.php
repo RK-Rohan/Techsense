@@ -53,7 +53,7 @@
                 <thead>
                     <tr>
                         <th>@lang('messages.date')</th>
-                        <th>@lang('purchase.ref_no')</th>
+                        <th>Sales Invoice No</th>
                         <th>@lang('sale.customer_name')</th>
                         <th>{{ $custom_labels['sell']['custom_field_2'] ?? 'Contract To' }}</th>
                         <th>{{ $custom_labels['sell']['custom_field_1'] ?? 'PO' }}</th>

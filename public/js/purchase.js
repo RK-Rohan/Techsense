@@ -569,6 +569,7 @@ $(document).ready(function() {
             { data: 'custom_field_3', name: 'transactions.custom_field_3' },
             { data: 'custom_field_1', name: 'transactions.custom_field_1' },
             { data: 'custom_field_2', name: 'transactions.custom_field_2' },
+            { data: 'client_po_amount', name: 'client_po_amount', searchable: false },
             { data: 'name', name: 'contacts.name' },
             { data: 'supplier_note', name: 'transactions.supplier_note' },
             { data: 'status', name: 'status' },
@@ -608,7 +609,7 @@ $(document).ready(function() {
         },
         createdRow: function(row, data, dataIndex) {
             $(row)
-                .find('td:eq(8)')
+                .find('td:eq(9)')
                 .attr('class', 'clickable_td');
         },
     });

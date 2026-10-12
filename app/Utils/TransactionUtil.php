@@ -5066,6 +5066,10 @@ class TransactionUtil extends Util
                 'transactions.custom_field_1',
                 'transactions.custom_field_2',
                 'transactions.custom_field_3',
+                DB::raw("(SELECT S.final_total FROM transactions AS S
+                        WHERE S.business_id = transactions.business_id AND S.type = 'sell'
+                        AND S.invoice_no = NULLIF(TRIM(transactions.custom_field_3), '')
+                        ORDER BY S.id DESC LIMIT 1) as client_po_amount"),
                 'contacts.name',
                 'contacts.supplier_business_name',
                 'transactions.supplier_note',
@@ -5085,7 +5089,13 @@ class TransactionUtil extends Util
                 'transactions.tracking_number',
                 'transactions.shipping_status',
                 //Subqueries, not joins, so the payment sums above are not multiplied.
-                DB::raw("(SELECT GROUP_CONCAT(SL.name ORDER BY SL.name SEPARATOR ', ') FROM shipping_lines AS SL WHERE (FIND_IN_SET(SL.id, REPLACE(REPLACE(REPLACE(transactions.shipping_line_ids, '[', ''), ']', ''), ' ', '')) OR (transactions.shipping_line_ids IS NULL AND SL.id = transactions.shipping_line_id))) as shipping_line"),
+                DB::raw(<<<'SQL'
+                    (SELECT GROUP_CONCAT(SL.name ORDER BY SL.name SEPARATOR ', ')
+                    FROM shipping_lines AS SL
+                    WHERE SL.business_id = transactions.business_id
+                    AND (FIND_IN_SET(SL.id, REPLACE(REPLACE(REPLACE(REPLACE(transactions.shipping_line_ids, '[', ''), ']', ''), ' ', ''), '"', ''))
+                        OR (COALESCE(TRIM(transactions.shipping_line_ids), '') IN ('', '[]', 'null') AND SL.id = transactions.shipping_line_id))) as shipping_line
+                    SQL),
                 DB::raw("(SELECT GROUP_CONCAT(COALESCE(I.name, '') ORDER BY PI.id SEPARATOR '||') FROM purchase_investors AS PI
                         LEFT JOIN investors AS I ON I.id = PI.investor_id WHERE PI.transaction_id = transactions.id) as investor_names"),
                 DB::raw("(SELECT GROUP_CONCAT(PI.amount ORDER BY PI.id SEPARATOR '||') FROM purchase_investors AS PI

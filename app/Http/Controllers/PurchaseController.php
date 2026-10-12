@@ -245,6 +245,9 @@ class PurchaseController extends Controller
                     })->implode('<br>');
                 })
                 ->editColumn('shipping_line', '{{$shipping_line}}')
+                ->editColumn('client_po_amount', function ($row) {
+                    return $row->client_po_amount === null ? '' : $this->transactionUtil->num_f($row->client_po_amount, true);
+                })
                 ->editColumn('tracking_number', '{{$tracking_number}}')
                 ->editColumn('shipping_status', function ($row) use ($shipping_statuses) {
                     return e($shipping_statuses[$row->shipping_status] ?? $row->shipping_status);
