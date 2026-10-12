@@ -455,9 +455,13 @@ class SellController extends Controller
                         }
 
                         if ($row->type == 'sell') {
-                            if (auth()->user()->can('print_invoice')) {
+                            if (auth()->user()->can('invoice_download.view')) {
                                 $html .= '<li><a target="_blank" href="' . action([\App\Http\Controllers\SellPosController::class, 'downloadInvoicePdf'], [$row->id]) . '" ><i class="fas fa-print" aria-hidden="true"></i> ' . __('Download Invoice') . '</a></li>';
+                            }
+                            if (auth()->user()->can('delivery_challan.view')) {
                                 $html .= '<li><a target="_blank" href="' . action([\App\Http\Controllers\SellPosController::class, 'downloadPackingListPdf'], [$row->id]) . '" ><i class="fas fa-file-alt" aria-hidden="true"></i> ' . __('Delivery Chalan') . '</a></li>';
+                            }
+                            if (auth()->user()->can('mushak_6_3.view')) {
                                 $html .= '<li><a target="_blank" href="' . route('sells.downloadMushak63Pdf', [$row->id]) . '" ><i class="fas fa-file-invoice" aria-hidden="true"></i> ' . __('Mushak 6.3') . '</a></li>';
                             }
                             $html .= '<li class="divider"></li>';

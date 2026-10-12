@@ -83,7 +83,7 @@ class MushakInvoiceController extends Controller
      */
     public function index()
     {
-        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+        abort_unless(auth()->user()->can('mushak_6_3.view'), 403, 'Unauthorized action.');
 
         $business_id = request()->session()->get('user.business_id');
 
@@ -118,8 +118,12 @@ class MushakInvoiceController extends Controller
                         <ul class="dropdown-menu dropdown-menu-left" role="menu">';
 
                     $html .= '<li><a href="' . action([\App\Http\Controllers\SellPosController::class, 'downloadMushak63Pdf'], [$row->transaction_id]) . '" target="_blank"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> ' . __('messages.view') . ' PDF</a></li>';
-                    $html .= '<li><a href="' . action([\App\Http\Controllers\MushakInvoiceController::class, 'edit'], [$row->id]) . '"><i class="glyphicon glyphicon-edit"></i> ' . __('messages.edit') . '</a></li>';
-                    $html .= '<li><a href="#" class="delete_mushak" data-href="' . action([\App\Http\Controllers\MushakInvoiceController::class, 'destroy'], [$row->id]) . '"><i class="fa fa-trash"></i> ' . __('messages.delete') . '</a></li>';
+                    if (auth()->user()->can('mushak_6_3.update')) {
+                        $html .= '<li><a href="' . action([\App\Http\Controllers\MushakInvoiceController::class, 'edit'], [$row->id]) . '"><i class="glyphicon glyphicon-edit"></i> ' . __('messages.edit') . '</a></li>';
+                    }
+                    if (auth()->user()->can('mushak_6_3.delete')) {
+                        $html .= '<li><a href="#" class="delete_mushak" data-href="' . action([\App\Http\Controllers\MushakInvoiceController::class, 'destroy'], [$row->id]) . '"><i class="fa fa-trash"></i> ' . __('messages.delete') . '</a></li>';
+                    }
 
                     $html .= '</ul></div>';
 
@@ -152,7 +156,7 @@ class MushakInvoiceController extends Controller
      */
     public function create()
     {
-        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+        abort_unless(auth()->user()->can('mushak_6_3.create'), 403, 'Unauthorized action.');
 
         $business_id = request()->session()->get('user.business_id');
 
@@ -196,7 +200,7 @@ class MushakInvoiceController extends Controller
      */
     public function store(Request $request)
     {
-        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+        abort_unless(auth()->user()->can('mushak_6_3.create'), 403, 'Unauthorized action.');
 
         $request->validate([
             'transaction_id' => 'required',
@@ -251,7 +255,7 @@ class MushakInvoiceController extends Controller
      */
     public function edit($id)
     {
-        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+        abort_unless(auth()->user()->can('mushak_6_3.update'), 403, 'Unauthorized action.');
 
         $business_id = request()->session()->get('user.business_id');
 
@@ -274,7 +278,7 @@ class MushakInvoiceController extends Controller
      */
     public function update(Request $request, $id)
     {
-        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+        abort_unless(auth()->user()->can('mushak_6_3.update'), 403, 'Unauthorized action.');
 
         $request->validate([
             'issued_at' => 'required',
@@ -311,7 +315,7 @@ class MushakInvoiceController extends Controller
      */
     public function destroy($id)
     {
-        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+        abort_unless(auth()->user()->can('mushak_6_3.delete'), 403, 'Unauthorized action.');
 
         try {
             $business_id = request()->session()->get('user.business_id');
@@ -333,7 +337,7 @@ class MushakInvoiceController extends Controller
      */
     public function getTransactions()
     {
-        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+        abort_unless(auth()->user()->can('mushak_6_3.create') || auth()->user()->can('mushak_6_3.update'), 403, 'Unauthorized action.');
 
         $business_id = request()->session()->get('user.business_id');
         $term = request()->input('q', '');
@@ -390,7 +394,7 @@ class MushakInvoiceController extends Controller
      */
     public function getTransactionDefaults($transaction_id)
     {
-        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+        abort_unless(auth()->user()->can('mushak_6_3.create') || auth()->user()->can('mushak_6_3.update'), 403, 'Unauthorized action.');
 
         $business_id = request()->session()->get('user.business_id');
         $transaction = $this->transactionQuery($business_id)->findOrFail($transaction_id);

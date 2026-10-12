@@ -13,7 +13,9 @@
     @endcomponent
     @component('components.widget', ['class' => 'box-primary', 'title' => 'Mushak '.str_replace('-', '.', $type)])
         @slot('tool')
+            @can('mushak_'.str_replace('-', '_', $type).'.create')
             <div class="box-tools"><a class="btn btn-primary" href="{{ route('mushak.books.create', $type) }}"><i class="fa fa-plus"></i> Generate Mushak {{ str_replace('-', '.', $type) }}</a></div>
+            @endcan
         @endslot
         <div class="table-responsive">
             <table class="table table-bordered table-striped" id="book_table">

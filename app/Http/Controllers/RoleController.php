@@ -117,7 +117,7 @@ class RoleController extends Controller
 
         try {
             $role_name = $request->input('name');
-            $permissions = $request->input('permissions');
+            $permissions = $request->input('permissions', []);
             $business_id = $request->session()->get('user.business_id');
 
             $count = Role::where('name', $role_name.'#'.$business_id)
@@ -233,7 +233,7 @@ class RoleController extends Controller
 
         try {
             $role_name = $request->input('name');
-            $permissions = $request->input('permissions');
+            $permissions = $request->input('permissions', []);
             $business_id = $request->session()->get('user.business_id');
 
             $count = Role::where('name', $role_name.'#'.$business_id)
@@ -273,9 +273,7 @@ class RoleController extends Controller
 
                     $this->__createPermissionIfNotExists($permissions);
 
-                    if (! empty($permissions)) {
-                        $role->syncPermissions($permissions);
-                    }
+                    $role->syncPermissions($permissions);
 
                     $output = ['success' => 1,
                         'msg' => __('user.role_updated'),

@@ -3189,6 +3189,7 @@ class SellPosController extends Controller
 
     public function downloadInvoicePdf($id)
     {
+        abort_unless(auth()->user()->can('invoice_download.view'), 403, 'Unauthorized action.');
 
         $business_id = request()->session()->get('user.business_id');
 
@@ -3207,7 +3208,7 @@ class SellPosController extends Controller
      */
     public function downloadMushak63Pdf($id)
     {
-        abort_unless(auth()->user()->can('print_invoice'), 403, 'Unauthorized action.');
+        abort_unless(auth()->user()->can('mushak_6_3.view'), 403, 'Unauthorized action.');
 
         $business_id = request()->session()->get('user.business_id');
         $transaction = Transaction::where('business_id', $business_id)
@@ -3398,6 +3399,7 @@ class SellPosController extends Controller
      */
     public function downloadPackingListPdf($id)
     {
+        abort_unless(auth()->user()->can('delivery_challan.view'), 403, 'Unauthorized action.');
         $business_id = request()->session()->get('user.business_id');
 
         $receipt_contents = $this->transactionUtil->getPdfContentsForGivenTransaction($business_id, $id);

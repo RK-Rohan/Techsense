@@ -256,7 +256,7 @@ class AdminSidebarMenu
                 )->order(25);
             }
             //Sell dropdown
-            if ($is_admin || auth()->user()->hasAnyPermission(['sell.view', 'sell.create', 'direct_sell.access', 'view_own_sell_only', 'view_commission_agent_sell', 'access_shipping', 'access_own_shipping', 'access_commission_agent_shipping', 'access_sell_return', 'direct_sell.view', 'direct_sell.update', 'access_own_sell_return'])) {
+            if ($is_admin || auth()->user()->hasAnyPermission(['sell.view', 'sell.create', 'direct_sell.access', 'view_own_sell_only', 'view_commission_agent_sell', 'access_shipping', 'access_own_shipping', 'access_commission_agent_shipping', 'access_sell_return', 'direct_sell.view', 'direct_sell.update', 'access_own_sell_return', 'mushak_6_1.view', 'mushak_6_2.view', 'mushak_6_3.view'])) {
                 $menu->dropdown(
                     __('sale.sale'),
                     function ($sub) use ($enabled_modules, $is_admin, $pos_settings) {
@@ -320,7 +320,7 @@ class AdminSidebarMenu
                             ['icon' => 'fa fas fa-pen-square', 'active' => request()->segment(1) == 'terms-conditions' && request()->segment(2) == null]
                         );
 
-                        if (auth()->user()->can('print_invoice')) {
+                        if (auth()->user()->can('mushak_6_3.view')) {
                             $sub->url(
                                 action([\App\Http\Controllers\MushakInvoiceController::class, 'index']),
                                 __('lang_v1.mushak_6_3'),
@@ -328,7 +328,7 @@ class AdminSidebarMenu
                             );
                         }
 
-                        if (auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase')) {
+                        if (auth()->user()->can('mushak_6_1.view')) {
                             $sub->url(
                                 action([\App\Http\Controllers\MushakRegisterController::class, 'purchaseBook']),
                                 __('lang_v1.mushak_6_1'),
@@ -336,7 +336,7 @@ class AdminSidebarMenu
                             );
                         }
 
-                        if (auth()->user()->can('sell.view') || auth()->user()->can('view_own_sell_only')) {
+                        if (auth()->user()->can('mushak_6_2.view')) {
                             $sub->url(
                                 action([\App\Http\Controllers\MushakRegisterController::class, 'salesBook']),
                                 __('lang_v1.mushak_6_2'),

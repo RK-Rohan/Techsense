@@ -24,11 +24,13 @@
 
     @component('components.widget', ['class' => 'box-primary', 'title' => __('lang_v1.mushak_6_3')])
         @slot('tool')
+            @can('mushak_6_3.create')
             <div class="box-tools">
                 <a class="btn btn-block btn-primary"
                     href="{{action([\App\Http\Controllers\MushakInvoiceController::class, 'create'])}}">
                     <i class="fa fa-plus"></i> @lang('lang_v1.generate_mushak')</a>
             </div>
+            @endcan
         @endslot
 
         <div class="table-responsive">

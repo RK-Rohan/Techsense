@@ -9,9 +9,10 @@ use Yajra\DataTables\Facades\DataTables;
 
 class MushakBookController extends MushakRegisterController
 {
-    private function scope(Request $request, $type)
+    private function scope(Request $request, $type, $action = 'view')
     {
         abort_unless(in_array($type, ['6-1', '6-2'], true), 404);
+        abort_unless(auth()->user()->can('mushak_'.str_replace('-', '_', $type).'.'.$action), 403, 'Unauthorized action.');
         $purchase = $type === '6-1';
         $all = auth()->user()->can($purchase ? 'purchase.view' : 'sell.view');
         abort_unless($all || auth()->user()->can($purchase ? 'view_own_purchase' : 'view_own_sell_only'), 403);
@@ -42,7 +43,7 @@ class MushakBookController extends MushakRegisterController
 
     public function create(Request $request, $type)
     {
-        $this->scope($request, $type);
+        $this->scope($request, $type, 'create');
         $header = $this->headerData($request->session()->get('user.business_id'), null);
         $book = new MushakBook([
             'issued_at' => date('Y-m-d'), 'start_date' => date('Y-m-01'), 'end_date' => date('Y-m-t'),
@@ -56,20 +57,20 @@ class MushakBookController extends MushakRegisterController
 
     public function edit(Request $request, $type, $id)
     {
-        $book = $this->scope($request, $type)->findOrFail($id);
+        $book = $this->scope($request, $type, 'update')->findOrFail($id);
         return view('mushak.books.form', compact('book', 'type'));
     }
 
     public function store(Request $request, $type)
     {
-        $this->scope($request, $type);
+        $this->scope($request, $type, 'create');
         $book = new MushakBook(['business_id' => $request->session()->get('user.business_id'), 'type' => $type, 'created_by' => auth()->id()]);
         return $this->saveBook($request, $type, $book);
     }
 
     public function update(Request $request, $type, $id)
     {
-        return $this->saveBook($request, $type, $this->scope($request, $type)->findOrFail($id));
+        return $this->saveBook($request, $type, $this->scope($request, $type, 'update')->findOrFail($id));
     }
 
     private function saveBook(Request $request, $type, MushakBook $book)
@@ -134,7 +135,7 @@ class MushakBookController extends MushakRegisterController
 
     public function destroy(Request $request, $type, $id)
     {
-        $this->scope($request, $type)->findOrFail($id)->delete();
+        $this->scope($request, $type, 'delete')->findOrFail($id)->delete();
         return response()->json(['success' => true, 'msg' => 'Mushak deleted successfully.']);
     }
 }
