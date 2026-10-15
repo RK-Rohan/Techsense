@@ -24,7 +24,7 @@
                         @if(file_exists(public_path('uploads/invoice_logos/TBL-Logo-PNG.png')))
                             <img src="{{ asset('uploads/invoice_logos/TBL-Logo-PNG.png') }}"
                                  alt="TBL Logo" style="height:40px; max-width:150px; object-fit:contain; display:inline-block; vertical-align:middle;">
-                        @elseif(!empty(Session::get('business.logo')))
+                        @elseif(!empty(Session::get('business.logo')) && is_file(public_path('uploads/business_logos/' . Session::get('business.logo'))))
                             <img src="{{ asset('uploads/business_logos/' . Session::get('business.logo')) }}"
                                  alt="Logo" style="height:30px; display:inline-block; vertical-align:middle;">
                         @else

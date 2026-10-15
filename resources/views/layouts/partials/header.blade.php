@@ -111,7 +111,7 @@
             <ul class="dropdown-menu">
               <!-- The user image in the menu -->
               <li class="user-header">
-                @if(!empty(Session::get('business.logo')))
+                @if(!empty(Session::get('business.logo')) && is_file(public_path('uploads/business_logos/' . Session::get('business.logo'))))
                   <img src="{{ asset( 'uploads/business_logos/' . Session::get('business.logo') ) }}" alt="Logo">
                 @endif
                 <p>

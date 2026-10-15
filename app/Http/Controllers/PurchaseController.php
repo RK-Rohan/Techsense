@@ -7,6 +7,7 @@ use App\Business;
 use App\BusinessLocation;
 use App\Contact;
 use App\CustomerGroup;
+use App\DataTables\PurchaseDataTable;
 use App\Models\Investor;
 use App\Product;
 use App\PurchaseLine;
@@ -23,7 +24,6 @@ use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
-use Yajra\DataTables\Facades\DataTables;
 use App\Events\PurchaseCreatedOrModified;
 
 class PurchaseController extends Controller
@@ -117,7 +117,7 @@ class PurchaseController extends Controller
 
             $shipping_statuses = $this->transactionUtil->shipping_statuses();
 
-            return Datatables::of($purchases)
+            return (new PurchaseDataTable($purchases))
                 ->addColumn('action', function ($row) {
                     $html = '<div class="btn-group">
                             <button type="button" class="btn btn-info dropdown-toggle btn-xs" 

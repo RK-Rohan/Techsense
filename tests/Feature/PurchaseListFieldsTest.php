@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\DataTables\PurchaseDataTable;
 use App\Utils\TransactionUtil;
 use Illuminate\Database\Query\Grammars\SQLiteGrammar;
 use Illuminate\Support\Facades\DB;
@@ -60,7 +61,17 @@ class PurchaseListFieldsTest extends TestCase
             ['transaction_id' => 2, 'amount' => 200],
         ]);
 
-        $rows = $this->app->make(TransactionUtil::class)->getListPurchases(1)->get()->keyBy('id');
+        DB::table('transactions')->insert([
+            'id' => 12, 'business_id' => 1, 'type' => 'purchase_return',
+            'return_parent_id' => 1, 'final_total' => 500,
+        ]);
+        DB::table('transaction_payments')->insert([
+            ['transaction_id' => 12, 'amount' => 50],
+            ['transaction_id' => 12, 'amount' => 75],
+        ]);
+
+        $query = $this->app->make(TransactionUtil::class)->getListPurchases(1);
+        $rows = (clone $query)->get()->keyBy('id');
         $this->assertCount(5, $rows);
         $this->assertSame('Hand Carry', $rows[1]->shipping_line);
         $this->assertEqualsCanonicalizing(['Hand Carry', 'Courier'], explode(', ', $rows[2]->shipping_line));
@@ -73,5 +84,15 @@ class PurchaseListFieldsTest extends TestCase
         }
         $this->assertEquals(300, $rows[1]->amount_paid);
         $this->assertEquals(300, $rows[2]->amount_paid);
+        $this->assertEquals(1, $rows[1]->return_exists);
+        $this->assertEquals(500, $rows[1]->amount_return);
+        $this->assertEquals(125, $rows[1]->return_paid);
+        $this->assertEquals(0, $rows[2]->return_exists);
+        $this->assertNull($rows[3]->amount_paid);
+        $table = new PurchaseDataTable(clone $query);
+        $this->assertEquals(5, $table->count());
+        $this->assertStringNotContainsString('GROUP_CONCAT', $table->prepareCountQuery()->toSql());
+        $this->assertEquals(1, (new PurchaseDataTable((clone $query)->where('transactions.id', 1)))->count());
+        $this->assertSame([2, 3], (clone $query)->orderBy('transactions.id')->offset(1)->limit(2)->pluck('transactions.id')->all());
     }
 }
