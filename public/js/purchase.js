@@ -525,6 +525,12 @@ $(document).ready(function() {
         processing: true,
         serverSide: true,
         stateSave: true,
+        pageLength: 50,
+        stateLoadParams: function(settings, data) {
+            // Start with 50 rows even when a larger page size was saved.
+            data.length = 50;
+            data.start = 0;
+        },
         scrollY: "75vh",
         scrollX:        true,
         scrollCollapse: true,
