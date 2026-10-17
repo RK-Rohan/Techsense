@@ -16,7 +16,7 @@
 
 <!-- Main content -->
 <section class="content no-print">
-    @component('components.filters', ['title' => __('report.filters')])
+    @component('components.filters', ['title' => __('report.filters'), 'class' => 'purchase-list-filters'])
         <div class="col-md-3">
             <div class="form-group">
                 {!! Form::label('purchase_list_filter_location_id',  __('purchase.business_location') . ':') !!}
@@ -82,7 +82,7 @@
 <!-- /.content -->
 @stop
 @section('javascript')
-<script src="{{ asset('js/purchase.js?v=' . $asset_v) }}"></script>
+<script src="{{ asset('js/purchase.js?v=' . $asset_v . '-list-filters-1') }}"></script>
 <script src="{{ asset('js/payment.js?v=' . $asset_v) }}"></script>
 <script>
     //Date range as a button

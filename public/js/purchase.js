@@ -518,13 +518,14 @@ $(document).ready(function() {
         '#purchase_list_filter_location_id', '#purchase_list_filter_supplier_id',
         '#purchase_list_filter_status', '#purchase_list_filter_payment_status',
         '#purchase_list_filter_date_range'
-    ]);
+    ], '.purchase-list-filters');
 
     //Purchase table
     purchase_table = $('#purchase_table').DataTable({
         processing: true,
         serverSide: true,
         stateSave: true,
+        stateDuration: 0,
         pageLength: 50,
         stateLoadParams: function(settings, data) {
             // Start with 50 rows even when a larger page size was saved.
@@ -624,7 +625,7 @@ $(document).ready(function() {
         '#purchase_list_filter_location_id', '#purchase_list_filter_supplier_id',
         '#purchase_list_filter_status', '#purchase_list_filter_payment_status',
         '#purchase_list_filter_date_range'
-    ]);
+    ], '.purchase-list-filters');
 
     $(document).on(
         'change',
