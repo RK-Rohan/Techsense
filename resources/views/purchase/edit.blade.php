@@ -9,6 +9,7 @@
   #add_purchase_form label { margin-bottom: 3px; }
   #supplier_address_div { margin-top: 5px; font-size: 12px; line-height: 1.4; }
 </style>
+@include('purchase.partials.compact_header_styles')
 @endsection
 
 @section('content')
@@ -41,7 +42,7 @@
   <input type="hidden" id="purchase_id" value="{{ $purchase->id }}">
 
     @component('components.widget', ['class' => 'box-primary'])
-        <div class="row">
+        <div class="row purchase-header-fields">
             <div class="@if(!empty($default_purchase_status)) col-sm-4 @else col-sm-3 @endif">
               <div class="form-group">
                 {!! Form::label('supplier_id', __('purchase.supplier') . ':*') !!}
@@ -115,7 +116,7 @@
               </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-sm-3">
                 <div class="form-group">
                   <div class="multi-input">
                     {!! Form::label('pay_term_number', __('contact.pay_term') . ':') !!} @show_tooltip(__('tooltip.pay_term'))
@@ -140,10 +141,10 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row purchase-header-fields">
           <div class="col-sm-3">
             <div class="form-group">
-              {!! Form::label('quotation_id', __('lang_v1.quotation') . ':') !!}
+              {!! Form::label('quotation_id', __('sale.draft') . ':') !!}
               @show_tooltip(__('lang_v1.quotation_purchase_help'))
               {!! Form::select('quotation_id', $quotations, $purchase->quotation_id, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'id' => 'quotation_id']); !!}
             </div>

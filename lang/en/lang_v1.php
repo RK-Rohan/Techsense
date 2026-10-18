@@ -333,7 +333,7 @@ return [
     'add_shipping_line' => 'Add Shipping Line',
     'shipping_line_name' => 'Shipping line name',
     'investor_name' => 'Investor Name',
-    'quotation_purchase_help' => 'Select a draft to add its items to the purchase below.',
+    'quotation_purchase_help' => 'Select an entry from List Drafts to add its items to this purchase. Quotations are excluded.',
     'supplier_note' => 'Supplier Note',
     'no_quotation_items' => 'This draft has no items that can be purchased.',
     'download_complete_backup' => 'Download complete backup',
