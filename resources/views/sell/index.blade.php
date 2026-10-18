@@ -44,7 +44,6 @@
                         <th>Time</th>
                         <th>@lang('sale.invoice_no')</th>
                         <th>Business Name</th>
-                        <th>@lang('sale.customer_name')</th>
                         <th>{{ $custom_labels['sell']['custom_field_2'] ?? 'Contact To' }}</th>
                         <th>{{ $custom_labels['sell']['custom_field_1'] ?? '' }}</th>
                         {{-- <th>@lang('sale.location')</th> --}}
@@ -76,7 +75,7 @@
                 <tbody></tbody>
                 <tfoot>
                     <tr class="bg-gray font-17 footer-total text-center">
-                        <td colspan="8"><strong>@lang('sale.total'):</strong></td>
+                        <td colspan="7"><strong>@lang('sale.total'):</strong></td>
                         <td class="footer_payment_status_count"></td>
                         <td></td>
                         <td class="footer_sale_total"></td>
@@ -246,7 +245,6 @@ $(document).ready( function(){
             { data: 'transaction_time', name: 'transaction_date', searchable: false },
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'company_name', name: 'contacts.supplier_business_name'},
-            { data: 'contact_name', name: 'contacts.name'},
             { data: 'custom_field_2', name: 'transactions.custom_field_2'},
             { data: 'custom_field_1', name: 'transactions.custom_field_1', visible: {{ empty($custom_labels['sell']['custom_field_1']) ? 'false' : 'true' }} },
             // { data: 'business_location', name: 'bl.name'},
@@ -340,7 +338,7 @@ $(document).ready( function(){
             $('.payment_method_count').html(__count_status(data, 'payment_methods'));
         },
         createdRow: function( row, data, dataIndex ) {
-            $( row ).find('td:eq(8)').attr('class', 'clickable_td');
+            $( row ).find('td:eq(7)').attr('class', 'clickable_td');
         }
     });
 

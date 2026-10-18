@@ -53,6 +53,7 @@
                         <th>@lang('messages.date')</th>
                         <th>@lang('purchase.ref_no')</th>
                         <th>@lang('sale.customer_name')</th>
+                        <th>Contact name</th>
                         <th>@lang('lang_v1.contact_no')</th>
                         <th>@lang('sale.location')</th>
                         <th>@lang('lang_v1.total_items')</th>
@@ -108,14 +109,15 @@ $(document).ready( function(){
             }
         },
         columnDefs: [ {
-            "targets": 8,
+            "targets": 9,
             "orderable": false,
             "searchable": false
         } ],
         columns: [
             { data: 'transaction_date', name: 'transaction_date'  },
             { data: 'invoice_no', name: 'invoice_no'},
-            { data: 'conatct_name', name: 'conatct_name'},
+            { data: 'supplier_business_name', name: 'contacts.supplier_business_name'},
+            { data: 'name', name: 'contacts.name'},
             { data: 'mobile', name: 'contacts.mobile'},
             { data: 'business_location', name: 'bl.name'},
             { data: 'total_items', name: 'total_items', "searchable": false},
