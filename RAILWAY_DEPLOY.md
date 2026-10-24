@@ -18,7 +18,7 @@ Even with `railway.toml`, verify these in service settings:
 2. Builder: Dockerfile. The repository Dockerfile builds PHP dependencies and frontend assets.
 3. Start Command: leave blank so Railway uses the Dockerfile `CMD`.
 4. Pre-Deploy Command:
-   - `php artisan migrate --force`
+   - Leave empty for runtime security deployments. Run migrations separately only when required and approved.
 5. Healthcheck path:
    - `/health`
 
@@ -59,7 +59,7 @@ are exposed to the app service.
 
 1. Deploy app service.
 2. Confirm build succeeds.
-3. Confirm pre-deploy migration succeeds.
+3. Confirm no migrations execute during a runtime security deployment.
 4. Open app URL and verify login page.
 5. Verify DB-backed page loads data.
 
