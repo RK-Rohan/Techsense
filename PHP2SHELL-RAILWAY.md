@@ -1,194 +1,205 @@
-# Railway PHP2Shell audit — 2026-10-24 (Asia/Dhaka)
+# Railway PHP2Shell rollout — 2026-10-24
 
-## Status and scope
+This report supersedes the original inspection-only report. The user authorized
+production rollout of the five remaining PHP security changes with “update”.
+HestiaCP and the separate Cosy Capital workspace remain outside scope.
 
-Inspection and source changes are complete for the nine projects in the
-**RK Projects** workspace. All six PHP services remain on their original
-production deployments. Changes have not been pushed or deployed. Image builds
-and post-deployment verification are pending. No production migrations ran.
-HestiaCP and the separate Cosy Capital workspace are outside this audit.
+## Verified runtime inventory
 
-Only production environments are listed; no staging environment is available.
-Each PHP service has one active deployment/replica. Railway lists no separate
-PHP worker, queue, scheduler, or cron service, and all service cron schedules
-are empty. Process-name inspection found web processes, with no active queue
-worker, scheduler, cron daemon, or supervisor. External schedulers cannot be
-excluded by this inspection.
+Versions were checked privately in deployed containers, including the actual
+FrankenPHP binary or PHP-FPM master and its forked workers. Repository pins alone
+were not used as production evidence. These are upstream fixed releases; no
+vendor backport is needed for these five services.
 
-## Confirmed runtime inventory
+| Project / service | Before PHP | Verified PHP | Laravel (unchanged) | Web runtime | Patch status |
+| --- | --- | --- | --- | --- | --- |
+| Techsense / Techsense | 8.2.30 | 8.2.35 | 9.52.16 | FrankenPHP | Confirmed patched |
+| Rayhan / rayhantrading | 8.3.33 | 8.3.36 | 10.50.2 | FrankenPHP | Confirmed patched |
+| Kashful / kashful-super-shop | 8.2.33 | 8.2.35 | 9.52.4 | FrankenPHP | Confirmed patched |
+| Design / design.newlifestylebd.com | 8.4.26 | 8.4.27 | 12.64.0 | nginx + PHP-FPM | Confirmed patched |
+| HUTBAZAR / hutbazar-api | 8.2.33 | 8.2.35 | 11.41.3 | FrankenPHP | Confirmed patched |
 
-Versions below came from private `railway ssh` execution, not repository pins.
-FrankenPHP versions were corroborated by `frankenphp version`; Design's web
-runtime was corroborated by `php-fpm -v` and process inspection. BABYZONE's
-PID 1 is PHP CLI with the built-in `-S` HTTP server, despite its Apache base.
-These source-built upstream runtimes have no verified vendor backport.
+BABYZONE was completed separately before this rollout: PHP 7.4.33 / Laravel 5.8
+was replaced by PHP 8.3.36 / Laravel 13.38.0. The original proposed PHP 7.4
+backport was superseded by that upgrade and is not its active runtime.
 
-| Project / service | Running PHP | Web runtime / source | Prepared target | Live status |
-| --- | --- | --- | --- | --- |
-| Techsense / Techsense | 8.2.30 | FrankenPHP 1.12.2, Dockerfile | PHP 8.2.35 / FrankenPHP 1.13.2 | Confirmed exposed |
-| BABYZONE / babyzone | 7.4.33 | PHP built-in HTTP server; official Apache Docker base | 7.4.33 rebuilt with official PHP security-team backport | Confirmed exposed |
-| Design / design.newlifestylebd.com | 8.4.26 | nginx + PHP-FPM, official PHP Docker image | PHP 8.4.27 FPM | Confirmed exposed |
-| Rayhan Trading / rayhantrading | 8.3.33 | FrankenPHP 1.12.7, Dockerfile | PHP 8.3.36 / FrankenPHP 1.13.2 | Confirmed exposed |
-| HUTBAZAR / hutbazar-api | 8.2.33 | FrankenPHP 1.12.6, Railpack | PHP 8.2.35, selected through composer.json | Confirmed exposed |
-| Kashful Super Shop / kashful-super-shop | 8.2.33 | FrankenPHP 1.12.6, Dockerfile | PHP 8.2.35 / FrankenPHP 1.13.2 | Confirmed exposed |
+Only production environments exist in the five projects. Each has one PHP
+application service and one MySQL service. Railway lists no separate PHP queue,
+worker, scheduler, or cron service, and no cron schedules. Process inspection
+found the web processes and the temporary verification CLI, with no active queue
+worker, scheduler, cron daemon, or supervisor. External schedulers are unverified.
 
-HUTBAZAR's deployment metadata reports a resolved package version of 8.2.31;
-the actual PHP CLI and FrankenPHP binary both report 8.2.33. The running
-binary evidence takes precedence.
-
-The remaining services need no PHP update: DoozEX/ePharma (Node),
+The initial workspace inventory also identified DoozEX/ePharma (Node),
 Invoice/sellyx-server (Node), creative-emotion/RemoteDeviceGO (Go),
-creative-emotion/RemoteDeviceNext (Node/Next), six MySQL services, and
-creative-emotion/Postgres. No PHP executable was found on PATH in inspected
-non-PHP containers. Design/MySQL and creative-emotion/Postgres were sleeping
-and could not accept SSH; their configured database-only images identify
-them as non-PHP services. RemoteDeviceNext was checked after waking it with
-a normal HTTP request.
+creative-emotion/RemoteDeviceNext (Node/Next), MySQL and Postgres as non-PHP.
+Those services required no PHP runtime changes.
 
-## Production deployment evidence
+## Deployment evidence
 
-| PHP service | Active deployment before changes |
-| --- | --- |
-| Techsense | 2d11b235-7f25-4623-a6f1-a6fb4982c92b |
-| babyzone | e4ba786c-018e-41b5-9ee9-81d24f44d501 |
-| design.newlifestylebd.com | 6e71f3a7-c8e6-46d7-8ed5-257640398428 |
-| rayhantrading | a0e762df-0040-49c0-902e-117083e74396 |
-| hutbazar-api | d85b9788-3963-4145-9cd1-46ecee9341b3 |
-| kashful-super-shop | f706312e-06ae-4a9b-b40c-3f76fcd17cb7 |
+| Service | Deployment at verification | Main commit | Railway status |
+| --- | --- | --- | --- |
+| Techsense | `765ad98d-c2d4-496e-b7b2-19e144805bfd` | `6af36542b9092fab65e3544dfbe66d051a4fc5e5` | SUCCESS |
+| Rayhan | `cea95a36-9ba4-4a8d-8bea-0f5e7ff31049` | `577b1367fd95f685e75f77b2cb88f64702b2e121` | SUCCESS |
+| Kashful | `dd651b1e-c43f-47b6-a2b9-1158a40e7d92` | `a4010f28c0a7bac230779bbb4640e960be89bb89` | SUCCESS |
+| Design | `9c075faf-0743-4dbc-b491-fa5efbd9ca24` | `11abea05debe6d6a1c8f9b05cd102eb7a77181ff` | SUCCESS |
+| HUTBAZAR | `2d529f9d-847f-409d-acf8-26dcaaf09d9f` | `43a962ef340156b848d80f618ce7d0603b74d2d1` | SUCCESS |
 
-Each active deployment matches the corresponding local HEAD before this
-security change. Kashful has pre-existing local application edits and an
-untracked Accounting archive; neither is part of the security commit.
+Private evidence, original settings, logs, upload archives and SHA-256 manifests
+are retained outside Git in the restricted remaining-php2shell backup directory.
+No environment-variable values or credentials are included in this report.
 
-## Changes
+## Implementation and validation
 
-- Techsense: Dockerfile pins FrankenPHP/PHP by release and digest; php.ini
-  disables session upload progress; railway.toml explicitly clears migration
-  hooks; RAILWAY_DEPLOY.md documents the migration-free security rollout.
-- Rayhan Trading: Dockerfile, php.ini, railway.toml make the same changes,
-  retaining PHP 8.3 and all installed extensions.
-- Kashful: Dockerfile, docker/php-runtime.ini, railway.toml make the same
-  changes, retaining PHP 8.2 and all installed extensions. RAILWAY_DEPLOY.md
-  removes a committed database password and updates migration guidance.
-- Design: Dockerfile pins PHP 8.4.27 FPM by digest and copies the added
-  docker/php-security.ini. nginx, FPM ports, and extensions are preserved.
-- HUTBAZAR: composer.json selects exactly 8.2.35 using Railpack's documented
-  mechanism. composer.lock changes only the PHP platform requirement and
-  Composer-generated content hash; all package records remain identical.
-  start-container.sh retains Laravel initialization, disables session upload
-  progress, and omits automatic migrations.
-- BABYZONE: Dockerfile pins the original base by digest, installs build
-  prerequisites, and rebuilds PHP core from its bundled source with the
-  checksum-verified official patch. docker/rebuild-php-security.sh retains
-  original configure options and compiler hardening flags, builds both CLI
-  and Apache, and requires the backport's exported symbol in both binaries.
-  docker/php74-php2shell.patch, docker/php-security.ini, .gitattributes, and
-  RAILWAY.md document/preserve the patch and Linux script bytes. The existing
-  entrypoint requires a new explicit migration opt-in as the existing Railway
-  configuration enables its older migration switch.
+- Docker builds pin the selected PHP/FrankenPHP release and image digest.
+  Design retains nginx and PHP-FPM. Existing extensions and application
+  configuration are preserved.
+- HUTBAZAR uses Railpack's documented Composer version requirement for exactly
+  PHP 8.2.35, with explicit pdo_mysql and redis extension requirements.
+  Composer package versions remain unchanged; only platform requirements and
+  their content hash changed.
+- Session upload progress is disabled before request parsing, including the
+  PHP security team's October 23 follow-up precaution.
+- All five exact security commits passed GitHub Actions Linux image builds and
+  runtime, extension and Composer platform checks. This Windows host has no
+  local Docker/WSL engine. No staging environment was available.
+- Existing local unit checks from the original audit passed: Techsense 8 tests /
+  33 assertions, Rayhan 1 / 1, Design 1 / 1, HUTBAZAR 1 / 1. Those local checks
+  used PHP 8.3.28; the separate image checks used each selected target runtime.
+  Kashful has no installed local test dependencies.
+- Techsense, Rayhan, Kashful and Design were placed in maintenance, their local
+  uploads archived, and dedicated Railway volumes mounted at the existing
+  upload paths. Archives were checksum-verified during restoration. Original
+  file counts and bytes were preserved through the final deployment.
+- HUTBAZAR had no local upload files to transfer and keeps its existing external
+  storage configuration.
+- Private SELECT 1, database identity, application-key identity, required
+  extension availability, effective security INI and production PHP versions
+  passed. No database move, framework upgrade or package upgrade was made to
+  these five applications. No production migration ran.
+- Login pages and dashboard, products and sales page rendering in existing
+  admin contexts returned 200 for all four POS applications. Public login CSS
+  and JavaScript checks passed on their working application/Railway hosts.
+  These checks did not create a real sale, refund, payment or customer upload,
+  submit a password login form, execute business jobs or send messages.
+- No queue jobs or schedules were executed as a production smoke test. Their
+  business execution remains outside this read-only validation.
+- Kashful's first volume deployment failed after the build without application
+  logs; retry succeeded. One initial DB SELECT failed with a dropped connection;
+  retry passed. The original uploads remained protected throughout recovery.
+- No exploit, memory-exhaustion test, public phpinfo or diagnostic route was used.
+  Limited initial log-indicator review found no selected exploit/miner matches;
+  this is not evidence that a previously compromised application is clean.
 
-No framework or package versions were upgraded. PHP 7.4 remains end-of-life;
-the BABYZONE backport addresses these two CVEs and is not general PHP LTS.
+### Data checks
 
-## Validation completed
+- Techsense: before transactions 5538, products 6903, contacts 563; verified transactions 5538, products 6903, contacts 563. Uploads 17 files / 403075 bytes.
+- Rayhan: before transactions 4113, products 1540, contacts 494; verified transactions 4113, products 1540, contacts 494. Uploads 2 files / 6304 bytes.
+- Kashful: before transactions 58180, products 18421, contacts 1096; verified transactions 58180, products 18421, contacts 1096. Uploads 13 files / 2810661 bytes.
+- Design: before transactions 554, products 173, contacts 1; verified transactions 554, products 173, contacts 1. Uploads 1 files / 0 bytes.
+- HUTBAZAR: before transactions 52, products 359, orders 68; verified transactions 52, products 359, orders 68. Uploads 0 files / 0 bytes.
 
-- Official PHP, Docker, FrankenPHP, and Railpack documentation checked.
-- Docker Hub tags/digests exist for the selected bases, including Railpack's
-  php8.2.35-trixie tag. This establishes availability, not a successful build.
-- Official PHP 7.4 patch applies cleanly to upstream PHP 7.4.33 source with
-  `git apply --check`; bundled patch SHA-256 is
-  `5fe57ca6ee96d59b36c6e0ca842843c50884f177bef1e85234cf669b577f5e48`.
-- Composer's locked dependency checks permit each chosen PHP 8 patch version.
-- HUTBAZAR Composer validation passes; package and development-package
-  records are unchanged in every modified PHP 8 repository.
-- Shell syntax checks pass for the added/changed scripts.
-- Existing local unit tests pass: Techsense 8 tests / 33 assertions;
-  Rayhan 1 / 1; Design 1 / 1; HUTBAZAR 1 / 1. These ran on local PHP 8.3.28,
-  not the prepared images. Kashful has no installed test dependencies;
-  BABYZONE's PHP 7 dependencies cannot be validated on local PHP 8.3.
-- Private, read-only database `SELECT 1` passes on all six live services.
-- Techsense, BABYZONE, Kashful: configured health endpoint and login return 200.
-  Rayhan: public health and login return 200. Design: Railway login returns
-  200; custom-domain login returns 502 (existing route targets FPM port 9001
-  while nginx listens on 9000). HUTBAZAR: public root returns 500 and sampled
-  API paths return 400. These baseline failures predate any rollout.
-- Last 200 deployment log lines per PHP service were reviewed with a limited
-  indicator filter; no selected corruption/exploit/miner indicators matched.
-  Application errors exist. This is not incident clearance or proof of no
-  compromise. No exploits or memory-exhaustion tests were run.
+## Remaining application and security actions
 
-## Required validation and deployment plan
+- Design's Railway hostname works, but its custom domain still returns 502.
+  The existing target port is 9001 (FPM), while nginx listens on 9000. This
+  routing issue was present before the runtime change and remains unresolved.
+- HUTBAZAR's root/login HTTP 500 and sampled API HTTP 400 responses existed
+  before rollout. Runtime, extensions and DB checks now pass, but application
+  business flows remain unverified until those errors are resolved.
+- Rayhan's POS hostname and Railway hostname pass HTTPS and asset checks.
+  Its additional apex hostname timed out during this verification and remains
+  unverified; no claim is made about when that problem began.
+- A database credential previously committed in Kashful's deployment guide was
+  removed from the current file. Coordinated credential rotation and history
+  cleanup remain required; runtime patching does not complete that work.
+- PHP 8.2 remains supported only through 2026-12-31. Plan a separate compatible
+  upgrade before then. Laravel major upgrades for these five projects were not
+  part of this runtime security rollout.
 
-1. Obtain a Linux Docker build runner or approve isolated Railway validation
-   services. This Windows host has no Docker engine or installed WSL. Do not
-   attach preview services to production databases or volumes. If no isolated
-   test database/accounts are available, request those before business-flow
-   tests. Keep every migration hook disabled.
-2. Build each Docker repository from the security commit (`docker build
-   --pull -t <service>:php2shell .`). For HUTBAZAR use Railway/Railpack with
-   its committed composer.json and custom startup script. Confirm the build
-   plan selects PHP 8.2.35 and the available FrankenPHP image. Prevent cached
-   application config or local secrets from entering build context.
-3. Verify image `php -v`, `php -m`, effective session upload-progress setting,
-   and `composer check-platform-reqs --no-dev` where Composer is available.
-   Compare extensions with the before inventory: preserve bcmath, exif,
-   fileinfo, gd, intl, mbstring, pcntl, pdo_mysql, zip where previously present;
-   preserve HUTBAZAR's redis extension too. Check `frankenphp version` or
-   `php-fpm -v`. BABYZONE must pass symbol checks in the rebuild script and
-   retain its patch build record; version 7.4.33 alone is insufficient proof.
-4. In isolation, validate health, database connectivity, authenticated login,
-   uploads and persistence, POS sales/purchases/invoices, PDF exports, and
-   HUTBAZAR product/API flows. Exercise queues and scheduled jobs if configured
-   in that environment; do not enqueue real production jobs or run schedules
-   merely as a smoke test.
-5. Resolve or explicitly accept the existing Design/HUTBAZAR baseline issues.
-   Confirm upload persistence/volume coverage before replacing containers.
-   No authenticated business-flow validation has been performed yet.
-6. Obtain production rollout approval for the concrete commits and successful
-   image validation. Deployment guides describe procedures, but no standing
-   authorization for this production rollout was found. All six production
-   services track main, so pushing there can trigger deployment; do not push
-   these commits to main before approval.
-7. Deploy one service at a time, starting with Techsense, then Kashful, Rayhan,
-   Design, HUTBAZAR, and finally BABYZONE's more involved rebuild. Deploy from
-   the security commits, excluding Kashful's unrelated working-tree changes.
-   Explicitly clear any dashboard pre-deploy migration command as well.
-   Verify BABYZONE's new migration opt-in is absent/disabled.
-8. Verify a new healthy active deployment for each service and each replica;
-   old processes must terminate. Use private SSH to repeat version, extension,
-   effective ini, binary/process, DB, and health checks. Inspect private logs.
-   Check embedded FrankenPHP/FPM as well as CLI. Re-inventory any newly added
-   worker/cron/scheduler services and redeploy those from the same fixed source.
-   Do not expose phpinfo or a public diagnostic route.
+## Recovery
 
-## Recovery and remaining actions
+Keep the patched PHP pins and disabled upload-progress setting. If application
+code must be rolled back, rebuild the previous compatible application code on
+these patched bases; do not select the old vulnerable Railway deployment/image.
+Keep migrations disabled. No schema rollback is required. Preserve the upload
+volumes; use the checksum-verified archives only if restoration is necessary,
+with a write freeze and a backup of the current files first. Database recovery
+must preserve new transactions rather than replacing the DB with an old copy.
 
-Keep the last healthy application source but rebuild it on these patched
-runtime bases if application rollback is necessary. Do not restore the old
-Railway image/deployment, old PHP processes, or old unpatched Docker bases.
-Keep migrations disabled; no schema rollback is required for this update.
-Use existing approved data/volume backups only if independently necessary.
+If suspicious activity is discovered, preserve available private logs and
+container evidence before further replacement and investigate persistence.
 
-Rotate the database credential found in Kashful's tracked deployment guide,
-update dependent Railway secrets together, and arrange Git-history cleanup
-with repository collaborators. The current document is scrubbed; old commits
-and the earlier tool output must still be treated as containing that secret.
-A GitHub-generated short-lived raw download URL also appeared in tool output;
-it is not reproduced in these artifacts.
+## Files and merged security changes
 
-If later evidence suggests compromise, preserve private deployment/access
-logs and container artifacts before replacing them, investigate persistence,
-and rotate affected credentials. A patched runtime does not establish that a
-previously compromised application or its data is clean.
+### Techsense
 
-## Primary sources
+[Security change](https://github.com/RK-Rohan/Techsense/pull/2) — merged.
 
-- PHP advisory and October 23 follow-up: https://www.php.net/archive/2026.php
-- PHP changelog: https://www.php.net/ChangeLog-8.php
-- PHP support: https://www.php.net/supported-versions.php
-- Official PHP 7.4 backport: https://github.com/php/php-src/commit/712e60f9edfd03f0960fc4fc3c2c375f42b90aa2
-- FrankenPHP security release: https://github.com/php/frankenphp/releases/tag/v1.13.2
-- Docker advisory: https://www.docker.com/blog/security-update-on-php2shell-impact-for-docker-customers/
-- Railpack PHP selection/startup: https://railpack.com/languages/php/
-- Railpack deployed-version provider: https://github.com/railwayapp/railpack/blob/v0.39.0/core/providers/php/php.go
-- Vendor EOL alternative reviewed: https://www.freexian.com/lts/extended/updates/ela-1853-1-php7.4/
+- `.dockerignore`
+- `.github/workflows/php-security.yml`
+- `Dockerfile`
+- `PHP2SHELL-RAILWAY.md`
+- `RAILWAY_DEPLOY.md`
+- `app/Http/Middleware/PreventRequestsDuringMaintenance.php`
+- `docker/start.sh`
+- `php.ini`
+- `railway.toml`
+
+### Rayhan
+
+[Security change](https://github.com/RK-Rohan/rayhantrading/pull/1) — merged.
+
+- `.dockerignore`
+- `.github/workflows/php-security.yml`
+- `Dockerfile`
+- `app/Http/Middleware/PreventRequestsDuringMaintenance.php`
+- `docker/start.sh`
+- `php.ini`
+- `railway.toml`
+
+### Kashful
+
+[Security change](https://github.com/RK-Rohan/kashful-super-shop/pull/1) — merged.
+
+- `.dockerignore`
+- `.github/workflows/php-security.yml`
+- `Dockerfile`
+- `RAILWAY_DEPLOY.md`
+- `app/Http/Middleware/PreventRequestsDuringMaintenance.php`
+- `docker/php-runtime.ini`
+- `docker/start.sh`
+- `railway.toml`
+
+### Design
+
+[Security change](https://github.com/RK-Rohan/design.newlifestylebd.com/pull/1) — merged.
+
+- `.dockerignore`
+- `.github/workflows/php-security.yml`
+- `Dockerfile`
+- `docker/php-security.ini`
+
+### HUTBAZAR
+
+[Security change](https://github.com/RK-Rohan/hutbazar-api/pull/4) — merged.
+
+- `.gitattributes`
+- `.github/workflows/php-security.yml`
+- `composer.json`
+- `composer.lock`
+- `start-container.sh`
+
+Kashful's unrelated local installer edit and untracked Accounting archive were
+excluded. Production was deployed from scoped GitHub commits, not its dirty
+working tree.
+
+## Official sources checked
+
+- [PHP security advisory and October 23 follow-up](https://www.php.net/archive/2026.php)
+- [PHP changelog](https://www.php.net/ChangeLog-8.php)
+- [PHP supported versions](https://www.php.net/supported-versions.php)
+- [FrankenPHP 1.13.2 release](https://github.com/php/frankenphp/releases/tag/v1.13.2)
+- [Docker vendor security advisory](https://www.docker.com/blog/security-update-on-php2shell-impact-for-docker-customers/)
+- [Railpack PHP version and extension selection](https://railpack.com/languages/php/)
+- [Railpack build documentation](https://railpack.com/getting-started/)
+- [Railway volumes](https://docs.railway.com/volumes)
