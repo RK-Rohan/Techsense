@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:php8.2.30-bookworm AS base
+FROM dunglas/frankenphp:1.13.2-php8.2.35-bookworm@sha256:9b47af8f826a910e3ede5cc77fa82d969b2dd3b2cd0397d981b5156c3bff77a4 AS base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git unzip default-mysql-client \

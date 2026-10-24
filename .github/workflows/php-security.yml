@@ -1,0 +1,33 @@
+name: Validate PHP security runtime
+on:
+  push:
+    branches: [security/php2shell-2026-10-24]
+    paths-ignore: ['**.md']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: php-runtime-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Build patched runtime without production credentials
+        run: |
+          docker build --pull --tag runtime-patch:test .
+      - name: Verify PHP and all previously loaded extensions
+        run: |
+          docker run --rm --entrypoint php runtime-patch:test -r '
+          if (PHP_VERSION !== "8.2.35") throw new RuntimeException("Unexpected PHP runtime");
+          foreach (json_decode("[\"Core\",\"date\",\"libxml\",\"openssl\",\"pcre\",\"sqlite3\",\"zlib\",\"ctype\",\"curl\",\"dom\",\"fileinfo\",\"filter\",\"hash\",\"iconv\",\"json\",\"mbstring\",\"SPL\",\"session\",\"PDO\",\"pdo_sqlite\",\"standard\",\"posix\",\"random\",\"readline\",\"Reflection\",\"Phar\",\"SimpleXML\",\"tokenizer\",\"xml\",\"xmlreader\",\"xmlwriter\",\"mysqlnd\",\"bcmath\",\"exif\",\"gd\",\"intl\",\"pcntl\",\"pdo_mysql\",\"sodium\",\"zip\",\"Zend OPcache\"]", true) as $extension) {
+            if (!extension_loaded($extension)) throw new RuntimeException("Missing extension: ".$extension);
+          }
+          echo "PHP ".PHP_VERSION."; all previous extensions preserved\n";
+          '
+          docker run --rm --entrypoint sh runtime-patch:test -c 'frankenphp version'
+          docker run --rm --entrypoint php runtime-patch:test -r 'if (filter_var(ini_get("session.upload_progress.enabled"), FILTER_VALIDATE_BOOLEAN)) throw new RuntimeException("Unsafe upload progress setting");'
+          docker run --rm --entrypoint php runtime-patch:test -r 'require "vendor/autoload.php"; echo Illuminate\Foundation\Application::VERSION.PHP_EOL;'
+          docker run --rm --entrypoint sh runtime-patch:test -c 'if command -v composer >/dev/null; then composer check-platform-reqs --no-dev; fi'
