@@ -32,8 +32,8 @@
                                     @if(!empty($receipt_details->phone_contact))
                                         {!! $receipt_details->phone_contact !!}<br>
                                     @endif
-                                    Email: sales@techsensebd.com, info@sensor-shopobd.com<br>
-                                    Website: www.techsensebd.com&nbsp;&nbsp;|&nbsp;&nbsp;Website: www.sensor-shopobd.com<br>
+                                    Email: sales@techsensebd.com, info@sensor-shopbd.com<br>
+                                    Website: www.techsensebd.com&nbsp;&nbsp;|&nbsp;&nbsp;Website: www.sensor-shopbd.com<br>
                                 </p>
                             </h5>
                         </td>
