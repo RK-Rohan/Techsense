@@ -24,6 +24,22 @@
             text-align: center;
             white-space: nowrap;
         }
+
+        .terms-table {
+            width: 100%;
+        }
+
+        .terms-table td {
+            padding: 0;
+            vertical-align: top;
+            text-align: left;
+        }
+
+        .terms-table .term-number {
+            width: 1%;
+            padding-right: 3px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -53,8 +69,8 @@
                                     @if(!empty($receipt_details->phone_contact))
                                         {!! $receipt_details->phone_contact !!}<br>
                                     @endif
-                                    Email: sales@techsensebd.com, info@sensor-shopobd.com<br>
-                                    Website: www.techsensebd.com&nbsp;&nbsp;|&nbsp;&nbsp;Website: www.sensor-shopobd.com<br>
+                                    Email: sales@techsensebd.com, info@sensor-shopbd.com<br>
+                                    Website: www.techsensebd.com&nbsp;&nbsp;|&nbsp;&nbsp;Website: www.sensor-shopbd.com<br>
                                 </p>
                             </h5>
                         </td>
@@ -221,10 +237,10 @@
         </tbody>
     </table>
     <p class="m-0"><b>Terms and Conditions:</b></p>
-    <table class="table table-slim">
+    <table class="table table-slim terms-table">
         @foreach($tc_description as $tc)
             <tr>
-                <td>{{ $loop->iteration . '. ' }} </td>
+                <td class="term-number">{{ $loop->iteration }}.</td>
                 <td>{{ $tc->description }}</td>
             </tr>
         @endforeach
