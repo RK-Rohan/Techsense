@@ -15,7 +15,7 @@
     .quotation-document .quotation-title { text-align: center; margin: 8pt 0 5pt; }
     .quotation-document .quotation-title span { display: inline-block; border: .75pt solid #1255a0; padding: 1pt 6pt; font-size: 15pt; font-weight: bold; line-height: 1.15; }
     .quotation-document .quotation-meta td { padding: 0 0 6pt; }
-    .quotation-document .quotation-rule { height: 2pt; border-top: 1pt solid #145ba6; border-bottom: .6pt solid #4bbbd1; }
+    .quotation-document .quotation-rule { height: 0; border-top: 1pt solid #145ba6; }
     .quotation-document .quotation-customer { margin-top: 4pt; }
     .quotation-document .quotation-customer td { vertical-align: top; padding-bottom: 2pt; }
     .quotation-document .quotation-sales { margin: 12pt 0; }
