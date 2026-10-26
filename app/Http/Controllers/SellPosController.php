@@ -3385,7 +3385,8 @@ class SellPosController extends Controller
 
         $data = ['receipt_details' => $receipt_details, 'tc_description' => $tc_description];
 
-        $pdf = PDF::loadView('sale_pos.receipts.download_quotation', $data);
+        $pdf = PDF::loadView('sale_pos.receipts.download_quotation', $data)
+            ->setPaper('a4', 'portrait');
         return response()->stream(function () use ($pdf, $receipt_details) {
             echo $pdf->output(); // Assuming $pdf is already generated
         }, 200, [
