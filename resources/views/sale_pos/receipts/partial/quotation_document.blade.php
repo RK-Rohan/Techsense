@@ -9,7 +9,7 @@
 <div class="quotation-document">
     <table class="quotation-header">
         <tr>
-            <td style="width: 17%;">@if($quotation_logo)<img class="quotation-logo" src="{{ $quotation_logo }}" alt="Company logo">@endif</td>
+            <td class="quotation-logo-cell">@if($quotation_logo)<div class="quotation-logo-frame"><img class="quotation-logo" src="{{ $quotation_logo }}" alt="Company logo"></div>@endif</td>
             <td class="quotation-brand">
                 <div class="quotation-company">{{ $receipt_details->display_name }}</div>
                 <div class="quotation-tagline">Your trusted technology supplier and solution partner.</div>

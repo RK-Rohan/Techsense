@@ -6,8 +6,10 @@
     .quotation-document td, .quotation-document th { padding: 0; font-size: 9.8pt; line-height: 1.17; border: 0; }
     .quotation-document p { margin: 0; }
     .quotation-document .quotation-header td { vertical-align: bottom; }
-    .quotation-document .quotation-logo { width: 90pt; height: auto; display: block; }
-    .quotation-document .quotation-brand { text-align: right; border-bottom: 1pt solid #ff5428; padding-bottom: 2pt; }
+    .quotation-document .quotation-logo-cell { width: 90pt; }
+    .quotation-document .quotation-logo-frame { width: 90pt; height: 55pt; position: relative; }
+    .quotation-document .quotation-logo { width: 112pt; height: auto; display: block; position: absolute; left: -10pt; bottom: -9pt; }
+    .quotation-document .quotation-brand { text-align: right; border-bottom: 1pt solid #ff3030; padding-bottom: 2pt; }
     .quotation-document .quotation-company { color: #1255a0; font-size: 26.5pt; font-weight: bold; line-height: 1.15; margin: 0 0 2pt; }
     .quotation-document .quotation-tagline { font-size: 12.27pt; font-weight: bold; font-style: italic; }
     .quotation-document .quotation-title { text-align: center; margin: 8pt 0 5pt; }
