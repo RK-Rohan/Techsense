@@ -43,6 +43,11 @@
     .quotation-document .quotation-signoff { margin-top: 12pt; page-break-inside: avoid; }
     .quotation-document .quotation-signoff-name { margin-top: 14pt; }
     .quotation-document .quotation-signoff p { margin-bottom: 2pt; }
+    .quotation-document .sales-payments { margin-top: 8pt; }
+    .quotation-document .sales-payments th { text-align: left; }
+    .quotation-document .sales-signatures { margin-top: 36pt; page-break-inside: avoid; }
+    .quotation-document .sales-signatures td { padding-bottom: 3pt; vertical-align: top; }
+    .quotation-document .sales-signature-label { border-top: .75pt solid #000; }
     .quotation-document.quotation-footer { position: fixed; bottom: -22mm; left: 0; right: 0; text-align: center; font-size: 8.5pt; line-height: 1.6; }
     .quotation-document .quotation-generated { font-size: 7.5pt; margin-bottom: 12pt; }
     .quotation-document.quotation-footer .quotation-rule { margin-bottom: 5pt; }

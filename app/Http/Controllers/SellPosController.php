@@ -787,7 +787,7 @@ class SellPosController extends Controller
 
 
         if ($is_package_slip) {
-            $output['html_content'] = view('sale_pos.receipts.chalan', compact('receipt_details'))->render();
+            $output['html_content'] = view('sale_pos.receipts.chalan', compact('receipt_details', 'tc_description'))->render();
             return $output;
 
             $data = ['title' => 'domPDF in Laravel'];
@@ -3183,7 +3183,8 @@ class SellPosController extends Controller
 
         $data = ['receipt_details' => $receipt_details];
 
-        $pdf = PDF::loadView('sale_pos.receipts.download_invoice', $data);
+        $pdf = PDF::loadView('sale_pos.receipts.download_invoice', $data)
+            ->setPaper('a4', 'portrait');
         return $pdf->stream('Quotation_' . $receipt_details->invoice_no . '.pdf');
     }
 
@@ -3199,7 +3200,8 @@ class SellPosController extends Controller
 
         $data = ['receipt_details' => $receipt_details, 'tc_description' => $tc_description];
 
-        $pdf = PDF::loadView('sale_pos.receipts.download_invoice', $data);
+        $pdf = PDF::loadView('sale_pos.receipts.download_invoice', $data)
+            ->setPaper('a4', 'portrait');
         return $pdf->stream('Invoice_' . $receipt_details->invoice_no . '.pdf');
     }
 
@@ -3410,7 +3412,8 @@ class SellPosController extends Controller
 
         $data = ['receipt_details' => $receipt_details, 'tc_description' => $tc_description];
 
-        $pdf = PDF::loadView('sale_pos.receipts.download_chalan', $data);
+        $pdf = PDF::loadView('sale_pos.receipts.download_chalan', $data)
+            ->setPaper('a4', 'portrait');
         return $pdf->stream('delivery_chalan_' . $receipt_details->invoice_no . '.pdf');
     }
 

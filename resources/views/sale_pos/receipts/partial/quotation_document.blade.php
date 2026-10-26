@@ -1,22 +1,11 @@
 @php
-    $quotation_logo_path = public_path('uploads/invoice_logos/TBL-Logo-PNG.png');
-    $quotation_logo = is_file($quotation_logo_path) ? 'data:image/png;base64,' . base64_encode(file_get_contents($quotation_logo_path)) : ($receipt_details->logo ?? '');
     $quotation_author = Auth::user();
 @endphp
 @if(!empty($quotation_pdf))
     @include('sale_pos.receipts.partial.quotation_footer')
 @endif
 <div class="quotation-document">
-    <table class="quotation-header">
-        <tr>
-            <td class="quotation-logo-cell">@if($quotation_logo)<div class="quotation-logo-frame"><img class="quotation-logo" src="{{ $quotation_logo }}" alt="Company logo"></div>@endif</td>
-            <td class="quotation-brand">
-                <div class="quotation-company">{{ $receipt_details->display_name }}</div>
-                <div class="quotation-tagline">Your trusted technology supplier and solution partner.</div>
-            </td>
-        </tr>
-    </table>
-    <div class="quotation-title"><span>Quotation</span></div>
+    @include('sale_pos.receipts.partial.document_header', ['document_title' => 'Quotation'])
     <table class="quotation-meta"><tr>
         <td style="width:60%;"><b>Quotation No:</b> {{ $receipt_details->invoice_no }}</td>
         <td style="width:40%;"><b>Date:</b> {{ $receipt_details->invoice_date ?? $receipt_details->current_datetime }}</td>
