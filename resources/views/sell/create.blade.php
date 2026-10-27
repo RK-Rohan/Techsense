@@ -223,6 +223,7 @@ $title = __('lang_v1.sales_order');
 			@endphp
 
 
+			@include('sell.partials.purchase_selector')
 			@if(!empty($custom_field_1_label))
 			@php
 			$label_1 = $custom_field_1_label . ':';
@@ -1109,6 +1110,7 @@ $title = __('lang_v1.sales_order');
 @stop
 
 @section('javascript')
+<script src="{{ asset('js/sale_purchase_link.js?v=' . $asset_v) }}"></script>
 <script src="{{ asset('js/pos.js?v=' . $asset_v) }}"></script>
 <script src="{{ asset('js/product.js?v=' . $asset_v) }}"></script>
 <script src="{{ asset('js/opening_stock.js?v=' . $asset_v) }}"></script>

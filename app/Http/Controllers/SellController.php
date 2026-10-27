@@ -836,6 +836,40 @@ class SellController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    public function purchaseOptions(Request $request)
+    {
+        abort_unless(auth()->user()->can('direct_sell.access') || auth()->user()->can('direct_sell.update') || auth()->user()->can('sell.create') || auth()->user()->can('sell.update'), 403);
+        $link = app(\App\Utils\SalePurchaseLink::class);
+        $query = $link->query($request->session()->get('user.business_id'))
+            ->with(['contact', 'purchase_investors.investor']);
+        if ($request->filled('id')) {
+            $query->where('transactions.id', $request->input('id'));
+        } elseif ($request->filled('q')) {
+            $term = '%'.$request->input('q').'%';
+            $query->where(function ($q) use ($term) {
+                $q->where('ref_no', 'like', $term)
+                    ->orWhere('custom_field_1', 'like', $term)
+                    ->orWhere('custom_field_2', 'like', $term)
+                    ->orWhere('custom_field_3', 'like', $term)
+                    ->orWhereHas('contact', function ($contact) use ($term) {
+                        $contact->where('name', 'like', $term)->orWhere('supplier_business_name', 'like', $term);
+                    });
+            });
+        }
+        $page = $query->orderByDesc('transactions.id')->simplePaginate(20);
+
+        return response()->json([
+            'results' => $page->getCollection()->map(function ($purchase) use ($link) {
+                return [
+                    'id' => $purchase->id,
+                    'text' => implode(' — ', array_filter([$purchase->ref_no ?: '#'.$purchase->id, optional($purchase->contact)->name, $purchase->custom_field_1, $purchase->custom_field_2])),
+                    'fields' => $link->fields($purchase),
+                ];
+            })->values(),
+            'pagination' => ['more' => $page->hasMorePages()],
+        ]);
+    }
+
     public function store(Request $request)
     {
         //

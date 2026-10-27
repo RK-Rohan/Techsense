@@ -46,6 +46,7 @@ class TransactionUtil extends Util
      */
     public function createSellTransaction($business_id, $input, $invoice_total, $user_id, $uf_data = true)
     {
+        $input = app(SalePurchaseLink::class)->apply($business_id, $input);
 
         $sale_type = !empty($input['type']) ? $input['type'] : 'sell';
         $invoice_scheme_id = !empty($input['invoice_scheme_id']) ? $input['invoice_scheme_id'] : null;
@@ -93,6 +94,7 @@ class TransactionUtil extends Util
             'custom_field_1' => !empty($input['custom_field_1']) ? $input['custom_field_1'] : null,
             'custom_field_2' => !empty($input['custom_field_2']) ? $input['custom_field_2'] : null,
             'custom_field_3' => !empty($input['custom_field_3']) ? $input['custom_field_3'] : null,
+            'linked_purchase_id' => $input['linked_purchase_id'] ?? null,
             'custom_field_4' => !empty($input['custom_field_4']) ? $input['custom_field_4'] : null,
             'custom_field_5' => !empty($input['custom_field_5']) ? $input['custom_field_5'] : null,
             'custom_field_6' => !empty($input['custom_field_6']) ? $input['custom_field_6'] : null,
@@ -306,6 +308,7 @@ class TransactionUtil extends Util
      */
     public function updateSellTransaction($transaction_id, $business_id, $input, $invoice_total, $user_id, $uf_data = true, $change_invoice_number = true)
     {
+        $input = app(SalePurchaseLink::class)->apply($business_id, $input);
         $transaction = $transaction_id;
 
         if (!is_object($transaction)) {
@@ -419,6 +422,9 @@ class TransactionUtil extends Util
         }
 
         $transaction->fill($update_date);
+        if (array_key_exists('linked_purchase_id', $input)) {
+            $transaction->linked_purchase_id = $input['linked_purchase_id'];
+        }
         $transaction->update();
 
         return $transaction;
