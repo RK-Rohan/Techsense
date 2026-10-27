@@ -10,7 +10,7 @@
     <table class="quotation-meta"><tr>
         <td style="width:33%;"><b>{{ $is_challan ? 'Challan No:' : 'Invoice No:' }}</b> {{ $is_challan ? 'CH-' : '' }}{{ $receipt_details->invoice_no }}</td>
         <td style="width:33%;">@if(!empty($receipt_details->sell_custom_field_1_value))<b>{{ rtrim($receipt_details->sell_custom_field_1_label ?? '', ': ') }}:</b> {{ $receipt_details->sell_custom_field_1_value }}@endif</td>
-        <td style="width:34%;"><b>Date:</b> {{ $receipt_details->invoice_date ?? $receipt_details->current_datetime }}</td>
+        <td style="width:34%;"><b>Date:</b> {{ $receipt_details->current_datetime }}</td>
     </tr></table>
     <div class="quotation-rule"></div>
     <table class="quotation-customer"><tr>

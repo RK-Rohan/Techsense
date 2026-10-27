@@ -70,7 +70,7 @@
 			</span>
 
 			<span class="pull-right text-left">
-				<b>{{$receipt_details->date_label}}:</b> {{$receipt_details->invoice_date}}</br>
+				<b>{{$receipt_details->date_label}}:</b> {{$receipt_details->current_datetime}}</br>
 			</span>
 		</p>
 		<table class="table table-responsive table-sm" width="100%">

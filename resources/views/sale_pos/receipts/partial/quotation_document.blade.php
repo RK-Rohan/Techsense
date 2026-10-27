@@ -8,7 +8,7 @@
     @include('sale_pos.receipts.partial.document_header', ['document_title' => 'Quotation'])
     <table class="quotation-meta"><tr>
         <td style="width:60%;"><b>Quotation No:</b> {{ $receipt_details->invoice_no }}</td>
-        <td style="width:40%;"><b>Date:</b> {{ $receipt_details->invoice_date ?? $receipt_details->current_datetime }}</td>
+        <td style="width:40%;"><b>Date:</b> {{ $receipt_details->current_datetime }}</td>
     </tr></table>
     <div class="quotation-rule"></div>
     <table class="quotation-customer">
