@@ -37,4 +37,10 @@ class Investment extends Model
     {
         return $this->belongsTo(\App\Account::class, 'return_account_id');
     }
+
+    /** Ledger entries: initial amount, top-ups and the return. */
+    public function transactions()
+    {
+        return $this->hasMany(InvestmentTransaction::class)->orderBy('transaction_date')->orderBy('id');
+    }
 }

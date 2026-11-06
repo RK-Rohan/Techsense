@@ -131,6 +131,7 @@ $(document).ready(function(){
                 '<div class="btn-group">'+
                   '<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Action <span class="caret"></span></button>'+
                   '<ul class="dropdown-menu dropdown-menu-right" role="menu">'+
+                    '<li><a href="/account/investments?investor_id='+row.id+'">View Investments</a></li>'+
                     '<li><a href="#" class="edit-investor-master-btn" data-id="'+row.id+'">Edit</a></li>'+
                     '<li><a href="#" class="manage-login-btn" data-id="'+row.id+'" data-name="'+row.name+'">Manage Login</a></li>'+
                     (row.has_login ?
@@ -141,7 +142,11 @@ $(document).ready(function(){
                 '</div>';
                 return html;
             }},
-            { data: 'name' },
+            { data: 'name', render: function(data, type, row){
+                if (type !== 'display') return data;
+                var safe = $('<div>').text(data || '').html();
+                return '<a href="/account/investments?investor_id='+row.id+'" title="View all investments">'+safe+'</a>';
+            }},
             { data: 'nid' },
             { data: 'phone' },
             { data: 'total_investment', render: $.fn.dataTable.render.number(',', '.', 2) },

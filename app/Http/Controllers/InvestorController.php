@@ -283,7 +283,25 @@ class InvestorController extends Controller
     public function destroy($id)
     {
         $investor = Investor::findOrFail($id);
-        $investor->delete();
+
+        DB::beginTransaction();
+        try {
+            // Investments cascade away with the investor at DB level; remove
+            // the bank entries they posted first so none are left orphaned.
+            foreach ($investor->investments()->get() as $investment) {
+                foreach ($investment->transactions()->get() as $entry) {
+                    \App\Utils\InvestmentLedger::deleteEntry($entry);
+                }
+            }
+            $investor->delete();
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            return response()->json(['success' => false, 'msg' => 'Something went wrong']);
+        }
 
         return response()->json(['success' => true, 'msg' => 'Investor deleted']);
     }

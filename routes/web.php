@@ -181,6 +181,15 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::put('/account/investments/{id}', [\App\Http\Controllers\InvestmentController::class, 'update']);
     Route::delete('/account/investments/{id}', [\App\Http\Controllers\InvestmentController::class, 'destroy']);
     Route::get('/account/investments/{id}/pdf', [\App\Http\Controllers\InvestmentController::class, 'pdf']);
+    // Added amounts (top-ups on the same invoice) and investment ledger history
+    Route::post('/account/investments/{id}/add-amount', [\App\Http\Controllers\InvestmentController::class, 'addAmount']);
+    Route::get('/account/investments/{id}/history', [\App\Http\Controllers\InvestmentController::class, 'history']);
+    Route::delete('/account/investment-entries/{id}', [\App\Http\Controllers\InvestmentController::class, 'deleteEntry']);
+    // Investment ledger vs bank account mismatch check
+    Route::get('/account/investments-reconcile', [\App\Http\Controllers\InvestmentController::class, 'reconcile']);
+    Route::post('/account/investments-reconcile/sync-all', [\App\Http\Controllers\InvestmentController::class, 'syncAllEntries']);
+    Route::post('/account/investment-entries/{id}/sync-bank', [\App\Http\Controllers\InvestmentController::class, 'syncEntry']);
+    Route::delete('/account/investments-orphan-bank/{id}', [\App\Http\Controllers\InvestmentController::class, 'deleteOrphan']);
 
     Route::resource('tax-rates', TaxRateController::class);
 
