@@ -4,15 +4,19 @@
 @section('content')
 <section class="content-header">
     <h1>Investments<small id="investment_subtitle">{{ $selected_investor_name ? 'Investor: ' . $selected_investor_name : 'List of investments' }}</small></h1>
+    @can('investor.view')
     <a href="{{ url('/account/investor') }}" class="btn btn-default pull-right" style="margin-left:6px;">
         <i class="fa fa-arrow-left"></i> Investors
     </a>
+    @endcan
     <button type="button" class="btn btn-warning pull-right" id="check_bank_mismatch_btn" style="margin-left:6px;">
         <i class="fa fa-balance-scale"></i> Check Bank Mismatch
     </button>
+    @can('investment.create')
     <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add_investment_modal">
         <i class="fa fa-plus"></i> Add Investment
     </button>
+    @endcan
     <div class="clearfix"></div>
     <br>
 </section>
@@ -121,6 +125,12 @@
 function fmtNum(v){ return $.fn.dataTable.render.number(',', '.', 2).display(parseFloat(v) || 0); }
 function esc(v){ return $('<div>').text(v === null || v === undefined ? '' : v).html(); }
 var csrfHeaders = { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') };
+// UI hints only; every action is also checked on the server
+var can = @json([
+    'create' => auth()->user()->can('investment.create'),
+    'update' => auth()->user()->can('investment.update'),
+    'delete' => auth()->user()->can('investment.delete'),
+]);
 
 $(document).ready(function(){
     var table = $('#investment_table').DataTable({
@@ -156,21 +166,21 @@ $(document).ready(function(){
         },
         columns: [
             { data: null, orderable:false, searchable:false, render: function(data, type, row){
-                var html = ''+
-                '<div class="btn-group">'+
+                var items = [];
+                if (can.create) items.push('<li><a href="#" class="add-amount-btn" data-id="'+row.id+'"><i class="fa fa-plus-circle"></i> Add Amount</a></li>');
+                items.push('<li><a href="#" class="investment-history-btn" data-id="'+row.id+'"><i class="fa fa-history"></i> History</a></li>');
+                if (can.update || can.delete) items.push('<li class="divider"></li>');
+                if (can.update) {
+                    items.push('<li><a href="#" class="edit-investment-btn" data-id="'+row.id+'">Edit</a></li>');
+                    items.push('<li><a href="#" class="edit-investment-return-btn" data-id="'+row.id+'">Edit Return</a></li>');
+                }
+                if (can.delete) items.push('<li><a href="#" class="delete-investment-btn" data-id="'+row.id+'">Delete</a></li>');
+                items.push('<li class="divider"></li>');
+                items.push('<li><a href="/account/investments/'+row.id+'/pdf" target="_blank">PDF Slip</a></li>');
+                return '<div class="btn-group">'+
                   '<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Action <span class="caret"></span></button>'+
-                  '<ul class="dropdown-menu dropdown-menu-right" role="menu">'+
-                    '<li><a href="#" class="add-amount-btn" data-id="'+row.id+'"><i class="fa fa-plus-circle"></i> Add Amount</a></li>'+
-                    '<li><a href="#" class="investment-history-btn" data-id="'+row.id+'"><i class="fa fa-history"></i> History</a></li>'+
-                    '<li class="divider"></li>'+
-                    '<li><a href="#" class="edit-investment-btn" data-id="'+row.id+'">Edit</a></li>'+
-                    '<li><a href="#" class="edit-investment-return-btn" data-id="'+row.id+'">Edit Return</a></li>'+
-                    '<li><a href="#" class="delete-investment-btn" data-id="'+row.id+'">Delete</a></li>'+
-                    '<li class="divider"></li>'+
-                    '<li><a href="/account/investments/'+row.id+'/pdf" target="_blank">PDF Slip</a></li>'+
-                  '</ul>'+
+                  '<ul class="dropdown-menu dropdown-menu-right" role="menu">'+items.join('')+'</ul>'+
                 '</div>';
-                return html;
             }},
             { data: null, render: function (data, type, row, meta) { return meta.row + 1; } },
             { data: 'received_date' },
@@ -458,9 +468,9 @@ $(document).ready(function(){
             $.each(res.data, function(i, r){
                 var bank = r.bank_issue
                     ? '<span class="text-danger"><i class="fa fa-exclamation-triangle"></i> '+esc(r.bank_issue)+'</span> '+
-                      '<button type="button" class="btn btn-xs btn-warning sync-entry-btn" data-id="'+r.id+'">Fix</button>'
+                      (can.update ? '<button type="button" class="btn btn-xs btn-warning sync-entry-btn" data-id="'+r.id+'">Fix</button>' : '')
                     : (r.account_name ? '<span class="text-success"><i class="fa fa-check"></i> Matched</span>' : '<span class="text-muted">No account</span>');
-                var del = r.type === 'top_up'
+                var del = r.type === 'top_up' && can.delete
                     ? '<button type="button" class="btn btn-xs btn-danger delete-entry-btn" data-id="'+r.id+'"><i class="fa fa-trash"></i></button>' : '';
                 var amt = r.type === 'return' ? '<span class="text-danger">-'+fmtNum(r.amount)+'</span>' : fmtNum(r.amount);
                 html += '<tr><td>'+esc(r.transaction_date)+'</td><td>'+esc(r.type_label)+'</td><td class="text-right">'+amt+'</td>'+
@@ -520,16 +530,16 @@ $(document).ready(function(){
                      '<td>'+esc(r.date)+'</td><td class="text-right">'+fmtNum(r.amount)+'<br><small>'+esc(r.account_name)+'</small></td>'+
                      '<td class="text-right">'+(r.bank_amount === null ? '—' : fmtNum(r.bank_amount))+'<br><small>'+esc(r.bank_account_name)+'</small></td>'+
                      '<td class="text-danger">'+esc(r.issue)+'</td>'+
-                     '<td><button type="button" class="btn btn-xs btn-warning sync-entry-btn" data-id="'+r.entry_id+'">Fix</button></td></tr>';
+                     '<td>'+(can.update ? '<button type="button" class="btn btn-xs btn-warning sync-entry-btn" data-id="'+r.entry_id+'">Fix</button>' : '')+'</td></tr>';
             });
             $.each(res.orphans, function(i, r){
                 o += '<tr><td>'+esc(r.operation_date)+'</td><td>'+esc(r.account_name)+'</td><td>'+esc(r.type)+'</td>'+
                      '<td class="text-right">'+fmtNum(r.amount)+'</td><td>'+esc(r.note)+'</td>'+
-                     '<td><button type="button" class="btn btn-xs btn-danger delete-orphan-btn" data-id="'+r.id+'">Remove</button></td></tr>';
+                     '<td>'+(can.delete ? '<button type="button" class="btn btn-xs btn-danger delete-orphan-btn" data-id="'+r.id+'">Remove</button>' : '')+'</td></tr>';
             });
             $('#mismatch_count').text(res.mismatches.length);
             $('#orphan_count').text(res.orphans.length);
-            $('#sync_all_btn').toggle(res.mismatches.length > 0);
+            $('#sync_all_btn').toggle(can.update && res.mismatches.length > 0);
             $('#mismatch_body').html(m || '<tr><td colspan="8" class="text-center text-success"><i class="fa fa-check"></i> Every investment entry matches its bank account entry</td></tr>');
             $('#orphan_body').html(o || '<tr><td colspan="6" class="text-center text-success"><i class="fa fa-check"></i> No unlinked investment entries in bank accounts</td></tr>');
         }).fail(function(){ toastr.error('Error checking mismatches'); });

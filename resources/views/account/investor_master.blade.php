@@ -4,9 +4,11 @@
 @section('content')
 <section class="content-header">
     <h1>Investors<small>Master list</small></h1>
+    @can('investor.create')
     <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#add_investor_modal">
         <i class="fa fa-plus"></i> Add Investor
     </button>
+    @endcan
     <div class="clearfix"></div>
     <br>
 </section>
@@ -120,6 +122,12 @@
 
 @section('javascript')
 <script>
+// UI hints only; every action is also checked on the server
+var can = @json([
+    'update' => auth()->user()->can('investor.update'),
+    'delete' => auth()->user()->can('investor.delete'),
+    'viewInvestments' => auth()->user()->can('investment.view'),
+]);
 $(document).ready(function(){
     var table = $('#investor_master_table').DataTable({
         processing: true,
@@ -127,24 +135,27 @@ $(document).ready(function(){
         ajax: { url: '/account/investor-master-data' },
         columns: [
             { data: null, orderable:false, searchable:false, render: function(data, type, row){
-                var html = ''+
-                '<div class="btn-group">'+
+                var items = [];
+                if (can.viewInvestments) items.push('<li><a href="/account/investments?investor_id='+row.id+'">View Investments</a></li>');
+                if (can.update) {
+                    items.push('<li><a href="#" class="edit-investor-master-btn" data-id="'+row.id+'">Edit</a></li>');
+                    items.push('<li><a href="#" class="manage-login-btn" data-id="'+row.id+'" data-name="'+row.name+'">Manage Login</a></li>');
+                    if (row.has_login) items.push('<li><a href="#" class="reset-password-btn" data-id="'+row.id+'" data-name="'+row.name+'">Reset Password</a></li>');
+                }
+                if (can.delete) {
+                    if (items.length) items.push('<li class="divider"></li>');
+                    items.push('<li><a href="#" class="delete-investor-master-btn" data-id="'+row.id+'">Delete</a></li>');
+                }
+                if (!items.length) return '';
+                return '<div class="btn-group">'+
                   '<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Action <span class="caret"></span></button>'+
-                  '<ul class="dropdown-menu dropdown-menu-right" role="menu">'+
-                    '<li><a href="/account/investments?investor_id='+row.id+'">View Investments</a></li>'+
-                    '<li><a href="#" class="edit-investor-master-btn" data-id="'+row.id+'">Edit</a></li>'+
-                    '<li><a href="#" class="manage-login-btn" data-id="'+row.id+'" data-name="'+row.name+'">Manage Login</a></li>'+
-                    (row.has_login ?
-                      '<li><a href="#" class="reset-password-btn" data-id="'+row.id+'" data-name="'+row.name+'">Reset Password</a></li>' : '')+
-                    '<li class="divider"></li>'+
-                    '<li><a href="#" class="delete-investor-master-btn" data-id="'+row.id+'">Delete</a></li>'+
-                  '</ul>'+
+                  '<ul class="dropdown-menu dropdown-menu-right" role="menu">'+items.join('')+'</ul>'+
                 '</div>';
-                return html;
             }},
             { data: 'name', render: function(data, type, row){
                 if (type !== 'display') return data;
                 var safe = $('<div>').text(data || '').html();
+                if (!can.viewInvestments) return safe;
                 return '<a href="/account/investments?investor_id='+row.id+'" title="View all investments">'+safe+'</a>';
             }},
             { data: 'nid' },

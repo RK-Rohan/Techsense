@@ -14,6 +14,15 @@ use PDF;
 
 class InvestmentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:investment.view')->only(['index', 'data', 'history', 'pdf', 'reconcile']);
+        // Add Amount puts new money in, so it counts as adding an investment
+        $this->middleware('can:investment.create')->only(['store', 'addAmount']);
+        $this->middleware('can:investment.update')->only(['update', 'addReturn', 'syncEntry', 'syncAllEntries']);
+        $this->middleware('can:investment.delete')->only(['destroy', 'deleteEntry', 'deleteOrphan']);
+    }
+
     public function index()
     {
         $business_id = request()->session()->get('user.business_id');

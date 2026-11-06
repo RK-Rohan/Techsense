@@ -15,6 +15,14 @@ use PDF;
 
 class InvestorController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:investor.view')->only(['masterIndex', 'masterData', 'index', 'data', 'pdf']);
+        $this->middleware('can:investor.create')->only(['masterStore', 'store']);
+        $this->middleware('can:investor.update')->only(['masterUpdate', 'update', 'addReturn', 'getLogin', 'saveLogin', 'deleteLogin']);
+        $this->middleware('can:investor.delete')->only(['destroy']);
+    }
+
     // Investor master list (name, nid, phone)
     public function masterIndex()
     {
