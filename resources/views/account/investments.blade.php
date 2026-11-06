@@ -126,11 +126,11 @@ function fmtNum(v){ return $.fn.dataTable.render.number(',', '.', 2).display(par
 function esc(v){ return $('<div>').text(v === null || v === undefined ? '' : v).html(); }
 var csrfHeaders = { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') };
 // UI hints only; every action is also checked on the server
-var can = @json([
+var can = {!! json_encode([
     'create' => auth()->user()->can('investment.create'),
     'update' => auth()->user()->can('investment.update'),
     'delete' => auth()->user()->can('investment.delete'),
-]);
+]) !!};
 
 $(document).ready(function(){
     var table = $('#investment_table').DataTable({

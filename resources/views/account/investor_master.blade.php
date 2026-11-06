@@ -123,11 +123,11 @@
 @section('javascript')
 <script>
 // UI hints only; every action is also checked on the server
-var can = @json([
+var can = {!! json_encode([
     'update' => auth()->user()->can('investor.update'),
     'delete' => auth()->user()->can('investor.delete'),
     'viewInvestments' => auth()->user()->can('investment.view'),
-]);
+]) !!};
 $(document).ready(function(){
     var table = $('#investor_master_table').DataTable({
         processing: true,
