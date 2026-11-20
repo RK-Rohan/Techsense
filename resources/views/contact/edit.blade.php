@@ -49,21 +49,6 @@
                 @lang('business.business')
             </label>
         </div>
-        <div class="col-md-4">
-          <div class="form-group">
-              {!! Form::label('contact_id', __('lang_v1.contact_id') . ':') !!}
-              <div class="input-group">
-                  <span class="input-group-addon">
-                      <i class="fa fa-id-badge"></i>
-                  </span>
-                  <input type="hidden" id="hidden_id" value="{{$contact->id}}">
-                  {!! Form::text('contact_id', $contact->contact_id, ['class' => 'form-control','placeholder' => __('lang_v1.contact_id')]); !!}
-              </div>
-              <p class="help-block">
-                @lang('lang_v1.leave_empty_to_autogenerate')
-            </p>
-          </div>
-        </div>
         <div class="col-md-4 customer_fields">
           <div class="form-group">
               {!! Form::label('customer_group_id', __('lang_v1.customer_group') . ':') !!}
@@ -75,6 +60,9 @@
               </div>
           </div>
         </div>
+        <input type="hidden" id="hidden_id" value="{{$contact->id}}">
+        {!! Form::hidden('contact_id', $contact->contact_id) !!}
+        <div class="clearfix"></div>
         <div class="col-md-4 business">
           <div class="form-group">
               {!! Form::label('supplier_business_name', __('business.business_name') . ':') !!}
