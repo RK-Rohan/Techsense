@@ -11,7 +11,7 @@
 
 <!-- Main content -->
 <section class="content no-print">
-        @component('components.filters', ['title' => __('report.filters')])
+        @component('components.filters', ['title' => __('report.filters'), 'class' => 'quotation-list-filters'])
         <div class="col-md-3">
             <div class="form-group">
                 {!! Form::label('sell_list_filter_location_id',  __('purchase.business_location') . ':') !!}
@@ -83,10 +83,18 @@ $(document).ready( function(){
         $('#sell_list_filter_date_range').val('');
         sell_table.ajax.reload();
     });
+
+    var quotationFilterSelectors = [
+        '#sell_list_filter_location_id', '#sell_list_filter_customer_id',
+        '#created_by', '#sell_list_filter_date_range'
+    ];
+    __restore_list_filters('quotation_list_filters', quotationFilterSelectors, '.quotation-list-filters');
     
     sell_table = $('#sell_table').DataTable({
         processing: true,
         serverSide: true,
+        stateSave: true,
+        stateDuration: 0,
         aaSorting: [[0, 'desc']],
         "ajax": {
             "url": '/sells/draft-dt?is_quotation=1',
@@ -129,6 +137,8 @@ $(document).ready( function(){
             __currency_convert_recursively($('#purchase_table'));
         }
     });
+
+    __remember_list_filters('quotation_list_filters', quotationFilterSelectors, '.quotation-list-filters');
     
     $(document).on('change', '#sell_list_filter_location_id, #sell_list_filter_customer_id, #created_by',  function() {
         sell_table.ajax.reload();

@@ -252,7 +252,7 @@ $title = __('lang_v1.sales_order');
 			<div class="col-md-4" id="custom_field_div_2">
 				<div class="form-group">
 					{!! Form::label('custom_field_2', $label_2 ) !!}
-					{!! Form::text('custom_field_2', null, ['class' => 'form-control','placeholder' => $custom_field_2_label, 'required' => $is_custom_field_2_required]); !!}
+					{!! Form::select('custom_field_2', [], null, ['class' => 'form-control select2 contact-person-select', 'placeholder' => $custom_field_2_label, 'required' => $is_custom_field_2_required]); !!}
 				</div>
 			</div>
 			@endif

@@ -87,6 +87,8 @@
 
             <div class="clearfix"></div>
 
+            @include('contact.partials.contact_persons')
+
             <div class="col-md-3 individual" style="display: none;">
                 <div class="form-group">
                     {!! Form::label('prefix', __( 'business.prefix' ) . ':') !!}

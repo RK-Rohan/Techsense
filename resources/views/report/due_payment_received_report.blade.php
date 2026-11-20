@@ -86,6 +86,7 @@
                                 <th>@lang('sale.amount')</th>
                                 <th>@lang('contact.customer')</th>
                                 <th>@lang('lang_v1.payment_method')</th>
+                                <th>Payment Account</th>
                                 <th>@lang('sale.sale')</th>
                             </tr>
                         </thead>
@@ -93,7 +94,7 @@
                             <tr class="bg-gray font-17 footer-total text-center">
                                 <td colspan="2"><strong>@lang('sale.total'):</strong></td>
                                 <td><span class="display_currency" id="dprr_footer_total_amount" data-currency_symbol="true"></span></td>
-                                <td colspan="3"></td>
+                                <td colspan="4"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -171,6 +172,7 @@ $(document).ready(function() {
             { data: 'amount', name: 'transaction_payments.amount' },
             { data: 'customer', orderable: false, searchable: false },
             { data: 'method', name: 'method' },
+            { data: 'payment_account', name: 'accounts.name' },
             { data: 'invoice_no', name: 't.invoice_no' },
         ],
         fnDrawCallback: function(oSettings) {

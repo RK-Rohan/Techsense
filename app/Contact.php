@@ -36,6 +36,11 @@ class Contact extends Authenticatable
         return $this->belongsTo(\App\Business::class);
     }
 
+    public function contactPersons()
+    {
+        return $this->hasMany(ContactPerson::class)->orderBy('sort_order');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('contacts.contact_status', 'active');

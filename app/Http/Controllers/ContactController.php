@@ -758,6 +758,8 @@ class ContactController extends Controller
             DB::beginTransaction();
             $output = $this->contactUtil->createNewContact($input);
 
+            $this->syncContactPersons($output['data'], $request->input('contact_persons', []));
+
             event(new ContactCreatedOrModified($input, 'added'));
 
             $this->moduleUtil->getModuleData('after_contact_saved', ['contact' => $output['data'], 'input' => $request->input()]);
@@ -848,6 +850,7 @@ class ContactController extends Controller
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
             $contact = Contact::where('business_id', $business_id)->find($id);
+            $contact->load('contactPersons');
 
             if (! $this->moduleUtil->isSubscribed($business_id)) {
                 return $this->moduleUtil->expiredResponse();
@@ -987,6 +990,8 @@ class ContactController extends Controller
                 }
 
                 $output = $this->contactUtil->updateContact($input, $id, $business_id);
+
+                $this->syncContactPersons($output['data'], $request->input('contact_persons', []));
 
                 event(new ContactCreatedOrModified($output['data'], 'updated'));
 
@@ -1130,6 +1135,32 @@ class ContactController extends Controller
             $contacts = $contacts->get();
 
             return json_encode($contacts);
+        }
+    }
+
+    public function getContactPersons(Contact $contact)
+    {
+        abort_unless(request()->ajax() && $contact->business_id == request()->session()->get('user.business_id'), 404);
+
+        return response()->json($contact->contactPersons()->get(['id', 'name', 'mobile']));
+    }
+
+    private function syncContactPersons(Contact $contact, array $people)
+    {
+        $contact->contactPersons()->delete();
+
+        foreach ($people as $index => $person) {
+            $name = trim($person['name'] ?? '');
+            $mobile = trim($person['mobile'] ?? '');
+            if ($name === '' && $mobile === '') {
+                continue;
+            }
+
+            $contact->contactPersons()->create([
+                'name' => $name !== '' ? $name : $mobile,
+                'mobile' => $mobile !== '' ? $mobile : null,
+                'sort_order' => $index,
+            ]);
         }
     }
 

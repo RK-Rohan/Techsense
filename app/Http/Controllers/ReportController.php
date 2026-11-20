@@ -2701,6 +2701,7 @@ class ReportController extends Controller
                     ->whereIn('t.type', ['sell', 'opening_balance']);
             })
                 ->leftjoin('contacts as c', 't.contact_id', '=', 'c.id')
+                ->leftjoin('accounts', 'transaction_payments.account_id', '=', 'accounts.id')
                 ->where('transaction_payments.business_id', $business_id)
                 ->where(function ($q) use ($business_id, $contact_filter1, $contact_filter2, $parent_payment_query_part) {
                     $q->whereRaw("(transaction_payments.transaction_id IS NOT NULL AND t.type IN ('sell', 'opening_balance') $parent_payment_query_part $contact_filter1)")
@@ -2730,6 +2731,7 @@ class ReportController extends Controller
                     'cheque_number',
                     'card_transaction_number',
                     'bank_account_number',
+                    'accounts.name as payment_account',
                     'transaction_payments.id as DT_RowId'
                 )
                 ->groupBy('transaction_payments.id');

@@ -209,6 +209,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/contacts/import', [ContactController::class, 'postImportContacts']);
     Route::post('/contacts/check-contacts-id', [ContactController::class, 'checkContactId']);
     Route::get('/contacts/customers', [ContactController::class, 'getCustomers']);
+    Route::get('/contacts/{contact}/people', [ContactController::class, 'getContactPersons']);
     Route::get('/contacts/agents', [ContactController::class, 'agentList']);
     Route::post('/contacts/agents/store', [ContactController::class, 'agentStore']);
     Route::resource('contacts', ContactController::class);

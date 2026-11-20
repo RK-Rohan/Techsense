@@ -42,6 +42,54 @@ function __remember_list_filters(storageKey, selectors, filterContainer) {
     filters.on('change apply.daterangepicker cancel.daterangepicker', selectors.join(','), save);
 }
 
+$(document).on('click', '.add-contact-person', function () {
+    var rows = $(this).closest('.contact-person-rows');
+    var index = rows.find('.contact-person-row').length;
+    var row = $(this).closest('.contact-person-row').clone();
+    row.find('input').val('').each(function () {
+        this.name = this.name.replace(/contact_persons\[\d+\]/, 'contact_persons[' + index + ']');
+    });
+    rows.append(row);
+});
+
+$(document).on('click', '.remove-contact-person', function () {
+    var rows = $(this).closest('.contact-person-rows');
+    if (rows.find('.contact-person-row').length > 1) {
+        $(this).closest('.contact-person-row').remove();
+    } else {
+        $(this).closest('.contact-person-row').find('input').val('');
+    }
+});
+
+function __load_contact_persons(contactId, selectedValue) {
+    var select = $('.contact-person-select');
+    if (!select.length) return;
+    select.empty().append(new Option('', '', false, false));
+    if (!contactId) return select.trigger('change.select2');
+
+    $.getJSON('/contacts/' + contactId + '/people', function (people) {
+        $.each(people, function (_, person) {
+            var label = person.name + (person.mobile ? ' (' + person.mobile + ')' : '');
+            select.append(new Option(label, person.name, false, person.name === selectedValue));
+        });
+        select.trigger('change.select2');
+    });
+}
+
+$(document).on('change', '#contact_id', function () {
+    __load_contact_persons($(this).val(), '');
+});
+
+$(document).on('shown.bs.modal', function () {
+    var select = $('.contact-person-select');
+    if (select.length) __load_contact_persons($('#contact_id').val(), select.data('current') || select.val());
+});
+
+$(document).ready(function () {
+    var select = $('.contact-person-select');
+    if (select.length) __load_contact_persons($('#contact_id').val(), select.data('current') || select.val());
+});
+
 $(document).ready(function () {
     getTotalUnreadNotifications();
     $('body').on('click', 'label', function (e) {

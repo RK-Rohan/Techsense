@@ -11,7 +11,7 @@
 
 <!-- Main content -->
 <section class="content no-print">
-    @component('components.filters', ['title' => __('report.filters')])
+    @component('components.filters', ['title' => __('report.filters'), 'class' => 'sell-list-filters'])
         @include('sell.partials.sell_list_filters')
         @if(!empty($sources))
             <div class="col-md-3">
@@ -45,6 +45,7 @@
                         <th>@lang('sale.invoice_no')</th>
                         <th>Business Name</th>
                         <th>{{ $custom_labels['sell']['custom_field_2'] ?? 'Contact To' }}</th>
+                        <th>@lang('contact.mobile')</th>
                         <th>{{ $custom_labels['sell']['custom_field_1'] ?? '' }}</th>
                         {{-- <th>@lang('sale.location')</th> --}}
                         <th>@lang('sale.payment_status')</th>
@@ -75,7 +76,7 @@
                 <tbody></tbody>
                 <tfoot>
                     <tr class="bg-gray font-17 footer-total text-center">
-                        <td colspan="7"><strong>@lang('sale.total'):</strong></td>
+                        <td colspan="8"><strong>@lang('sale.total'):</strong></td>
                         <td class="footer_payment_status_count"></td>
                         <td></td>
                         <td class="footer_sale_total"></td>
@@ -107,9 +108,8 @@
 
 @section('javascript')
 <script type="text/javascript">
-//Remembers the All-sales filters for the browser tab, so returning from an
-//edit/view page keeps whatever was selected. Cleared when the tab closes.
-var sell_filter_storage_key = 'sell_list_filters';
+//Remember each user's All-sales filters across navigation and browser restarts.
+var sell_filter_storage_key = 'sell_list_filters:' + (APP.BUSINESS_ID || '') + ':' + (APP.USER_ID || '');
 var sell_filter_fields = [
     'sell_list_filter_location_id',
     'sell_list_filter_customer_id',
@@ -134,7 +134,7 @@ function __store_sell_filters() {
         state.date_range = $('#sell_list_filter_date_range').val() || '';
         state.only_subscriptions = $('#only_subscriptions').is(':checked') ? 1 : 0;
 
-        sessionStorage.setItem(sell_filter_storage_key, JSON.stringify(state));
+        localStorage.setItem(sell_filter_storage_key, JSON.stringify(state));
     } catch (e) {
         //Storage unavailable (private mode/quota) - filters simply won't persist.
     }
@@ -143,7 +143,7 @@ function __store_sell_filters() {
 function __restore_sell_filters() {
     var state = null;
     try {
-        state = JSON.parse(sessionStorage.getItem(sell_filter_storage_key));
+        state = JSON.parse(localStorage.getItem(sell_filter_storage_key));
     } catch (e) {
         return;
     }
@@ -202,6 +202,8 @@ $(document).ready( function(){
     sell_table = $('#sell_table').DataTable({
         processing: true,
         serverSide: true,
+        stateSave: true,
+        stateDuration: 0,
         aaSorting: [[1, 'desc']],
         "ajax": {
             "url": "/sells",
@@ -246,6 +248,7 @@ $(document).ready( function(){
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'company_name', name: 'contacts.supplier_business_name'},
             { data: 'custom_field_2', name: 'transactions.custom_field_2'},
+            { data: 'mobile', name: 'contacts.mobile'},
             { data: 'custom_field_1', name: 'transactions.custom_field_1', visible: {{ empty($custom_labels['sell']['custom_field_1']) ? 'false' : 'true' }} },
             // { data: 'business_location', name: 'bl.name'},
             { data: 'payment_status', name: 'payment_status'},
