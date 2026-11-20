@@ -717,6 +717,7 @@ $(document).ready(function () {
                 $('div.business').show();
             }
         });
+        $('input[type=radio][name="contact_type_radio"]:checked').trigger('change');
         if ($('#is_customer_export').is(':checked')) {
             $('div.export_div').show();
         }

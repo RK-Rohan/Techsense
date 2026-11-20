@@ -41,11 +41,11 @@
         </div>
         <div class="col-md-4 mt-15">
             <label class="radio-inline">
-                <input type="radio" name="contact_type_radio" id="inlineRadio1" value="individual">
+                <input type="radio" name="contact_type_radio" id="inlineRadio1" value="individual" {{empty($contact->supplier_business_name) ? 'checked' : ''}}>
                 @lang('lang_v1.individual')
             </label>
             <label class="radio-inline">
-                <input type="radio" name="contact_type_radio" id="inlineRadio2" value="business">
+                <input type="radio" name="contact_type_radio" id="inlineRadio2" value="business" {{!empty($contact->supplier_business_name) ? 'checked' : ''}}>
                 @lang('business.business')
             </label>
         </div>
@@ -75,7 +75,6 @@
               </div>
           </div>
         </div>
-        <div class="clearfix customer_fields"></div>
         <div class="col-md-4 business">
           <div class="form-group">
               {!! Form::label('supplier_business_name', __('business.business_name') . ':') !!}
@@ -88,8 +87,8 @@
               </div>
           </div>
         </div>
-        <div class="clearfix"></div>
         @include('contact.partials.contact_persons')
+        <div class="clearfix"></div>
         <div class="col-md-3 individual">
                 <div class="form-group">
                     {!! Form::label('prefix', __( 'business.prefix' ) . ':') !!}
