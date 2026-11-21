@@ -76,18 +76,23 @@ function __load_contact_persons(contactId, selectedValue) {
     });
 }
 
-$(document).on('change', '#contact_id', function () {
+function __selected_customer_id() {
+    // Sell forms use #customer_id, while a few older forms still use #contact_id.
+    return $('#customer_id').val() || $('#contact_id').val();
+}
+
+$(document).on('change', '#customer_id, #contact_id', function () {
     __load_contact_persons($(this).val(), '');
 });
 
 $(document).on('shown.bs.modal', function () {
     var select = $('.contact-person-select');
-    if (select.length) __load_contact_persons($('#contact_id').val(), select.data('current') || select.val());
+    if (select.length) __load_contact_persons(__selected_customer_id(), select.data('current') || select.val());
 });
 
 $(document).ready(function () {
     var select = $('.contact-person-select');
-    if (select.length) __load_contact_persons($('#contact_id').val(), select.data('current') || select.val());
+    if (select.length) __load_contact_persons(__selected_customer_id(), select.data('current') || select.val());
 });
 
 $(document).ready(function () {
