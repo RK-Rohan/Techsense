@@ -17,7 +17,7 @@
             <td>{{ $receipt_details->business_name ?: ($receipt_details->customer_name ?? '') }}</td>
             <td>@if(!empty($receipt_details->sell_custom_field_2_value))<b>{{ rtrim($receipt_details->sell_custom_field_2_label ?? 'Contact To', ': ') }}:</b> {{ $receipt_details->sell_custom_field_2_value }}@endif</td>
         </tr>
-        <tr><td>{!! nl2br(e($receipt_details->address_line_1 ?? '')) !!}</td><td>@if(!empty($receipt_details->customer_mobile))<b>Mobile:</b> {{ $receipt_details->customer_mobile }}@endif</td></tr>
+        <tr><td>{!! nl2br(e($receipt_details->address_line_1 ?? '')) !!}</td><td>@if(!empty($receipt_details->contact_person_mobile ?? null))<b>Mobile:</b> {{ $receipt_details->contact_person_mobile }}@elseif(!empty($receipt_details->customer_mobile))<b>Mobile:</b> {{ $receipt_details->customer_mobile }}@endif</td></tr>
     </table>
     <div class="quotation-sales">@if(!empty($receipt_details->sales_person))<b>{{ rtrim($receipt_details->sales_person_label ?: 'Sales By', ': ') }}:</b> {{ $receipt_details->sales_person }}@endif</div>
     <table class="quotation-items">

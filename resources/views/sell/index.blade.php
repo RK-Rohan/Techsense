@@ -45,7 +45,7 @@
                         <th>@lang('sale.invoice_no')</th>
                         <th>Business Name</th>
                         <th>{{ $custom_labels['sell']['custom_field_2'] ?? 'Contact To' }}</th>
-                        <th>@lang('contact.mobile')</th>
+                        <th>Contact Number</th>
                         <th>{{ $custom_labels['sell']['custom_field_1'] ?? '' }}</th>
                         {{-- <th>@lang('sale.location')</th> --}}
                         <th>@lang('sale.payment_status')</th>
@@ -248,7 +248,7 @@ $(document).ready( function(){
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'company_name', name: 'contacts.supplier_business_name'},
             { data: 'custom_field_2', name: 'transactions.custom_field_2'},
-            { data: 'mobile', name: 'contacts.mobile'},
+            { data: 'contact_person_mobile', name: 'contact_person_mobile', orderable: false, searchable: false},
             { data: 'custom_field_1', name: 'transactions.custom_field_1', visible: {{ empty($custom_labels['sell']['custom_field_1']) ? 'false' : 'true' }} },
             // { data: 'business_location', name: 'bl.name'},
             { data: 'payment_status', name: 'payment_status'},

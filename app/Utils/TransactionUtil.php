@@ -4,6 +4,7 @@ namespace App\Utils;
 
 use DateTime;
 use App\Contact;
+use App\ContactPerson;
 use App\Country;
 use App\Product;
 use App\TaxRate;
@@ -35,6 +36,19 @@ use App\Exceptions\AdvanceBalanceNotAvailable;
 
 class TransactionUtil extends Util
 {
+    private function getContactPersonMobile($contact_id, $contact_person_name)
+    {
+        if (empty($contact_id) || empty($contact_person_name)) {
+            return null;
+        }
+
+        return ContactPerson::where('contact_id', $contact_id)
+            ->where('name', $contact_person_name)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->value('mobile');
+    }
+
     /**
      * Add Sell transaction
      *
@@ -47,6 +61,7 @@ class TransactionUtil extends Util
     public function createSellTransaction($business_id, $input, $invoice_total, $user_id, $uf_data = true)
     {
         $input = app(SalePurchaseLink::class)->apply($business_id, $input);
+        $contact_person_mobile = $this->getContactPersonMobile($input['contact_id'] ?? null, $input['custom_field_2'] ?? null);
 
         $sale_type = !empty($input['type']) ? $input['type'] : 'sell';
         $invoice_scheme_id = !empty($input['invoice_scheme_id']) ? $input['invoice_scheme_id'] : null;
@@ -93,6 +108,7 @@ class TransactionUtil extends Util
             'document' => !empty($input['document']) ? $input['document'] : null,
             'custom_field_1' => !empty($input['custom_field_1']) ? $input['custom_field_1'] : null,
             'custom_field_2' => !empty($input['custom_field_2']) ? $input['custom_field_2'] : null,
+            'contact_person_mobile' => $contact_person_mobile,
             'custom_field_3' => !empty($input['custom_field_3']) ? $input['custom_field_3'] : null,
             'linked_purchase_id' => $input['linked_purchase_id'] ?? null,
             'custom_field_4' => !empty($input['custom_field_4']) ? $input['custom_field_4'] : null,
@@ -324,6 +340,7 @@ class TransactionUtil extends Util
             $invoice_no = $this->getInvoiceNumber($business_id, $input['status'], $transaction->location_id, $invoice_scheme_id);
         }
         $final_total = $uf_data ? $this->num_uf($input['final_total']) : $input['final_total'];
+        $contact_person_mobile = $this->getContactPersonMobile($input['contact_id'] ?? null, $input['custom_field_2'] ?? null);
 
         $pay_term_number = isset($input['pay_term_number']) ? $input['pay_term_number'] : null;
         $pay_term_type = isset($input['pay_term_type']) ? $input['pay_term_type'] : null;
@@ -352,6 +369,7 @@ class TransactionUtil extends Util
             'staff_note' => !empty($input['staff_note']) ? $input['staff_note'] : null,
             'custom_field_1' => !empty($input['custom_field_1']) ? $input['custom_field_1'] : null,
             'custom_field_2' => !empty($input['custom_field_2']) ? $input['custom_field_2'] : null,
+            'contact_person_mobile' => $contact_person_mobile,
             'custom_field_3' => !empty($input['custom_field_3']) ? $input['custom_field_3'] : null,
             'custom_field_4' => !empty($input['custom_field_4']) ? $input['custom_field_4'] : null,
             'custom_field_5' => !empty($input['custom_field_5']) ? $input['custom_field_5'] : null,
@@ -1305,7 +1323,9 @@ class TransactionUtil extends Util
             $output['customer_label'] = !empty($il->customer_label) ? $il->customer_label : '';
             $output['customer_name'] = $customer->name;
             $output['business_name'] = $customer->supplier_business_name;
-            $output['customer_mobile'] = $customer->mobile;
+            $output['contact_person_mobile'] = $transaction->contact_person_mobile
+                ?: $this->getContactPersonMobile($transaction->contact_id, $transaction->custom_field_2);
+            $output['customer_mobile'] = $output['contact_person_mobile'] ?: $customer->mobile;
             $output['address_line_1'] = $customer->address_line_1;
             $output['customer_address'] = $customer->landline;
 
@@ -1317,7 +1337,7 @@ class TransactionUtil extends Util
                     $output['customer_info'] .= '<br>';
                 }
                 // $output['contact_to'] .= '<b>' . 'Contact To' . '</b>: ' .$customer->custom
-                $output['customer_info'] .= '<b>' . __('contact.mobile') . '</b>: ' . $customer->mobile;
+                $output['customer_info'] .= '<b>' . __('contact.mobile') . '</b>: ' . $output['customer_mobile'];
                 if (!empty($customer->landline)) {
                     $output['customer_info'] .=  ', ' . $customer->landline;
                 }
@@ -5243,6 +5263,7 @@ class TransactionUtil extends Util
                 'transactions.shipping_custom_field_5',
                 'transactions.custom_field_1',
                 'transactions.custom_field_2',
+                DB::raw('COALESCE(transactions.contact_person_mobile, (SELECT cp.mobile FROM contact_persons AS cp WHERE cp.contact_id = transactions.contact_id AND cp.name = transactions.custom_field_2 ORDER BY cp.sort_order ASC, cp.id ASC LIMIT 1)) AS contact_person_mobile'),
                 'transactions.custom_field_3',
                 'transactions.custom_field_4',
                 'transactions.custom_field_5',
