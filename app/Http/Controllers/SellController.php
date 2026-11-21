@@ -1374,6 +1374,7 @@ class SellController extends Controller
                     'bl.name as business_location',
                     'transactions.custom_field_1',
                     'transactions.custom_field_2',
+                    DB::raw('(SELECT cp.mobile FROM contact_persons AS cp WHERE cp.contact_id = transactions.contact_id AND cp.name = transactions.custom_field_2 ORDER BY cp.sort_order ASC, cp.id ASC LIMIT 1) AS contact_person_mobile'),
                     'is_direct_sale',
                     'sub_status',
                     DB::raw('COUNT( DISTINCT tsl.id) as total_items'),

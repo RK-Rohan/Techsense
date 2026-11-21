@@ -56,6 +56,7 @@
                         <th>Sales Invoice No</th>
                         <th>@lang('sale.customer_name')</th>
                         <th>{{ $custom_labels['sell']['custom_field_2'] ?? 'Contract To' }}</th>
+                        <th>Contact Number</th>
                         <th>{{ $custom_labels['sell']['custom_field_1'] ?? 'PO' }}</th>
                         <th>@lang('sale.amount')</th>
                         <th>@lang('lang_v1.total_items')</th>
@@ -65,7 +66,7 @@
                 </thead>
                 <tfoot>
                     <tr class="bg-gray font-17 text-center">
-                        <th colspan="5" class="text-right">@lang('sale.total_amount') =</th>
+                        <th colspan="6" class="text-right">@lang('sale.total_amount') =</th>
                         <th><span id="draft_total_amount" class="display_currency" data-currency_symbol="true">0</span></th>
                         <th colspan="3"></th>
                     </tr>
@@ -115,7 +116,7 @@ $(document).ready( function(){
             }
         },
         columnDefs: [ {
-            "targets": 8,
+            "targets": 9,
             "orderable": false,
             "searchable": false
         } ],
@@ -124,6 +125,7 @@ $(document).ready( function(){
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'conatct_name', name: 'conatct_name'},
             { data: 'custom_field_2', name: 'transactions.custom_field_2'},
+            { data: 'contact_person_mobile', name: 'contact_person_mobile', orderable: false, searchable: false},
             { data: 'custom_field_1', name: 'transactions.custom_field_1'},
             { data: 'amount', name: 'transactions.final_total', "searchable": false},
             { data: 'total_items', name: 'total_items', "searchable": false},
