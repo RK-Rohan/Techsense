@@ -34,6 +34,13 @@
             @component('components.widget', ['class' => 'box-solid'])
             @slot('tool')
                 <div class="box-tools">
+                    @if(!$has_accrual_chart)
+                        <form method="POST" action="{{ route('accounting.import-accrual-chart') }}" class="inline"
+                              onsubmit="return confirm(this.dataset.confirm)" data-confirm="{{ __('accounting::lang.import_accrual_chart_help') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-default">{{ __('accounting::lang.import_accrual_chart') }}</button>
+                        </form>
+                    @endif
                     <a class="tw-dw-btn tw-bg-gradient-to-r tw-from-indigo-600 tw-to-blue-500 tw-font-bold tw-text-white tw-border-none tw-rounded-full btn-modal"
                         href="{{action([\Modules\Accounting\Http\Controllers\CoaController::class, 'create'])}}" 
                         data-href="{{action([\Modules\Accounting\Http\Controllers\CoaController::class, 'create'])}}" 
@@ -116,7 +123,7 @@
             data.status = $('#status_filter').val();
         }
         $.ajax({
-            url: '/accounting/chart-of-accounts',
+            url: @json(route('chart-of-accounts.index')),
             data: data,
             dataType: 'html',
             success: function(html) {

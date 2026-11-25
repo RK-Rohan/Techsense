@@ -7,6 +7,7 @@ use App\Transaction;
 use App\TransactionPayment;
 use App\Utils\Util;
 use DB;
+use Modules\Accounting\Entities\AccountingAccount;
 use Modules\Accounting\Entities\AccountingAccountsTransaction;
 
 class AccountingUtil extends Util
@@ -16,8 +17,8 @@ class AccountingUtil extends Util
     {
         return "SUM( IF(
             ($accounting_accounts_alias.account_primary_type='asset' AND $accounting_account_transaction_alias.type='debit')
-            OR ($accounting_accounts_alias.account_primary_type='expense' AND $accounting_account_transaction_alias.type='debit')
-            OR ($accounting_accounts_alias.account_primary_type='income' AND $accounting_account_transaction_alias.type='credit')
+            OR ($accounting_accounts_alias.account_primary_type IN ('expense', 'expenses', 'cost_of_goods_sold', 'finance_costs') AND $accounting_account_transaction_alias.type='debit')
+            OR ($accounting_accounts_alias.account_primary_type IN ('income', 'revenue', 'non_operating_income') AND $accounting_account_transaction_alias.type='credit')
             OR ($accounting_accounts_alias.account_primary_type='equity' AND $accounting_account_transaction_alias.type='credit')
             OR ($accounting_accounts_alias.account_primary_type='liability' AND $accounting_account_transaction_alias.type='credit'), 
             amount, -1*amount)) as balance";
@@ -37,6 +38,10 @@ class AccountingUtil extends Util
     {
         $today = \Carbon::now()->format('Y-m-d');
         $query = Transaction::where('transactions.business_id', $business_id);
+
+        if (AccountingAccount::whereIn('id', [$deposit_to, $payment_account])->where('is_control_ledger', true)->exists()) {
+            throw new \DomainException(__('accounting::lang.control_ledger_posting_error'));
+        }
 
         if ($type == 'sell') {
             $query->where('transactions.type', 'sell')
@@ -160,6 +165,10 @@ class AccountingUtil extends Util
      * Function to save a mapping
      */
     public function saveMap($type, $id, $user_id, $business_id, $deposit_to, $payment_account, $note = null){
+        if (AccountingAccount::whereIn('id', [$deposit_to, $payment_account])->where('is_control_ledger', true)->exists()) {
+            throw new \DomainException(__('accounting::lang.control_ledger_posting_error'));
+        }
+
         if ($type == 'sell') {
             $transaction = Transaction::where('business_id', $business_id)->where('id', $id)->firstorFail();
 

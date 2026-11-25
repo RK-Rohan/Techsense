@@ -2,6 +2,7 @@
 
 namespace Modules\Accounting\Http\Controllers;
 
+use App\Business;
 use App\Utils\ModuleUtil;
 use DB;
 use Illuminate\Http\Request;
@@ -45,6 +46,24 @@ class CoaController extends Controller
         }
 
         $account_types = AccountingAccountType::accounting_primary_type();
+
+        $has_accrual_chart = AccountingAccountType::where('business_id', $business_id)->whereNotNull('chart_code')->exists();
+
+        if ($has_accrual_chart) {
+            $chart_types = [];
+            foreach (config('accounting.accrual_chart') as $type => [$label, $code]) {
+                $chart_types[$type] = ['label' => $label.' ('.$code.')'];
+            }
+            $account_types = $chart_types + $account_types;
+        }
+
+        if (! $has_accrual_chart) {
+            $used_types = AccountingAccountType::where('business_id', $business_id)->where('account_type', 'sub_type')
+                ->pluck('account_primary_type')->all();
+            $account_types = array_intersect_key($account_types, array_flip(array_merge(
+                ['asset', 'expenses', 'income', 'equity', 'liability'], $used_types
+            )));
+        }
 
         foreach ($account_types as $k => $v) {
             $account_types[$k] = $v['label'];
@@ -91,11 +110,95 @@ class CoaController extends Controller
                                             ->get();
 
                 return view('accounting::chart_of_accounts.accounts_tree')
-                ->with(compact('accounts', 'account_exist', 'account_types', 'account_sub_types'));
+                ->with(compact('accounts', 'account_exist', 'account_types', 'account_sub_types', 'has_accrual_chart'));
             }
         }
 
-        return view('accounting::chart_of_accounts.index')->with(compact('account_types'));
+        return view('accounting::chart_of_accounts.index')->with(compact('account_types', 'has_accrual_chart'));
+    }
+
+    public function importAccrualChart()
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        if (! (auth()->user()->can('superadmin') ||
+            $this->moduleUtil->hasThePermissionInSubscription($business_id, 'accounting_module')) ||
+            ! auth()->user()->can('accounting.manage_accounts')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $chart = config('accounting.accrual_chart');
+        $result = DB::transaction(function () use ($business_id, $chart) {
+            Business::whereKey($business_id)->lockForUpdate()->firstOrFail();
+
+            if (AccountingAccountType::where('business_id', $business_id)->whereNotNull('chart_code')->exists()) {
+                return ['success' => false, 'msg' => __('accounting::lang.accrual_chart_already_imported')];
+            }
+
+            $codes = [];
+            foreach ($chart as [, , $groups]) {
+                foreach ($groups as [, , $ledgers]) {
+                    foreach ($ledgers as [$code, , $children]) {
+                        $codes = array_merge($codes, [$code], array_keys($children));
+                    }
+                }
+            }
+
+            $conflicts = AccountingAccount::where('business_id', $business_id)
+                ->whereIn('gl_code', array_map('strval', $codes))->pluck('gl_code')->unique()->sort()->implode(', ');
+            if ($conflicts !== '') {
+                return ['success' => false, 'msg' => __('accounting::lang.accrual_chart_code_conflicts', ['codes' => $conflicts])];
+            }
+
+            foreach ($chart as $type => [, , $groups]) {
+                foreach ($groups as [$group_name, $group_code, $ledgers]) {
+                    $group = AccountingAccountType::create([
+                        'business_id' => $business_id,
+                        'name' => $group_name,
+                        'chart_code' => $group_code,
+                        'account_type' => 'sub_type',
+                        'account_primary_type' => $type,
+                    ]);
+
+                    $account_fields = [
+                        'business_id' => $business_id,
+                        'account_primary_type' => $type,
+                        'account_sub_type_id' => $group->id,
+                        'status' => 'active',
+                        'created_by' => request()->session()->get('user.id'),
+                    ];
+
+                    foreach ($ledgers as [$code, $name, $children]) {
+                        $detail = AccountingAccountType::create([
+                            'business_id' => $business_id,
+                            'parent_id' => $group->id,
+                            'name' => $name,
+                            'account_type' => 'detail_type',
+                        ]);
+
+                        $ledger = AccountingAccount::create($account_fields + [
+                            'name' => $name,
+                            'gl_code' => $code,
+                            'detail_type_id' => $detail->id,
+                            'is_control_ledger' => true,
+                        ]);
+
+                        foreach ($children as $child_code => $child_name) {
+                            AccountingAccount::create($account_fields + [
+                                'name' => $child_name,
+                                'gl_code' => $child_code,
+                                'detail_type_id' => $detail->id,
+                                'parent_account_id' => $ledger->id,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            return ['success' => true, 'msg' => __('accounting::lang.accrual_chart_imported')];
+        });
+
+        return redirect()->route('chart-of-accounts.index')->with('status', $result);
     }
 
     /**
@@ -1097,9 +1200,12 @@ class CoaController extends Controller
             ],
         ];
 
-        if (AccountingAccount::where('business_id', $business_id)->doesntExist()) {
-            AccountingAccount::insert($default_accounts);
-        }
+        DB::transaction(function () use ($business_id, $default_accounts) {
+            Business::whereKey($business_id)->lockForUpdate()->firstOrFail();
+            if (AccountingAccount::where('business_id', $business_id)->doesntExist()) {
+                AccountingAccount::insert($default_accounts);
+            }
+        });
 
         //redirect back
         $output = ['success' => 1,
@@ -1223,6 +1329,25 @@ class CoaController extends Controller
             $input['business_id'] = $request->session()->get('user.business_id');
             $input['status'] = 'active';
 
+            if ($account_type->chart_code) {
+                $parent = AccountingAccount::where('business_id', $business_id)
+                    ->where('account_sub_type_id', $account_type->id)
+                    ->where('is_control_ledger', true)
+                    ->find($input['parent_account_id']);
+
+                if (! $parent) {
+                    DB::rollBack();
+
+                    return redirect()->back()->with('status', [
+                        'success' => false,
+                        'msg' => __('accounting::lang.choose_chart_control_ledger'),
+                    ]);
+                }
+
+                $input['account_primary_type'] = $parent->account_primary_type;
+                $input['detail_type_id'] = $parent->detail_type_id;
+            }
+
             $account = AccountingAccount::create($input);
 
             if ($account_type->show_balance == 1 && ! empty($request->input('balance'))) {
@@ -1237,7 +1362,7 @@ class CoaController extends Controller
                 ];
 
                 //Opening balance
-                $data['type'] = in_array($input['account_primary_type'], ['asset', 'expenses']) ? 'debit' : 'credit';
+                $data['type'] = in_array($input['account_primary_type'], ['asset', 'expense', 'expenses', 'cost_of_goods_sold', 'finance_costs']) ? 'debit' : 'credit';
                 $data['sub_type'] = 'opening_balance';
                 AccountingAccountsTransaction::createTransaction($data);
             }
@@ -1334,7 +1459,11 @@ class CoaController extends Controller
             $input['parent_account_id'] = ! empty($input['parent_account_id'])
             && $input['parent_account_id'] !== 'null' ? $input['parent_account_id'] : null;
 
-            $account = AccountingAccount::find($id);
+            $account = AccountingAccount::where('business_id', $business_id)->findOrFail($id);
+            if ($account->has_fixed_chart_position) {
+                // Keep imported accounts in their assigned group and control ledger.
+                $input = array_intersect_key($input, array_flip(['name', 'description', 'gl_code']));
+            }
             $account->update($input);
 
             DB::commit();

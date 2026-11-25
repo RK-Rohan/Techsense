@@ -1,6 +1,18 @@
 <?php
 
 return [
+    'revenue' => 'Revenue',
+    'cost_of_goods_sold' => 'Cost of Goods Sold (COGS)',
+    'non_operating_income' => 'Non-Operating Income',
+    'import_accrual_chart' => 'Import client accrual chart',
+    'import_accrual_chart_help' => 'Add the accounts from the client’s PDF to this business? Existing accounts and transaction mappings will stay in place.',
+    'accrual_chart_already_imported' => 'The client accrual chart has already been imported for this business.',
+    'accrual_chart_code_conflicts' => 'Import stopped. These GL codes are already in use: :codes.',
+    'accrual_chart_imported' => 'Client accrual chart imported.',
+    'account_type_in_use' => 'This account type is in use.',
+    'control_ledger' => 'Control ledger',
+    'choose_chart_control_ledger' => 'Choose a control ledger as the parent account.',
+    'control_ledger_posting_error' => 'Choose a posting account. Control ledgers summarize their child accounts.',
     'accounting' => 'Accounting',
     'accounting_module' => 'Accounting Module',
     'accounts_receivable' => 'Accounts Receivable (A/R)',

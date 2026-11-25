@@ -8,6 +8,15 @@ class AccountingAccountsTransaction extends Model
 {
     protected $guarded = [];
 
+    protected static function booted()
+    {
+        static::saving(function (self $transaction) {
+            if (AccountingAccount::whereKey($transaction->accounting_account_id)->where('is_control_ledger', true)->exists()) {
+                throw new \DomainException(__('accounting::lang.control_ledger_posting_error'));
+            }
+        });
+    }
+
     public function account()
     {
         return $this->belongsTo('Modules\Accounting\Entities\AccountingAccount', 'accounting_account_id');

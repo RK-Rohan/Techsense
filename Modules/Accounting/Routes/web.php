@@ -18,6 +18,8 @@ Route::middleware('web', 'SetSessionData', 'auth', 'language', 'timezone', 'Admi
 
     Route::get('get-account-sub-types', [\Modules\Accounting\Http\Controllers\CoaController::class, 'getAccountSubTypes']);
     Route::get('get-account-details-types', [\Modules\Accounting\Http\Controllers\CoaController::class, 'getAccountDetailsType']);
+    Route::post('chart-of-accounts/import-accrual', [\Modules\Accounting\Http\Controllers\CoaController::class, 'importAccrualChart'])
+        ->name('accounting.import-accrual-chart');
     Route::resource('chart-of-accounts', \Modules\Accounting\Http\Controllers\CoaController::class);
     Route::get('ledger/{id}', [\Modules\Accounting\Http\Controllers\CoaController::class, 'ledger'])->name('accounting.ledger');
     Route::get('activate-deactivate/{id}', [\Modules\Accounting\Http\Controllers\CoaController::class, 'activateDeactivate']);

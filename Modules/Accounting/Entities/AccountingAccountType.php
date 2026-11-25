@@ -50,6 +50,10 @@ class AccountingAccountType extends Model
             'liability' => ['label' => __('accounting::lang.liability')],
         ];
 
+        foreach (['revenue', 'cost_of_goods_sold', 'non_operating_income', 'finance_costs'] as $type) {
+            $accounting_primary_type[$type] = ['label' => __('accounting::lang.'.$type)];
+        }
+
         return $accounting_primary_type;
     }
 }

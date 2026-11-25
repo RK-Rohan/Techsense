@@ -13,6 +13,21 @@ class AccountingAccount extends Model
      */
     protected $guarded = ['id'];
 
+    public function parent_account()
+    {
+        return $this->belongsTo(self::class, 'parent_account_id');
+    }
+
+    public function getHasFixedChartPositionAttribute()
+    {
+        return $this->is_control_ledger || ($this->parent_account && $this->parent_account->is_control_ledger);
+    }
+
+    public function getChartBalanceAttribute()
+    {
+        return $this->is_control_ledger ? $this->child_accounts->sum('balance') : $this->balance;
+    }
+
     public function child_accounts()
     {
         return $this->hasMany(\Modules\Accounting\Entities\AccountingAccount::class, 'parent_account_id');
@@ -42,12 +57,16 @@ class AccountingAccount extends Model
     public static function forDropdown($business_id, $with_data = false, $q = '')
     {
         $query = AccountingAccount::where('accounting_accounts.business_id', $business_id)
-                        ->where('status', 'active');
+                        ->where('status', 'active')
+                        ->where('is_control_ledger', false);
         if ($with_data) {
             $account_types = AccountingAccountType::accounting_primary_type();
 
             if (! empty($q)) {
-                $query->where('accounting_accounts.name', 'like', "%{$q}%");
+                $query->where(function ($query) use ($q) {
+                    $query->where('accounting_accounts.name', 'like', "%{$q}%")
+                        ->orWhere('accounting_accounts.gl_code', 'like', "%{$q}%");
+                });
             }
             $accounts = $query->leftJoin('accounting_account_types as at', 'at.id', '=', 'accounting_accounts.account_sub_type_id')
                 ->select('accounting_accounts.name', 'accounting_accounts.id', 'at.name as sub_type',

@@ -26,17 +26,26 @@
     <div class="col-md-12" id="accounts_tree_container">
         <ul>
         @foreach($account_types as $key => $value)
+            @if($has_accrual_chart && !$accounts->contains('account_primary_type', $key))
+                @continue
+            @endif
             <li @if($loop->index==0) data-jstree='{ "opened" : true }' @endif>
                 {{$value}}
                 <ul>
                     @foreach($account_sub_types->where('account_primary_type', $key)->all() as $sub_type)
+                        @if($has_accrual_chart && !$sub_type->chart_code && !$accounts->contains('account_sub_type_id', $sub_type->id))
+                            @continue
+                        @endif
                         <li @if($loop->index==0) data-jstree='{ "opened" : true }' @endif>
-                            {{$sub_type->account_type_name}}
+                            {{$sub_type->account_type_name}} @if($sub_type->chart_code) ({{$sub_type->chart_code}}) @endif
                             <ul>
-                            @foreach($accounts->where('account_sub_type_id', $sub_type->id)->sortBy('name')->all() as $account)
+                            @foreach($accounts->where('account_sub_type_id', $sub_type->id)->sortBy($sub_type->chart_code ? 'id' : 'name')->all() as $account)
                                 <li @if(count($account->child_accounts) == 0) data-jstree='{ "icon" : "fas fa-arrow-alt-circle-right" }' @endif>
                                     {{$account->name}} @if(!empty($account->gl_code))({{$account->gl_code}}) @endif 
-                                    - @format_currency($account->balance)
+                                    - @format_currency($account->chart_balance)
+                                    @if($account->is_control_ledger)
+                                        <span class="text-muted">({{ __('accounting::lang.control_ledger') }})</span>
+                                    @endif
                                     @if($account->status == 'active')  
                                         <span><i class="fas fa-check text-success" title="@lang( 'accounting::lang.active' )"></i></span>
                                     @elseif($account->status == 'inactive') 

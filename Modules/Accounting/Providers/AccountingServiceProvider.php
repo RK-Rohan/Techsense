@@ -62,6 +62,7 @@ class AccountingServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../Config/config.php', 'accounting'
         );
+        $this->mergeConfigFrom(__DIR__.'/../Config/accrual_chart.php', 'accounting.accrual_chart');
     }
 
     /**

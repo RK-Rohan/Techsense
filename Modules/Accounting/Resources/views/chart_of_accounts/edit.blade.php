@@ -13,6 +13,9 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="form-group">
+                    @if($account->has_fixed_chart_position)
+                        <p>{{ $account->account_sub_type->account_type_name }}@if($account->parent_account) / {{ $account->parent_account->name }}@endif</p>
+                    @else
                     {!! Form::label('account_primary_type', __( 'accounting::lang.account_type' ) . ':*') !!}
                     <select class="form-control" name="account_primary_type" id="account_primary_type" required>
                         <option value="">@lang('messages.please_select')</option>
@@ -47,6 +50,7 @@
                         @endforeach
                     </select>
                     <p class="help-block" id="detail_type_desc">{{$account->detail_type->account_type_description ?? ''}}</p>
+                    @endif
                 </div>
                 <div class="form-group">
                     {!! Form::label('name', __( 'user.name' ) . ':*') !!}
@@ -58,6 +62,7 @@
                     <p class="help-block">@lang( 'accounting::lang.gl_code_help' )</p>
                 </div>
                 <div class="form-group">
+                    @unless($account->has_fixed_chart_position)
                     {!! Form::label('parent_account', __( 'accounting::lang.parent_account' ) . ':') !!}
                     <select class="form-control" name="parent_account_id" id="parent_account">
                         <option value="">@lang('messages.please_select')</option>
@@ -67,6 +72,7 @@
                             {{$parent_account->name}}</option>
                         @endforeach
                     </select>
+                    @endunless
                 </div>
             </div>
         </div>

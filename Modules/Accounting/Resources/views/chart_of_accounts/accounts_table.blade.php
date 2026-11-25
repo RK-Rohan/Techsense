@@ -43,7 +43,7 @@
                         </ul>
                     </div>
                 </td>
-                <td>{{$account->name}}</td>
+                <td>{{$account->name}} @if($account->is_control_ledger)<span class="text-muted">({{ __('accounting::lang.control_ledger') }})</span>@endif</td>
                 <td>{{$account->gl_code}}</td>
                 <td></td>
                 <td>@if(!empty($account->account_primary_type)){{__('accounting::lang.' . $account->account_primary_type)}}@endif</td>
@@ -57,7 +57,7 @@
                         {{Str::contains(__('accounting::lang.' . $account->detail_type->name), 'lang.') ? $account->detail_type->name : __('accounting::lang.' . $account->detail_type->name)}}
                     @endif
                 </td>
-                <td>@if(!empty($account->balance)) @format_currency($account->balance) @endif</td>
+                <td>@if(!empty($account->chart_balance)) @format_currency($account->chart_balance) @endif</td>
                 <!-- <td></td> -->
                 <td>@if($account->status == 'active') 
                         <span class="label bg-light-green">@lang( 'accounting::lang.active' )</span> 
@@ -99,7 +99,7 @@
                         </td>
                         <td style="padding-left:30px">{{$child_account->name}}</td>
                         <td>{{$child_account->gl_code}}</td>
-                        <td>{{$account->name}}</td>
+                        <td>{{$account->name}} @if($account->is_control_ledger)<span class="text-muted">({{ __('accounting::lang.control_ledger') }})</span>@endif</td>
                         <td>@if(!empty($child_account->account_primary_type)){{__('accounting::lang.' . $child_account->account_primary_type)}}@endif</td>
                         <td>
                             @if(!empty($child_account->account_sub_type))

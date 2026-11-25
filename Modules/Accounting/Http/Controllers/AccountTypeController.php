@@ -6,6 +6,7 @@ use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Modules\Accounting\Entities\AccountingAccount;
 use Modules\Accounting\Entities\AccountingAccountType;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -85,7 +86,7 @@ class AccountTypeController extends Controller
                     @endif'
                 )
                 ->removeColumn('id')
-                ->rawColumns(['name', 'action'])
+                ->rawColumns(['action'])
                 ->make(true);
         }
     }
@@ -200,7 +201,9 @@ class AccountTypeController extends Controller
             $account_type = AccountingAccountType::where('business_id', $business_id)
                                             ->find($id);
 
-            $input['parent_id'] = $account_type->account_type == 'detail_type' ? $request->input('parent_id') : null;
+            if ($account_type->account_type == 'detail_type' && ! $this->isTypeInUse($account_type->id)) {
+                $input['parent_id'] = $request->input('parent_id');
+            }
 
             $account_type->update($input);
             $output = ['success' => true,
@@ -224,6 +227,11 @@ class AccountTypeController extends Controller
      * @param  int  $id
      * @return Response
      */
+    private function isTypeInUse($id)
+    {
+        return AccountingAccount::where('account_sub_type_id', $id)->orWhere('detail_type_id', $id)->exists();
+    }
+
     public function destroy($id)
     {
         $business_id = request()->session()->get('user.business_id');
@@ -235,9 +243,13 @@ class AccountTypeController extends Controller
 
         if (request()->ajax()) {
             try {
-                AccountingAccountType::where('business_id', $business_id)
-                                      ->where('id', $id)
-                                      ->delete();
+                $type = AccountingAccountType::where('business_id', $business_id)->findOrFail($id);
+
+                if ($this->isTypeInUse($type->id) || AccountingAccountType::where('parent_id', $type->id)->exists()) {
+                    return ['success' => false, 'msg' => __('accounting::lang.account_type_in_use')];
+                }
+
+                $type->delete();
 
                 $output = ['success' => true,
                     'msg' => __('lang_v1.deleted_success'),
