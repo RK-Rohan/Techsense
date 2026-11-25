@@ -12,6 +12,45 @@ use Modules\Accounting\Entities\AccountingAccountsTransaction;
 
 class AccountingUtil extends Util
 {
+    public function nextPostingGlCode(AccountingAccount $ledger): ?string
+    {
+        if (! preg_match('/^[1-8][0-9]{3}$/', (string) $ledger->gl_code)) {
+            return null;
+        }
+
+        $start = (int) $ledger->gl_code + 1;
+        $seededCodes = [];
+        foreach (config('accounting.accrual_chart')[$ledger->account_primary_type][2] ?? [] as [, , $ledgers]) {
+            foreach ($ledgers as [$code, , $children]) {
+                if ((string) $code === $ledger->gl_code && $children) {
+                    $seededCodes = array_keys($children);
+                    $start = min($seededCodes);
+                }
+            }
+        }
+
+        // Keep each posting series in its own ten-code block.
+        $end = intdiv($start, 10) * 10 + 9;
+        if ($end > 8999) {
+            return null;
+        }
+
+        $accounts = AccountingAccount::where('business_id', $ledger->business_id)
+            ->whereIn('gl_code', array_map('strval', range($start, $end)))
+            ->get(['gl_code', 'parent_account_id']);
+        $last = max(array_merge([$start - 1], $seededCodes, $accounts
+            ->where('parent_account_id', $ledger->id)->pluck('gl_code')->map(fn ($code) => (int) $code)->all()));
+        $usedCodes = $accounts->pluck('gl_code')->all();
+
+        for ($code = $last + 1; $code <= $end; $code++) {
+            if (! in_array((string) $code, $usedCodes, true)) {
+                return (string) $code;
+            }
+        }
+
+        return null;
+    }
+
     public function balanceFormula($accounting_accounts_alias = 'accounting_accounts',
                                  $accounting_account_transaction_alias = 'AAT')
     {

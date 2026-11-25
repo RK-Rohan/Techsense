@@ -212,7 +212,16 @@
             });
         }
     });
+    $(document).on('change', '#create_account_modal select#parent_account', function () {
+        var codeInput = $('#create_account_modal [data-auto-gl-code]');
+        if (codeInput.length) {
+            var selected = $(this).select2('data')[0];
+            codeInput.val(selected && selected.next_gl_code ? selected.next_gl_code : '');
+        }
+    });
+
     $(document).on('change', '#account_sub_type', function(){
+        $('#create_account_modal [data-auto-gl-code]').val('');
         if($(this).val() !== '') {
             $.ajax({
                 url: '/accounting/get-account-details-types?account_type_id=' + $(this).val(),

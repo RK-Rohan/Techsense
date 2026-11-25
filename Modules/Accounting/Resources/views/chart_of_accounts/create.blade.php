@@ -55,8 +55,15 @@
                 </div>
                 <div class="form-group">
                     {!! Form::label('gl_code', __( 'accounting::lang.gl_code' ) . ':') !!}
-                    {!! Form::text('gl_code', null, ['class' => 'form-control', 'placeholder' => __( 'accounting::lang.gl_code' ) ]); !!}
-                    <p class="help-block">{{ __(($pdf_chart_only || $control_ledger) ? 'accounting::lang.pdf_gl_code_help' : 'accounting::lang.gl_code_help') }}</p>
+                    @if($pdf_chart_only || $control_ledger)
+                        {!! Form::text('gl_code', $next_gl_code, ['class' => 'form-control', 'readonly',
+                            'data-auto-gl-code' => true]); !!}
+                        <p class="help-block">{{ __($control_ledger && !$next_gl_code
+                            ? 'accounting::lang.posting_gl_code_unavailable' : 'accounting::lang.posting_gl_code_help') }}</p>
+                    @else
+                        {!! Form::text('gl_code', null, ['class' => 'form-control', 'placeholder' => __('accounting::lang.gl_code')]); !!}
+                        <p class="help-block">@lang('accounting::lang.gl_code_help')</p>
+                    @endif
                 </div>
                 @unless($pdf_chart_only || $control_ledger)
                 <div class="form-group">

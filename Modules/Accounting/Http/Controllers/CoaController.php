@@ -225,8 +225,10 @@ class CoaController extends Controller
                     ->findOrFail(request()->input('control_ledger_id'));
             }
 
+            $next_gl_code = $control_ledger ? $this->accountingUtil->nextPostingGlCode($control_ledger) : null;
+
             return view('accounting::chart_of_accounts.create')
-                ->with(compact('account_types', 'pdf_chart_only', 'control_ledger'));
+                ->with(compact('account_types', 'pdf_chart_only', 'control_ledger', 'next_gl_code'));
         }
     }
 
@@ -1246,11 +1248,12 @@ class CoaController extends Controller
                                             ->when(AccountingAccountType::usesOnlyAccrualChart($business_id), function ($query) {
                                                 $query->where('is_control_ledger', true);
                                             })
-                                            ->get(['name', 'id', 'gl_code', 'is_control_ledger'])
+                                            ->get(['name', 'id', 'gl_code', 'is_control_ledger', 'account_primary_type', 'business_id'])
                                             ->map(function ($account) {
                                                 return [
                                                     'id' => $account->id,
                                                     'text' => $account->is_control_ledger ? $account->gl_code.' '.$account->name : $account->name,
+                                                    'next_gl_code' => $account->is_control_ledger ? $this->accountingUtil->nextPostingGlCode($account) : null,
                                                 ];
                                             });
             $parent_accounts->prepend([
@@ -1327,6 +1330,7 @@ class CoaController extends Controller
 
         try {
             DB::beginTransaction();
+            Business::whereKey($business_id)->lockForUpdate()->firstOrFail();
 
             $input = $request->only(['name', 'account_primary_type', 'account_sub_type_id', 'detail_type_id',
                 'parent_account_id', 'description', 'gl_code', ]);
@@ -1352,6 +1356,16 @@ class CoaController extends Controller
                     return redirect()->back()->with('status', [
                         'success' => false,
                         'msg' => __('accounting::lang.choose_chart_control_ledger'),
+                    ]);
+                }
+
+                $input['gl_code'] = $this->accountingUtil->nextPostingGlCode($parent);
+                if ($input['gl_code'] === null) {
+                    DB::rollBack();
+
+                    return redirect()->back()->with('status', [
+                        'success' => false,
+                        'msg' => __('accounting::lang.posting_gl_code_unavailable'),
                     ]);
                 }
 

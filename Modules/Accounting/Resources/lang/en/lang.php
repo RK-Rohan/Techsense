@@ -15,6 +15,8 @@ return [
     'posting_account_name' => 'Posting Account Name',
     'add_posting_account' => 'Add Posting Account',
     'pdf_gl_code_help' => 'The client chart uses four-digit GL codes.',
+    'posting_gl_code_help' => 'The next available GL code is assigned when you save.',
+    'posting_gl_code_unavailable' => 'No GL code is available in this control ledger’s posting series.',
     'control_ledger' => 'Control Ledger',
     'choose_pdf_account_group' => 'Choose a group from the client chart for this detail type.',
     'choose_chart_control_ledger' => 'Choose a control ledger as the parent account.',
