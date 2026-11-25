@@ -53,6 +53,15 @@
                                         title="@lang( 'lang_v1.inactive' )" style="font-size: 14px;"></i></span>
                                     @endif
                                     <span class="tree-actions">
+                                        @if($account->is_control_ledger)
+                                            @php($addPostingAccountUrl = route('chart-of-accounts.create', ['control_ledger_id' => $account->id]))
+                                            <a class="btn btn-xs btn-default text-primary btn-modal"
+                                                title="{{ __('accounting::lang.add_posting_account') }}"
+                                                aria-label="{{ __('accounting::lang.add_posting_account') }}"
+                                                href="{{ $addPostingAccountUrl }}" data-href="{{ $addPostingAccountUrl }}"
+                                                data-container="#create_account_modal">
+                                                <i class="fas fa-plus" aria-hidden="true"></i></a>
+                                        @endif
                                         <a class="btn btn-xs btn-default text-success ledger-link" 
                                             title="@lang( 'accounting::lang.ledger' )"
                                             href="{{action([\Modules\Accounting\Http\Controllers\CoaController::class, 'ledger'], $account->id)}}">

@@ -218,18 +218,20 @@
                 url: '/accounting/get-account-details-types?account_type_id=' + $(this).val(),
                 dataType: 'json',
                 success: function(result) {
-                    $('#detail_type').select2('destroy')
-                            .empty()
-                            .select2({
-                                data: result.detail_types,
-                                dropdownParent: $('#create_account_modal'),
-                            }).on('change', function() {
-                                if($(this).val() !== '') {
-                                    var desc = $(this).select2('data')[0].description;
-                                    $('#detail_type_desc').html(desc);
-                                }
-                            });
-                        $('#parent_account').select2('destroy')
+                    if ($('#detail_type').length) {
+                        $('#detail_type').select2('destroy')
+                                .empty()
+                                .select2({
+                                    data: result.detail_types,
+                                    dropdownParent: $('#create_account_modal'),
+                                }).on('change', function() {
+                                    if($(this).val() !== '') {
+                                        var desc = $(this).select2('data')[0].description;
+                                        $('#detail_type_desc').html(desc);
+                                    }
+                                });
+                    }
+                    $('#parent_account').select2('destroy')
                         .empty()
                         .select2({
                             data: result.parent_accounts,

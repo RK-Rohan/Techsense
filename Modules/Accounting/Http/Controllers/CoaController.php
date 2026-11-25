@@ -215,7 +215,18 @@ class CoaController extends Controller
         if (request()->ajax()) {
             $account_types = AccountingAccountType::accounting_primary_type($business_id);
 
-            return view('accounting::chart_of_accounts.create')->with(compact('account_types'));
+            $pdf_chart_only = AccountingAccountType::usesOnlyAccrualChart($business_id);
+
+            $control_ledger = null;
+            if (request()->filled('control_ledger_id')) {
+                $control_ledger = AccountingAccount::where('business_id', $business_id)
+                    ->where('is_control_ledger', true)
+                    ->whereNull('parent_account_id')
+                    ->findOrFail(request()->input('control_ledger_id'));
+            }
+
+            return view('accounting::chart_of_accounts.create')
+                ->with(compact('account_types', 'pdf_chart_only', 'control_ledger'));
         }
     }
 
@@ -1232,10 +1243,18 @@ class CoaController extends Controller
             $parent_accounts = AccountingAccount::where('business_id', $business_id)
                                             ->where('account_sub_type_id', $account_type_id)
                                             ->whereNull('parent_account_id')
-                                            ->select('name as text', 'id')
-                                            ->get();
+                                            ->when(AccountingAccountType::usesOnlyAccrualChart($business_id), function ($query) {
+                                                $query->where('is_control_ledger', true);
+                                            })
+                                            ->get(['name', 'id', 'gl_code', 'is_control_ledger'])
+                                            ->map(function ($account) {
+                                                return [
+                                                    'id' => $account->id,
+                                                    'text' => $account->is_control_ledger ? $account->gl_code.' '.$account->name : $account->name,
+                                                ];
+                                            });
             $parent_accounts->prepend([
-                'id' => 'null',
+                'id' => '',
                 'text' => __('messages.please_select'),
             ]);
 
@@ -1248,9 +1267,9 @@ class CoaController extends Controller
             foreach ($detail_types_obj as $detail_type) {
                 $detail_types[] = [
                     'id' => $detail_type->id,
-                    'text' => __('accounting::lang.'.$detail_type->name),
-                    'description' => ! empty($detail_type->description) ?
-                        __('accounting::lang.'.$detail_type->description) : '',
+                    'text' => $detail_type->account_type_name,
+                    'description' => $detail_type->description && empty($detail_type->business_id)
+                        ? __('accounting::lang.'.$detail_type->description) : ($detail_type->description ?? ''),
                 ];
             }
 
