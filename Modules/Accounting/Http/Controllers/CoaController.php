@@ -45,7 +45,7 @@ class CoaController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $account_types = AccountingAccountType::accounting_primary_type();
+        $account_types = AccountingAccountType::accounting_primary_type($business_id);
 
         $has_accrual_chart = AccountingAccountType::where('business_id', $business_id)->whereNotNull('chart_code')->exists();
 
@@ -103,10 +103,7 @@ class CoaController extends Controller
                         ->with(compact('accounts', 'account_exist'));
             } else {
                 $account_sub_types = AccountingAccountType::where('account_type', 'sub_type')
-                                            ->where(function ($q) use ($business_id) {
-                                                $q->whereNull('business_id')
-                                                    ->orWhere('business_id', $business_id);
-                                            })
+                                            ->forBusiness($business_id)
                                             ->get();
 
                 return view('accounting::chart_of_accounts.accounts_tree')
@@ -216,7 +213,7 @@ class CoaController extends Controller
         }
 
         if (request()->ajax()) {
-            $account_types = AccountingAccountType::accounting_primary_type();
+            $account_types = AccountingAccountType::accounting_primary_type($business_id);
 
             return view('accounting::chart_of_accounts.create')->with(compact('account_types'));
         }
@@ -1228,10 +1225,7 @@ class CoaController extends Controller
         if (request()->ajax()) {
             $account_type_id = request()->input('account_type_id');
             $detail_types_obj = AccountingAccountType::where('parent_id', $account_type_id)
-                                    ->where(function ($q) use ($business_id) {
-                                        $q->whereNull('business_id')
-                                            ->orWhere('business_id', $business_id);
-                                    })
+                                    ->forBusiness($business_id)
                                     ->where('account_type', 'detail_type')
                                     ->get();
 
@@ -1273,10 +1267,7 @@ class CoaController extends Controller
             $business_id = request()->session()->get('user.business_id');
             $account_primary_type = request()->input('account_primary_type');
             $sub_types_obj = AccountingAccountType::where('account_primary_type', $account_primary_type)
-                                        ->where(function ($q) use ($business_id) {
-                                            $q->whereNull('business_id')
-                                                ->orWhere('business_id', $business_id);
-                                        })
+                                        ->forBusiness($business_id)
                                         ->where('account_type', 'sub_type')
                                         ->get();
 
@@ -1321,7 +1312,8 @@ class CoaController extends Controller
             $input = $request->only(['name', 'account_primary_type', 'account_sub_type_id', 'detail_type_id',
                 'parent_account_id', 'description', 'gl_code', ]);
 
-            $account_type = AccountingAccountType::find($input['account_sub_type_id']);
+            $account_type = AccountingAccountType::where('account_type', 'sub_type')->forBusiness($business_id)
+                ->findOrFail($input['account_sub_type_id']);
 
             $input['parent_account_id'] = ! empty($input['parent_account_id'])
             && $input['parent_account_id'] !== 'null' ? $input['parent_account_id'] : null;
@@ -1408,20 +1400,14 @@ class CoaController extends Controller
                                     ->with(['detail_type'])
                                     ->find($id);
 
-            $account_types = AccountingAccountType::accounting_primary_type();
+            $account_types = AccountingAccountType::accounting_primary_type($business_id);
             $account_sub_types = AccountingAccountType::where('account_primary_type', $account->account_primary_type)
                                             ->where('account_type', 'sub_type')
-                                            ->where(function ($q) use ($business_id) {
-                                                $q->whereNull('business_id')
-                                                    ->orWhere('business_id', $business_id);
-                                            })
+                                            ->forBusiness($business_id)
                                             ->get();
             $account_detail_types = AccountingAccountType::where('parent_id', $account->account_sub_type_id)
                                     ->where('account_type', 'detail_type')
-                                    ->where(function ($q) use ($business_id) {
-                                        $q->whereNull('business_id')
-                                            ->orWhere('business_id', $business_id);
-                                    })
+                                    ->forBusiness($business_id)
                                     ->get();
 
             $parent_accounts = AccountingAccount::where('business_id', $business_id)

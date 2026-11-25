@@ -62,7 +62,7 @@ class BudgetController extends Controller
         }
         $months = $this->getFinancialYearMonths();
 
-        $account_types = AccountingAccountType::accounting_primary_type();
+        $account_types = AccountingAccountType::accounting_primary_type($business_id);
 
         if (! empty(request()->input('format'))) {
             $view_type = request()->input('view_type');

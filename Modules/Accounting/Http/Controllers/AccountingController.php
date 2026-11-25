@@ -56,7 +56,7 @@ class AccountingController extends Controller
                                 ->groupBy('accounting_accounts.account_primary_type')
                                 ->get();
 
-        $account_types = AccountingAccountType::accounting_primary_type();
+        $account_types = AccountingAccountType::accounting_primary_type($business_id);
 
         $labels = [];
         $values = [];
@@ -91,10 +91,7 @@ class AccountingController extends Controller
         $all_charts = [];
         foreach ($account_types as $k => $v) {
             $sub_types = AccountingAccountType::where('account_primary_type', $k)
-                                        ->where(function ($q) use ($business_id) {
-                                            $q->whereNull('business_id')
-                                                ->orWhere('business_id', $business_id);
-                                        })
+                                        ->forBusiness($business_id)
                                         ->get();
 
             $balances = AccountingAccount::leftjoin('accounting_accounts_transactions as AAT',

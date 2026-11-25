@@ -46,13 +46,11 @@ class SettingsController extends Controller
         }
 
         $account_sub_types = AccountingAccountType::where('account_type', 'sub_type')
-                                    ->where(function ($q) use ($business_id) {
-                                        $q->whereNull('business_id')
-                                        ->orWhere('business_id', $business_id);
-                                    })
+                                    ->forBusiness($business_id)
                                     ->get();
 
-        $account_types = AccountingAccountType::accounting_primary_type();
+        $account_types = AccountingAccountType::accounting_primary_type($business_id);
+        $pdf_chart_only = AccountingAccountType::usesOnlyAccrualChart($business_id);
 
         $accounting_settings = $this->accountingUtil->getAccountingSettings($business_id);
 
@@ -60,7 +58,7 @@ class SettingsController extends Controller
 
          $expence_categories = ExpenseCategory::where('business_id', $business_id)->get();
 
-        return view('accounting::settings.index')->with(compact('account_sub_types', 'account_types', 'accounting_settings', 'business_locations', 'expence_categories'));
+        return view('accounting::settings.index')->with(compact('account_sub_types', 'account_types', 'accounting_settings', 'business_locations', 'expence_categories', 'pdf_chart_only'));
     }
 
     public function resetData()

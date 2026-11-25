@@ -40,7 +40,36 @@ class AccountingAccountType extends Model
         return $this->belongsTo('Modules\Accounting\Entities\AccountingAccountType', 'parent_id', 'id');
     }
 
-    public static function accounting_primary_type()
+    public static function usesOnlyAccrualChart($business_id)
+    {
+        $groups = static::where('business_id', $business_id)->whereNotNull('chart_code');
+        if (! $groups->exists()) {
+            return false;
+        }
+
+        return ! AccountingAccount::where('business_id', $business_id)
+            ->where(function ($query) use ($groups) {
+                $query->whereNull('account_sub_type_id')
+                    ->orWhereNotIn('account_sub_type_id', $groups->select('id'));
+            })->exists();
+    }
+
+    public function scopeForBusiness($query, $business_id)
+    {
+        if (static::usesOnlyAccrualChart($business_id)) {
+            return $query->where('business_id', $business_id)
+                ->where(function ($query) use ($business_id) {
+                    $query->whereNotNull('chart_code')
+                        ->orWhereIn('parent_id', static::where('business_id', $business_id)->whereNotNull('chart_code')->select('id'));
+                });
+        }
+
+        return $query->where(function ($query) use ($business_id) {
+            $query->whereNull('business_id')->orWhere('business_id', $business_id);
+        });
+    }
+
+    public static function accounting_primary_type($business_id = null)
     {
         $accounting_primary_type = [
             'asset' => ['label' => __('accounting::lang.asset')],
@@ -52,6 +81,12 @@ class AccountingAccountType extends Model
 
         foreach (['revenue', 'cost_of_goods_sold', 'non_operating_income', 'finance_costs'] as $type) {
             $accounting_primary_type[$type] = ['label' => __('accounting::lang.'.$type)];
+        }
+
+        if ($business_id !== null && static::usesOnlyAccrualChart($business_id)) {
+            return array_map(function ($class) {
+                return ['label' => $class[0]];
+            }, config('accounting.accrual_chart'));
         }
 
         return $accounting_primary_type;

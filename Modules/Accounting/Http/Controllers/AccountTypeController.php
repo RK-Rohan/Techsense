@@ -40,10 +40,7 @@ class AccountTypeController extends Controller
 
         if (request()->ajax()) {
             $query = AccountingAccountType::where('account_type', request()->input('account_type'))
-                        ->where(function ($q) use ($business_id) {
-                            $q->whereNull('business_id')
-                              ->orWhere('business_id', $business_id);
-                        })
+                        ->forBusiness($business_id)
                         ->with('parent')
                         ->select(['name', 'description', 'id', 'business_id', 'parent_id', 'account_primary_type']);
 
@@ -124,6 +121,12 @@ class AccountTypeController extends Controller
 
             $input['account_primary_type'] = ($input['account_type'] == 'sub_type') ? $request->input('account_primary_type') : null;
 
+            if (AccountingAccountType::usesOnlyAccrualChart($business_id)
+                && ($input['account_type'] !== 'detail_type'
+                    || ! AccountingAccountType::where('account_type', 'sub_type')->forBusiness($business_id)->whereKey($input['parent_id'])->exists())) {
+                return ['success' => false, 'msg' => __('accounting::lang.choose_pdf_account_group')];
+            }
+
             $input['show_balance'] = ($input['account_type'] == 'sub_type') ? 1 : 0;
 
             $account_type = AccountingAccountType::create($input);
@@ -168,12 +171,9 @@ class AccountTypeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $account_type = AccountingAccountType::find($id);
+        $account_type = AccountingAccountType::where('business_id', $business_id)->forBusiness($business_id)->findOrFail($id);
         $account_sub_types = AccountingAccountType::where('account_type', 'sub_type')
-                                              ->where(function ($q) use ($business_id) {
-                                                  $q->whereNull('business_id')
-                                                  ->orWhere('business_id', $business_id);
-                                              })
+                                              ->forBusiness($business_id)
                                                ->get();
 
         return view('accounting::account_type.edit')->with(compact('account_type', 'account_sub_types'));

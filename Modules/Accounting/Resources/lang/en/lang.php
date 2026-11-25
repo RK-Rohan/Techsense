@@ -11,6 +11,7 @@ return [
     'accrual_chart_imported' => 'Client accrual chart imported.',
     'account_type_in_use' => 'This account type is in use.',
     'control_ledger' => 'Control ledger',
+    'choose_pdf_account_group' => 'Choose a group from the client chart for this detail type.',
     'choose_chart_control_ledger' => 'Choose a control ledger as the parent account.',
     'control_ledger_posting_error' => 'Choose a posting account. Control ledgers summarize their child accounts.',
     'accounting' => 'Accounting',
