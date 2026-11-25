@@ -264,7 +264,7 @@
 							</div>
 							<div class="col-md-12">
 								<br>
-								<table class="table table-bordered table-striped" id="account_sub_type_table">
+								<table class="table table-bordered table-striped" id="account_sub_type_table" style="width: 100%;">
 									<thead>
 										<tr>
 											<th>
@@ -340,6 +340,7 @@
 			ajax: "{{action([\Modules\Accounting\Http\Controllers\AccountTypeController::class, 'index'])}}?account_type=sub_type",
 			columnDefs: [{
 				targets: [2],
+				className: 'text-nowrap',
 				orderable: false,
 				searchable: false,
 			}, ],
@@ -364,6 +365,7 @@
 			ajax: "{{action([\Modules\Accounting\Http\Controllers\AccountTypeController::class, 'index'])}}?account_type=detail_type",
 			columnDefs: [{
 				targets: 3,
+				className: 'text-nowrap',
 				orderable: false,
 				searchable: false,
 			}, ],
@@ -384,6 +386,10 @@
 					name: 'action'
 				},
 			],
+		});
+
+		$('a[href="#sub_type_tab"], a[href="#detail_type_tab"]').on('shown.bs.tab', function () {
+			$.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
 		});
 
 		$('#add_account_sub_type').click(function() {
